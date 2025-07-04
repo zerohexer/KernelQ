@@ -76,10 +76,10 @@
     "multiPart": {
       "type": "object",
       "properties": {
-        "partNumber": { "type": "integer", "minimum": 1 },
+        "part": { "type": "integer", "minimum": 1 },
         "totalParts": { "type": "integer", "minimum": 1 },
-        "nextPartId": { "type": ["integer", "null"] },
-        "previousPartId": { "type": ["integer", "null"] }
+        "nextProblemId": { "type": ["integer", "null"] },
+        "previousProblemId": { "type": ["integer", "null"] }
       }
     },
     "validation": {
