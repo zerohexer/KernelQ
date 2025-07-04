@@ -424,7 +424,7 @@ const KernelCodeEditor = ({
     };
 
     return (
-        <div className={`kernel-code-editor ${className}`}>
+        <div className={`kernel-code-editor relative ${className}`} style={{ isolation: 'isolate' }}>
             <Editor
                 height={height}
                 defaultLanguage="c"
