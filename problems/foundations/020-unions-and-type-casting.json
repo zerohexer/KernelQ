@@ -1,0 +1,163 @@
+{
+  "id": 20,
+  "title": "Unions, Type Casting, and Memory Layout",
+  "phase": "foundations",
+  "difficulty": 4,
+  "xp": 35,
+  "description": "Learn unions for overlapping memory layouts and type casting for data conversion. Essential for hardware registers, protocol headers, and low-level kernel programming.",
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n\n// TODO: Define union for different data interpretations\nunion data_converter {\n    unsigned int full_value;      // 32-bit integer\n    unsigned short half_values[2]; // Two 16-bit values  \n    unsigned char bytes[4];        // Four 8-bit values\n    struct {\n        unsigned char b0:4;  // Lower 4 bits\n        unsigned char b1:4;  // Upper 4 bits of first byte\n        unsigned char b2:4;\n        unsigned char b3:4;\n        unsigned char b4:4;\n        unsigned char b5:4;\n        unsigned char b6:4;\n        unsigned char b7:4;\n    } nibbles;  // Bit fields\n};\n\n// TODO: Define union for network packet header\nunion packet_header {\n    struct {\n        unsigned char version:4;\n        unsigned char header_len:4;\n        unsigned char type_of_service;\n        unsigned short total_length;\n    } ip_header;\n    unsigned char raw_bytes[4];\n    unsigned int raw_value;\n};\n\nstatic int __init unions_init(void) {\n    union data_converter converter;\n    union packet_header packet;\n    void *generic_ptr;\n    int int_value = 0x12345678;\n    float float_value = 3.14;\n    \n    // TODO: Use union to interpret data differently\n    converter.full_value = 0x12345678;\n    \n    // TODO: Type casting examples\n    // Cast int to float and back\n    float_value = (float)int_value;\n    int_value = (int)float_value;\n    \n    // TODO: Pointer type casting\n    generic_ptr = &converter;\n    int *int_ptr = (int *)generic_ptr;\n    char *char_ptr = (char *)generic_ptr;\n    \n    // TODO: Initialize packet header\n    packet.ip_header.version = 4;\n    packet.ip_header.header_len = 5; \n    packet.ip_header.type_of_service = 0;\n    packet.ip_header.total_length = 1500;\n    \n    // Print results:\n    // \"Union Data Converter:\"\n    // \"Full value: 0x12345678\"\n    // \"Half values: 0x1234, 0x5678\" (or 0x5678, 0x1234 on little-endian)\n    // \"Bytes: 0x12, 0x34, 0x56, 0x78\" (or reversed on little-endian)\n    // \"Type Casting:\"\n    // \"int to float: 305419896.000000\"\n    // \"Pointer casting works\"\n    // \"Packet Header:\"\n    // \"Version: 4, Header Length: 5\"\n    // \"Total Length: 1500\"\n    // \"Raw header bytes: 0x45, 0x0, 0xDC, 0x5\" (endian-dependent)\n    \n    return 0;\n}\n\nstatic void __exit unions_exit(void) {\n    printk(KERN_INFO \"Unions and type casting module unloaded\\n\");\n}\n\nmodule_init(unions_init);\nmodule_exit(unions_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Your Name\");\nMODULE_DESCRIPTION(\"Unions and type casting demonstration module\");",
+  "concepts": [
+    "unions",
+    "overlapping memory",
+    "type casting",
+    "bit fields",
+    "endianness",
+    "pointer casting",
+    "memory layout"
+  ],
+  "skills": [
+    "Low-level memory manipulation",
+    "Data structure optimization",
+    "Hardware interface programming",
+    "Type system understanding"
+  ],
+  "inputOutput": {
+    "expectedOutput": [
+      "Union Data Converter:",
+      "Full value: 0x12345678",
+      "Half values: 0x1234, 0x5678",
+      "Bytes: 0x12, 0x34, 0x56, 0x78",
+      "Type Casting:",
+      "int to float: 305419896.000000",
+      "Pointer casting works",
+      "Packet Header:",
+      "Version: 4, Header Length: 5",
+      "Total Length: 1500",
+      "Raw header bytes: 0x45, 0x0, 0xDC, 0x5"
+    ],
+    "requirements": [
+      "Use required function names: unions_init, unions_exit",
+      "Define union data_converter with overlapping int, short array, byte array, and bit fields",
+      "Define union packet_header with IP header struct and raw data views",
+      "Use exact values: converter.full_value=0x12345678, int_value=0x12345678, float_value=3.14",
+      "Demonstrate type casting: int to float, pointer casting",
+      "Initialize packet header: version=4, header_len=5, total_length=1500",
+      "Print all union members to show overlapping memory",
+      "Handle endianness correctly in output"
+    ]
+  },
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["unions_init", "unions_exit"],
+      "variables": [
+        { "name": "converter", "type": "union data_converter", "value": "initialized" },
+        { "name": "packet", "type": "union packet_header", "value": "initialized" },
+        { "name": "generic_ptr", "type": "void*", "value": "pointer" },
+        { "name": "int_value", "type": "int", "value": "0x12345678" },
+        { "name": "float_value", "type": "float", "value": "3.14" }
+      ],
+      "outputMessages": [
+        "Union Data Converter:",
+        "Full value: 0x12345678",
+        "Half values: 0x[0-9a-fA-F]+, 0x[0-9a-fA-F]+",
+        "Bytes: 0x[0-9a-fA-F]+, 0x[0-9a-fA-F]+, 0x[0-9a-fA-F]+, 0x[0-9a-fA-F]+",
+        "Type Casting:",
+        "int to float: [0-9]+\\.[0-9]+",
+        "Pointer casting works",
+        "Packet Header:",
+        "Version: 4, Header Length: 5",
+        "Total Length: 1500"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h"
+      ],
+      "mustContain": ["union data_converter", "union packet_header", "(float)", "(int *)", "(char *)", "converter.full_value", "packet.ip_header"],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "union_definitions",
+        "name": "Proper Union Definitions",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["union data_converter", "union packet_header", "unsigned int full_value", "unsigned short half_values"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "bit_fields",
+        "name": "Bit Field Usage in Union",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["unsigned char b0:4", "unsigned char version:4", "unsigned char header_len:4"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "type_casting_operations",
+        "name": "Type Casting Operations",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["(float)int_value", "(int)float_value", "(int *)", "(char *)"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "union_member_access",
+        "name": "Union Member Access",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["converter.full_value", "converter.half_values", "converter.bytes", "packet.ip_header"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "overlapping_memory_demo",
+        "name": "Overlapping Memory Demonstration",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Full value: 0x12345678", "exact": true },
+          { "pattern": "Half values: 0x[0-9a-fA-F]+, 0x[0-9a-fA-F]+", "exact": false },
+          { "pattern": "Bytes: 0x[0-9a-fA-F]+", "exact": false }
+        ]
+      },
+      {
+        "id": "type_casting_results",
+        "name": "Type Casting Results",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "int to float: [0-9]+\\.[0-9]+", "exact": false },
+          { "pattern": "Pointer casting works", "exact": true }
+        ]
+      },
+      {
+        "id": "packet_header_fields",
+        "name": "Packet Header Field Access",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Version: 4, Header Length: 5", "exact": true },
+          { "pattern": "Total Length: 1500", "exact": true }
+        ]
+      },
+      {
+        "id": "no_hardcoded_values",
+        "name": "No Hardcoded Union Values",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["converter.full_value =", "converter.half_values[", "converter.bytes["],
+        "prohibitedSymbols": ["= 0x1234", "= 0x5678", "= 0x12"]
+      },
+      {
+        "id": "proper_initialization",
+        "name": "Proper Union Initialization",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["= 0x12345678", "packet.ip_header.version = 4"],
+        "prohibitedSymbols": []
+      }
+    ]
+  }
+}

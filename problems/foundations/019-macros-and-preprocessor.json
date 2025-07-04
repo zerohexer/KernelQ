@@ -1,0 +1,171 @@
+{
+  "id": 19,
+  "title": "Macros and Preprocessor Directives",
+  "phase": "foundations",
+  "difficulty": 4,
+  "xp": 35,
+  "description": "Master preprocessor macros, conditional compilation, and function-like macros essential for kernel programming. Learn proper macro design and common kernel macro patterns.",
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n\n// TODO: Define simple object-like macros\n#define BUFFER_SIZE 1024\n#define MAX_USERS 100\n#define DRIVER_VERSION \"1.2.3\"\n\n// TODO: Define function-like macros\n#define MIN(a, b) ((a) < (b) ? (a) : (b))\n#define MAX(a, b) ((a) > (b) ? (a) : (b))\n#define SQUARE(x) ((x) * (x))\n#define IS_POWER_OF_2(x) (((x) != 0) && (((x) & ((x) - 1)) == 0))\n\n// TODO: Define conditional compilation macros\n#define DEBUG_ENABLED 1\n\n#if DEBUG_ENABLED\n#define DEBUG_PRINT(fmt, args...) printk(KERN_DEBUG fmt, ##args)\n#else\n#define DEBUG_PRINT(fmt, args...) do { } while (0)\n#endif\n\n// TODO: Define multi-line macro with do-while(0)\n#define INIT_DEVICE(dev, id, name) do { \\\n    (dev)->device_id = (id); \\\n    strncpy((dev)->device_name, (name), sizeof((dev)->device_name) - 1); \\\n    (dev)->device_name[sizeof((dev)->device_name) - 1] = '\\0'; \\\n    (dev)->status = 0; \\\n} while (0)\n\nstruct device {\n    int device_id;\n    char device_name[32];\n    int status;\n};\n\nstatic int __init macros_init(void) {\n    int a = 15, b = 25;\n    int num = 8;\n    struct device my_device;\n    \n    // TODO: Use simple macros\n    // Print buffer size, max users, and version\n    \n    // TODO: Use function-like macros\n    // Calculate and print MIN(a, b), MAX(a, b), SQUARE(num)\n    // Check if num is power of 2\n    \n    // TODO: Use conditional compilation\n    // Use DEBUG_PRINT to print debug message\n    \n    // TODO: Use multi-line macro\n    // Initialize device with id=1, name=\"test_device\"\n    \n    // Expected output:\n    // \"Macro Constants:\"\n    // \"Buffer size: 1024\"\n    // \"Max users: 100\"\n    // \"Driver version: 1.2.3\"\n    // \"Function Macros:\"\n    // \"MIN(15, 25) = 15\"\n    // \"MAX(15, 25) = 25\"\n    // \"SQUARE(8) = 64\"\n    // \"8 is power of 2: 1\"\n    // \"Debug message: Module initialized\"\n    // \"Device initialized: ID=1, Name=test_device\"\n    \n    return 0;\n}\n\nstatic void __exit macros_exit(void) {\n    printk(KERN_INFO \"Macros module unloaded\\n\");\n}\n\nmodule_init(macros_init);\nmodule_exit(macros_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Your Name\");\nMODULE_DESCRIPTION(\"Macros and preprocessor directives module\");",
+  "concepts": [
+    "object-like macros",
+    "function-like macros",
+    "conditional compilation",
+    "#if/#else/#endif",
+    "variadic macros",
+    "do-while(0) idiom",
+    "macro safety"
+  ],
+  "skills": [
+    "Preprocessor programming",
+    "Macro design",
+    "Conditional compilation",
+    "Code generation"
+  ],
+  "inputOutput": {
+    "expectedOutput": [
+      "Macro Constants:",
+      "Buffer size: 1024",
+      "Max users: 100",
+      "Driver version: 1.2.3",
+      "Function Macros:",
+      "MIN(15, 25) = 15",
+      "MAX(15, 25) = 25",
+      "SQUARE(8) = 64",
+      "8 is power of 2: 1",
+      "Debug message: Module initialized",
+      "Device initialized: ID=1, Name=test_device"
+    ],
+    "requirements": [
+      "Use required function names: macros_init, macros_exit",
+      "Define object-like macros: BUFFER_SIZE=1024, MAX_USERS=100, DRIVER_VERSION=\"1.2.3\"",
+      "Define function-like macros: MIN, MAX, SQUARE, IS_POWER_OF_2",
+      "Implement conditional compilation with DEBUG_ENABLED and DEBUG_PRINT",
+      "Define multi-line macro INIT_DEVICE using do-while(0) idiom",
+      "Use exact variable values: a=15, b=25, num=8",
+      "Use all defined macros in the code",
+      "Print results in exact format shown above"
+    ]
+  },
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["macros_init", "macros_exit"],
+      "variables": [
+        { "name": "a", "type": "int", "value": 15 },
+        { "name": "b", "type": "int", "value": 25 },
+        { "name": "num", "type": "int", "value": 8 },
+        { "name": "my_device", "type": "struct device", "value": "initialized" }
+      ],
+      "outputMessages": [
+        "Macro Constants:",
+        "Buffer size: 1024",
+        "Max users: 100",
+        "Driver version: 1\\.2\\.3",
+        "Function Macros:",
+        "MIN\\(15, 25\\) = 15",
+        "MAX\\(15, 25\\) = 25",
+        "SQUARE\\(8\\) = 64",
+        "8 is power of 2: 1",
+        "Debug message: Module initialized",
+        "Device initialized: ID=1, Name=test_device"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h"
+      ],
+      "mustContain": ["#define BUFFER_SIZE", "#define MIN(", "#if DEBUG_ENABLED", "do {", "} while (0)", "MIN(a, b)", "MAX(a, b)"],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "object_like_macros",
+        "name": "Object-like Macro Definitions",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["#define BUFFER_SIZE 1024", "#define MAX_USERS 100", "#define DRIVER_VERSION"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_like_macros",
+        "name": "Function-like Macro Definitions",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["#define MIN(a, b)", "#define MAX(a, b)", "#define SQUARE(x)", "#define IS_POWER_OF_2(x)"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "conditional_compilation",
+        "name": "Conditional Compilation Directives",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["#if DEBUG_ENABLED", "#else", "#endif"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "variadic_macro",
+        "name": "Variadic Macro with ##args",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["##args", "fmt, args..."],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "do_while_idiom",
+        "name": "do-while(0) Macro Idiom",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["do {", "} while (0)", "\\\\"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "macro_safety",
+        "name": "Safe Macro Implementation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["((a)", "((x)", "(((x)"],
+        "prohibitedSymbols": ["#define MIN(a, b) a < b ? a : b"]
+      },
+      {
+        "id": "macro_usage",
+        "name": "All Macros Used in Code",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["BUFFER_SIZE", "MIN(a, b)", "MAX(a, b)", "SQUARE(num)", "IS_POWER_OF_2(num)", "DEBUG_PRINT", "INIT_DEVICE"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "correct_macro_results",
+        "name": "Correct Macro Calculation Results",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Buffer size: 1024", "exact": true },
+          { "pattern": "MIN\\(15, 25\\) = 15", "exact": false },
+          { "pattern": "MAX\\(15, 25\\) = 25", "exact": false },
+          { "pattern": "SQUARE\\(8\\) = 64", "exact": false },
+          { "pattern": "8 is power of 2: 1", "exact": true }
+        ]
+      },
+      {
+        "id": "debug_print_usage",
+        "name": "DEBUG_PRINT Macro Usage",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Debug message: Module initialized", "exact": true }
+        ]
+      },
+      {
+        "id": "multiline_macro_usage",
+        "name": "Multi-line Macro Device Initialization",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Device initialized: ID=1, Name=test_device", "exact": true }
+        ]
+      }
+    ]
+  }
+}

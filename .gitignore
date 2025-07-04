@@ -1,0 +1,74 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build directories
+build/
+dist/
+
+# Working directories (compilation artifacts)
+work/
+backend/work/
+backend/qemu-images/
+
+# Temporary and log files
+*.log
+*.tmp
+.DS_Store
+.vscode/
+.idea/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Test files
+test-*.js
+test-*.c
+test-*.json
+debug-*.js
+simulate-*.js
+comprehensive-*.js
+enhanced-*.js
+direct-*.js
+
+# Analysis and temporary markdown files
+*-analysis.md
+*-notepad.md
+*-summary.md
+concept_analysis_report.md
+complete_concept_analysis.md
+legacy-*.md
+
+# Extra documentation (keep main README.md)
+README-*.md
+CLI-*.md
+ENHANCED_*.md
+PHASE1_*.md
+QUICK-*.md
+TUNNELS.md
+VALIDATION*.md
+AI-*.md
+
+# Tunnel and config files
+tunnel*.txt
+tunnel*.js
+cloudflared-config.yml
+postcss.config.js
+tailwind.config.js
+
+# Generated patches and temporary files
+validator-patch.js
+analyze-cli-role.js
+
+# Template files
+template-*.json
+
+# Runtime generated files
+*.ko
+*.mod*
+*.o
+Module.symvers
+modules.order
+modules.livepatch
