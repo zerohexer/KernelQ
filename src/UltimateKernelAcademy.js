@@ -3,6 +3,7 @@ import { ChevronRight, ChevronDown, Play, CheckCircle, Clock, Code, Terminal, Bo
 import ValidationSystem, { upgradeProblems } from './validation-system.js';
 import PostCompilationTester from './post-compilation-testing.js';
 import generatedProblems from './generated-problems.js';
+import KernelCodeEditor from './KernelCodeEditor.js';
 
 const UnlimitedKernelAcademy = () => {
     // Backend API configuration - supports both localhost and cloudflared
@@ -6912,23 +6913,20 @@ MODULE_LICENSE("GPL");`,
                                 {/* Code Input Panel */}
                                 <div className="border-r border-gray-200 flex flex-col">
                                     <div className="bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
-                                        <span>📝 Kernel Code Editor</span>
-                                        <span className="text-gray-500">Drag bottom edge to resize</span>
+                                        <span>📝 IntelliSense Kernel Code Editor</span>
+                                        <span className="text-gray-500">Ctrl+Space for completions</span>
                                     </div>
-                                    <textarea
-                                        value={codeEditor.code}
-                                        onChange={(e) => setCodeEditor(prev => ({ ...prev, code: e.target.value }))}
-                                        className="flex-1 p-4 font-mono text-sm focus:outline-none bg-gray-50 border-none resize-none w-full"
-                                        placeholder="Your dynamically generated kernel challenge appears here..."
-                                        style={{
-                                            fontFamily: 'Monaco, Consolas, "Ubuntu Mono", monospace',
-                                            lineHeight: '1.6',
-                                            fontSize: '15px',
-                                            minHeight: '500px'
-                                        }}
-                                    />
+                                    <div className="flex-1 relative">
+                                        <KernelCodeEditor
+                                            value={codeEditor.code}
+                                            onChange={(value) => setCodeEditor(prev => ({ ...prev, code: value }))}
+                                            height="100%"
+                                            placeholder="Your dynamically generated kernel challenge appears here..."
+                                            className="h-full"
+                                        />
+                                    </div>
                                     <div className="bg-gray-100 px-3 py-1 text-xs text-gray-600 border-t border-gray-200">
-                                        Lines: {codeEditor.code.split('\n').length} | Characters: {codeEditor.code.length}
+                                        Lines: {codeEditor.code.split('\n').length} | Characters: {codeEditor.code.length} | IntelliSense: Active
                                     </div>
                                 </div>
 
@@ -7688,22 +7686,29 @@ MODULE_LICENSE("GPL");`,
                                     </button>
                                 </div>
 
-                                <textarea
-                                    value={playground.code}
-                                    onChange={(e) => setPlayground(prev => ({ ...prev, code: e.target.value }))}
-                                    className="w-full h-96 p-4 border rounded-lg font-mono text-sm bg-gray-50 resize-none"
-                                    placeholder="Write your kernel C code here..."
-                                    style={{ fontFamily: 'Consolas, Monaco, "Courier New", monospace' }}
-                                />
+                                <div className="border rounded-lg overflow-hidden">
+                                    <div className="bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
+                                        <span>📝 IntelliSense Playground Editor</span>
+                                        <span className="text-gray-500">Ctrl+Space for kernel API completions</span>
+                                    </div>
+                                    <KernelCodeEditor
+                                        value={playground.code}
+                                        onChange={(value) => setPlayground(prev => ({ ...prev, code: value }))}
+                                        height="400px"
+                                        placeholder="Write your kernel C code here..."
+                                        className="rounded-b-lg"
+                                    />
+                                </div>
 
                                 <div className="bg-blue-50 p-4 rounded-lg border">
-                                    <h4 className="font-medium text-blue-800 mb-2">💡 Quick Tips:</h4>
+                                    <h4 className="font-medium text-blue-800 mb-2">💡 IntelliSense Features & Tips:</h4>
                                     <ul className="text-sm text-blue-700 space-y-1">
-                                        <li>• Always include: #include &lt;linux/module.h&gt;</li>
-                                        <li>• Define MODULE_LICENSE("GPL") for licensing</li>
-                                        <li>• Use module_init() and module_exit() macros</li>
-                                        <li>• Use printk() instead of printf() for kernel output</li>
-                                        <li>• Use kmalloc()/kfree() instead of malloc()/free()</li>
+                                        <li>• <strong>Ctrl+Space:</strong> Trigger kernel API completions</li>
+                                        <li>• Type "kernel_module_template" for complete module structure</li>
+                                        <li>• Auto-complete for printk(), kmalloc(), MODULE_LICENSE()</li>
+                                        <li>• Built-in kernel headers and function signatures</li>
+                                        <li>• Real-time syntax highlighting and error detection</li>
+                                        <li>• Smart bracket matching and auto-indentation</li>
                                     </ul>
                                 </div>
                             </div>
