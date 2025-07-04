@@ -1,0 +1,148 @@
+{
+  "id": 17,
+  "title": "Bitwise Operations and Bit Manipulation",
+  "phase": "foundations",
+  "difficulty": 4,
+  "xp": 35,
+  "description": "Master bitwise operations (&, |, ^, ~, <<, >>) essential for kernel programming, device drivers, and hardware interaction. Learn bit manipulation techniques for flags and registers.",
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n\nstatic int __init bitwise_init(void) {\n    unsigned int a = 0x5A;  // 01011010 binary\n    unsigned int b = 0x3C;  // 00111100 binary\n    unsigned int flags = 0x00;\n    unsigned int mask;\n    \n    // TODO: Perform basic bitwise operations\n    // AND: a & b\n    // OR: a | b  \n    // XOR: a ^ b\n    // NOT: ~a\n    // Left shift: a << 2\n    // Right shift: a >> 2\n    \n    // TODO: Bit manipulation for flags\n    // Set bit 3: flags |= (1 << 3)\n    // Clear bit 5: flags &= ~(1 << 5) \n    // Toggle bit 7: flags ^= (1 << 7)\n    // Check if bit 3 is set: (flags & (1 << 3)) != 0\n    \n    // TODO: Create mask for bits 2-5: mask = 0x3C (00111100)\n    // Extract bits 2-5 from a: (a & mask) >> 2\n    \n    // Print results in hex format:\n    // \"Bitwise Operations:\"\n    // \"0x5A & 0x3C = 0x18\"\n    // \"0x5A | 0x3C = 0x7E\" \n    // \"0x5A ^ 0x3C = 0x66\"\n    // \"~0x5A = 0xFFFFFFA5\"\n    // \"0x5A << 2 = 0x168\"\n    // \"0x5A >> 2 = 0x16\"\n    // \"Flag Operations:\"\n    // \"After setting bit 3: 0x8\"\n    // \"Bit 3 is set: 1\"\n    // \"Extracted bits 2-5: 0x6\"\n    \n    return 0;\n}\n\nstatic void __exit bitwise_exit(void) {\n    printk(KERN_INFO \"Bitwise operations module unloaded\\n\");\n}\n\nmodule_init(bitwise_init);\nmodule_exit(bitwise_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Your Name\");\nMODULE_DESCRIPTION(\"Bitwise operations and bit manipulation module\");",
+  "concepts": [
+    "bitwise AND (&)",
+    "bitwise OR (|)",
+    "bitwise XOR (^)",
+    "bitwise NOT (~)",
+    "left shift (<<)",
+    "right shift (>>)",
+    "bit manipulation",
+    "flag operations"
+  ],
+  "skills": [
+    "Bit manipulation",
+    "Hardware register access",
+    "Flag operations",
+    "Low-level programming"
+  ],
+  "inputOutput": {
+    "expectedOutput": [
+      "Bitwise Operations:",
+      "0x5A & 0x3C = 0x18",
+      "0x5A | 0x3C = 0x7E",
+      "0x5A ^ 0x3C = 0x66", 
+      "~0x5A = 0xFFFFFFA5",
+      "0x5A << 2 = 0x168",
+      "0x5A >> 2 = 0x16",
+      "Flag Operations:",
+      "After setting bit 3: 0x8",
+      "Bit 3 is set: 1",
+      "Extracted bits 2-5: 0x6"
+    ],
+    "requirements": [
+      "Use required function names: bitwise_init, bitwise_exit",
+      "Use exact values: a=0x5A, b=0x3C, flags=0x00",
+      "Perform all bitwise operations: &, |, ^, ~, <<, >>",
+      "Implement bit manipulation: set bit, clear bit, toggle bit, check bit",
+      "Create and use bit mask for extraction",
+      "Print results in hexadecimal format (0x prefix)",
+      "Must use actual bitwise calculations, not hardcoded results"
+    ]
+  },
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["bitwise_init", "bitwise_exit"],
+      "variables": [
+        { "name": "a", "type": "unsigned int", "value": "0x5A" },
+        { "name": "b", "type": "unsigned int", "value": "0x3C" },
+        { "name": "flags", "type": "unsigned int", "value": "0x00" },
+        { "name": "mask", "type": "unsigned int", "value": "calculated" }
+      ],
+      "outputMessages": [
+        "Bitwise Operations:",
+        "0x5A & 0x3C = 0x18",
+        "0x5A \\| 0x3C = 0x7E",
+        "0x5A \\^ 0x3C = 0x66",
+        "~0x5A = 0xFFFFFFA5",
+        "0x5A << 2 = 0x168",
+        "0x5A >> 2 = 0x16",
+        "Flag Operations:",
+        "After setting bit 3: 0x8",
+        "Bit 3 is set: 1",
+        "Extracted bits 2-5: 0x6"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h"
+      ],
+      "mustContain": ["a & b", "a | b", "a ^ b", "~a", "a << 2", "a >> 2", "1 << 3", "&= ~", "^="],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "basic_bitwise_ops",
+        "name": "All Basic Bitwise Operations",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["a & b", "a | b", "a ^ b", "~a", "a << 2", "a >> 2"],
+        "prohibitedSymbols": ["= 0x18", "= 0x7E", "= 0x66", "= 0x168", "= 0x16"]
+      },
+      {
+        "id": "bit_manipulation_ops",
+        "name": "Bit Set/Clear/Toggle Operations",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["|= (1 << 3)", "&= ~(1 << 5)", "^= (1 << 7)"],
+        "prohibitedSymbols": ["flags = 0x8"]
+      },
+      {
+        "id": "bit_checking",
+        "name": "Bit Checking Operation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["& (1 << 3)", "!= 0"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "mask_operations",
+        "name": "Bit Mask and Extraction",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["& mask", ">> 2"],
+        "prohibitedSymbols": ["= 0x6"]
+      },
+      {
+        "id": "hex_format_output",
+        "name": "Hexadecimal Format Output",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "0x5A & 0x3C = 0x18", "exact": true },
+          { "pattern": "0x5A \\| 0x3C = 0x7E", "exact": false },
+          { "pattern": "0x5A \\^ 0x3C = 0x66", "exact": false },
+          { "pattern": "0x5A << 2 = 0x168", "exact": true },
+          { "pattern": "0x5A >> 2 = 0x16", "exact": true }
+        ]
+      },
+      {
+        "id": "correct_bit_math",
+        "name": "Mathematically Correct Bit Operations",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "After setting bit 3: 0x8", "exact": true },
+          { "pattern": "Bit 3 is set: 1", "exact": true },
+          { "pattern": "Extracted bits 2-5: 0x6", "exact": true }
+        ]
+      },
+      {
+        "id": "unsigned_int_usage",
+        "name": "Proper Unsigned Integer Usage",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["unsigned int"],
+        "prohibitedSymbols": ["int a", "int b", "int flags"]
+      }
+    ]
+  }
+}

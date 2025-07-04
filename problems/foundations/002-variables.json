@@ -1,0 +1,72 @@
+{
+  "id": 2,
+  "title": "Variables and Data Types",
+  "phase": "foundations",
+  "difficulty": 2,
+  "xp": 15,
+  "description": "Learn to work with different data types in kernel space. Create variables of different types and print their values using printk. This introduces you to kernel-space variable declaration and printing.",
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n\n// TODO: Declare variables with exact names and values:\n// int my_int = 42;\n// char my_char = 'K';\n// bool my_bool = true;\n\nstatic int __init datatypes_init(void) {\n    // TODO: Print the variables in exact format:\n    // printk(KERN_INFO \"Integer: %d\\n\", my_int);\n    // printk(KERN_INFO \"Character: %c\\n\", my_char);\n    // printk(KERN_INFO \"Boolean: %d\\n\", my_bool);\n    return 0;\n}\n\nstatic void __exit datatypes_exit(void) {\n    printk(KERN_INFO \"Datatypes module unloaded\\n\");\n}\n\nmodule_init(datatypes_init);\nmodule_exit(datatypes_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Your Name\");\nMODULE_DESCRIPTION(\"Data types demonstration module\");",
+  "concepts": [
+    "kernel data types",
+    "variable declaration",
+    "printk formatting",
+    "static variables"
+  ],
+  "skills": [
+    "Variable management",
+    "Data type understanding",
+    "Kernel logging with formatting"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["datatypes_init", "datatypes_exit"],
+      "variables": [
+        { "name": "my_int", "type": "int", "value": 42 },
+        { "name": "my_char", "type": "char", "value": "'K'" },
+        { "name": "my_bool", "type": "bool", "value": true }
+      ],
+      "outputMessages": [
+        "Integer: 42",
+        "Character: K",
+        "Boolean: 1"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h"
+      ],
+      "mustContain": ["printk", "KERN_INFO"],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "exact_variables",
+        "name": "Exact Variable Names and Values",
+        "type": "variable_check",
+        "critical": true,
+        "expected": ["my_int", "my_char", "my_bool"]
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Format",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Integer: 42", "exact": true },
+          { "pattern": "Character: K", "exact": true },
+          { "pattern": "Boolean: 1", "exact": true }
+        ]
+      },
+      {
+        "id": "printk_usage",
+        "name": "Proper printk Usage",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["printk", "KERN_INFO"],
+        "prohibitedSymbols": ["printf"]
+      }
+    ]
+  }
+}

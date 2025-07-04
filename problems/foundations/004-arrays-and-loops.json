@@ -1,0 +1,91 @@
+{
+  "id": 4,
+  "title": "Arrays and Loops in Kernel Space",
+  "phase": "foundations",
+  "difficulty": 2,
+  "xp": 20,
+  "description": "Learn to work with arrays and loops in kernel space. Create an array of integers and use a for loop to print each element. This introduces fundamental C programming concepts in kernel context.",
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n\n// TODO: Declare an array of integers called 'numbers' with values [10, 20, 30, 40, 50]\n// TODO: Use a for loop to print each element\n// Format: \"Element 0: 10\", \"Element 1: 20\", etc.\n\nstatic int __init arrays_init(void) {\n    // TODO: Implement array declaration and loop\n    return 0;\n}\n\nstatic void __exit arrays_exit(void) {\n    printk(KERN_INFO \"Arrays module unloaded\\n\");\n}\n\nmodule_init(arrays_init);\nmodule_exit(arrays_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Your Name\");\nMODULE_DESCRIPTION(\"Arrays and loops demonstration module\");",
+  "concepts": [
+    "arrays",
+    "for loops",
+    "array indexing",
+    "iteration"
+  ],
+  "skills": [
+    "Array manipulation",
+    "Loop control",
+    "Index-based access"
+  ],
+  "inputOutput": {
+    "expectedOutput": [
+      "Element 0: 10",
+      "Element 1: 20", 
+      "Element 2: 30",
+      "Element 3: 40",
+      "Element 4: 50"
+    ],
+    "requirements": [
+      "Use required function names: arrays_init, arrays_exit",
+      "Declare array with exact name 'numbers' and values [10, 20, 30, 40, 50]",
+      "Use for loop to iterate through array",
+      "Print in exact format: \"Element X: Y\"",
+      "Must include proper kernel headers"
+    ]
+  },
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["arrays_init", "arrays_exit"],
+      "variables": [
+        { "name": "numbers", "type": "int[]", "value": "[10, 20, 30, 40, 50]" }
+      ],
+      "outputMessages": [
+        "Element 0: 10",
+        "Element 1: 20",
+        "Element 2: 30", 
+        "Element 3: 40",
+        "Element 4: 50"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h"
+      ],
+      "mustContain": ["for", "printk"],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "array_declaration",
+        "name": "Array Declaration",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["int numbers[]", "numbers", "["],
+        "prohibitedSymbols": ["int data[]", "int arr[]", "int values[]"]
+      },
+      {
+        "id": "for_loop_usage",
+        "name": "For Loop Implementation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["for", "i++", "i < "],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Format",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Element 0: 10", "exact": true },
+          { "pattern": "Element 1: 20", "exact": true },
+          { "pattern": "Element 2: 30", "exact": true },
+          { "pattern": "Element 3: 40", "exact": true },
+          { "pattern": "Element 4: 50", "exact": true }
+        ]
+      }
+    ]
+  }
+}

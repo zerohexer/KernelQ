@@ -1,0 +1,100 @@
+{
+  "id": 15,
+  "title": "Pointers and Arrays - Part 2: Array Traversal with Pointers",
+  "phase": "foundations",
+  "difficulty": 4,
+  "xp": 35,
+  "description": "Learn the relationship between pointers and arrays in kernel programming. Use pointers to traverse arrays and understand pointer arithmetic. This builds on Part 1 pointer knowledge.",
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n\n// From Part 1 - COMPLETED CODE (pointer basics):\n// You learned pointer declaration, dereferencing, and address access\n\n// Part 2 - NEW CONCEPTS:\n// TODO: Declare an array 'values' with elements [100, 200, 300, 400, 500]\n// TODO: Declare a pointer 'arr_ptr' that points to the first element of the array\n// TODO: Use pointer arithmetic to traverse the array\n// TODO: Print each element using pointer notation\n\nstatic int __init pointers_arrays_init(void) {\n    // TODO: Implement array traversal with pointers\n    // Expected output format:\n    // \"Element 0: 100\"\n    // \"Element 1: 200\"\n    // \"Element 2: 300\"\n    // \"Element 3: 400\"\n    // \"Element 4: 500\"\n    \n    return 0;\n}\n\nstatic void __exit pointers_arrays_exit(void) {\n    printk(KERN_INFO \"Pointers and arrays module unloaded\\n\");\n}\n\nmodule_init(pointers_arrays_init);\nmodule_exit(pointers_arrays_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Your Name\");\nMODULE_DESCRIPTION(\"Pointers and arrays demonstration module\");",
+  "concepts": [
+    "pointer arithmetic",
+    "array-pointer relationship",
+    "pointer traversal",
+    "array indexing with pointers"
+  ],
+  "skills": [
+    "Advanced pointer usage",
+    "Array manipulation via pointers",
+    "Pointer arithmetic",
+    "Memory traversal"
+  ],
+  "multiPart": {
+    "part": 2,
+    "totalParts": 3,
+    "nextProblemId": 8,
+    "previousProblemId": 6
+  },
+  "inputOutput": {
+    "expectedOutput": [
+      "Element 0: 100",
+      "Element 1: 200",
+      "Element 2: 300",
+      "Element 3: 400",
+      "Element 4: 500"
+    ],
+    "requirements": [
+      "Use required function names: pointers_arrays_init, pointers_arrays_exit",
+      "Declare array 'values' with exact elements [100, 200, 300, 400, 500]",
+      "Declare pointer 'arr_ptr' that points to first array element",
+      "Use pointer arithmetic (arr_ptr + i) to traverse array",
+      "Print using pointer dereferencing *(arr_ptr + i)",
+      "Use exact format strings shown above"
+    ]
+  },
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["pointers_arrays_init", "pointers_arrays_exit"],
+      "variables": [
+        { "name": "values", "type": "int[]", "value": "[100, 200, 300, 400, 500]" },
+        { "name": "arr_ptr", "type": "int*", "value": "values" }
+      ],
+      "outputMessages": [
+        "Element 0: 100",
+        "Element 1: 200",
+        "Element 2: 300",
+        "Element 3: 400",
+        "Element 4: 500"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h"
+      ],
+      "mustContain": ["int *arr_ptr", "arr_ptr + ", "*(arr_ptr"],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "array_pointer_setup",
+        "name": "Array and Pointer Setup",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["int values", "int *arr_ptr", "values"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "pointer_arithmetic",
+        "name": "Pointer Arithmetic Usage",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["arr_ptr + ", "*(arr_ptr"],
+        "prohibitedSymbols": ["values["]
+      },
+      {
+        "id": "correct_traversal",
+        "name": "Correct Array Traversal",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Element 0: 100", "exact": true },
+          { "pattern": "Element 1: 200", "exact": true },
+          { "pattern": "Element 2: 300", "exact": true },
+          { "pattern": "Element 3: 400", "exact": true },
+          { "pattern": "Element 4: 500", "exact": true }
+        ]
+      }
+    ]
+  }
+}
