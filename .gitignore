@@ -42,13 +42,8 @@ complete_concept_analysis.md
 legacy-*.md
 
 # Extra documentation (keep main README.md)
-README-*.md
-CLI-*.md
-ENHANCED_*.md
 PHASE1_*.md
-QUICK-*.md
 TUNNELS.md
-VALIDATION*.md
 AI-*.md
 
 # Tunnel and config files
