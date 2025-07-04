@@ -35,7 +35,9 @@
       "Bash(git branch:*)",
       "Bash(git push:*)",
       "Bash(tar:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(git pull:*)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": []
   }

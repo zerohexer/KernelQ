@@ -3,7 +3,7 @@ import { ChevronRight, ChevronDown, Play, CheckCircle, Clock, Code, Terminal, Bo
 import ValidationSystem, { upgradeProblems } from './validation-system.js';
 import PostCompilationTester from './post-compilation-testing.js';
 import generatedProblems from './generated-problems.js';
-import KernelCodeEditor from './KernelCodeEditor.js';
+import SemanticCodeEditor from './SemanticCodeEditor.js';
 
 const UnlimitedKernelAcademy = () => {
     // Backend API configuration - supports both localhost and cloudflared
@@ -6913,11 +6913,11 @@ MODULE_LICENSE("GPL");`,
                                 {/* Code Input Panel */}
                                 <div className="border-r border-gray-200 flex flex-col">
                                     <div className="bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
-                                        <span>📝 IntelliSense Kernel Code Editor</span>
-                                        <span className="text-gray-500">Ctrl+Space for completions</span>
+                                        <span>📝 Semantic Kernel Code Editor</span>
+                                        <span className="text-gray-500">Real-time error detection</span>
                                     </div>
                                     <div className="flex-1 relative">
-                                        <KernelCodeEditor
+                                        <SemanticCodeEditor
                                             value={codeEditor.code}
                                             onChange={(value) => setCodeEditor(prev => ({ ...prev, code: value }))}
                                             height="100%"
@@ -6926,7 +6926,7 @@ MODULE_LICENSE("GPL");`,
                                         />
                                     </div>
                                     <div className="bg-gray-100 px-3 py-1 text-xs text-gray-600 border-t border-gray-200">
-                                        Lines: {codeEditor.code.split('\n').length} | Characters: {codeEditor.code.length} | IntelliSense: Active
+                                        Lines: {codeEditor.code.split('\n').length} | Characters: {codeEditor.code.length} | Semantic Analysis: Active
                                     </div>
                                 </div>
 
@@ -7688,10 +7688,10 @@ MODULE_LICENSE("GPL");`,
 
                                 <div className="border rounded-lg overflow-hidden">
                                     <div className="bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
-                                        <span>📝 IntelliSense Playground Editor</span>
-                                        <span className="text-gray-500">Ctrl+Space for kernel API completions</span>
+                                        <span>📝 Semantic Playground Editor</span>
+                                        <span className="text-gray-500">Real-time kernel API validation</span>
                                     </div>
-                                    <KernelCodeEditor
+                                    <SemanticCodeEditor
                                         value={playground.code}
                                         onChange={(value) => setPlayground(prev => ({ ...prev, code: value }))}
                                         height="400px"
@@ -7701,14 +7701,14 @@ MODULE_LICENSE("GPL");`,
                                 </div>
 
                                 <div className="bg-blue-50 p-4 rounded-lg border">
-                                    <h4 className="font-medium text-blue-800 mb-2">💡 IntelliSense Features & Tips:</h4>
+                                    <h4 className="font-medium text-blue-800 mb-2">💡 Semantic Analysis Features:</h4>
                                     <ul className="text-sm text-blue-700 space-y-1">
-                                        <li>• <strong>Ctrl+Space:</strong> Trigger kernel API completions</li>
-                                        <li>• Type "kernel_module_template" for complete module structure</li>
-                                        <li>• Auto-complete for printk(), kmalloc(), MODULE_LICENSE()</li>
-                                        <li>• Built-in kernel headers and function signatures</li>
-                                        <li>• Real-time syntax highlighting and error detection</li>
-                                        <li>• Smart bracket matching and auto-indentation</li>
+                                        <li>• <strong>Real-time error detection:</strong> Red squiggles for kernel violations</li>
+                                        <li>• <strong>Cross-platform:</strong> Works on Windows, macOS, and Linux</li>
+                                        <li>• <strong>Kernel API validation:</strong> Detects printf/malloc usage errors</li>
+                                        <li>• <strong>Smart completions:</strong> Kernel-specific autocomplete suggestions</li>
+                                        <li>• <strong>Header validation:</strong> Warns about userspace includes</li>
+                                        <li>• <strong>Best practices:</strong> Suggests proper error handling</li>
                                     </ul>
                                 </div>
                             </div>
