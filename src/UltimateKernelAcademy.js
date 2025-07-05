@@ -6962,9 +6962,9 @@ MODULE_LICENSE("GPL");`,
                             <div className="flex flex-col lg:grid lg:grid-cols-2 resize-y overflow-auto border-t border-gray-200" style={{ minHeight: '800px', height: '70vh' }}>
                                 {/* Code Input Panel */}
                                 <div className="lg:border-r border-gray-200 flex flex-col min-h-[400px] h-full">
-                                    <div className="bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
-                                        <span>📝 Semantic Kernel Code Editor</span>
-                                        <span className="text-gray-500 hidden sm:inline">Real-time error detection</span>
+                                    <div className="bg-gray-100 px-2 sm:px-3 py-1 sm:py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
+                                        <span className="text-xs sm:text-sm">📝 Semantic Kernel Code Editor</span>
+                                        <span className="text-gray-500 hidden sm:inline text-xs">Real-time error detection</span>
                                     </div>
                                     <div className="flex-1 relative">
                                         <SemanticCodeEditor
@@ -6975,15 +6975,16 @@ MODULE_LICENSE("GPL");`,
                                             className="h-full"
                                         />
                                     </div>
-                                    <div className="bg-gray-100 px-3 py-1 text-xs text-gray-600 border-t border-gray-200">
-                                        Lines: {codeEditor.code.split('\n').length} | Characters: {codeEditor.code.length} | Semantic Analysis: Active
+                                    <div className="bg-gray-100 px-2 sm:px-3 py-1 text-xs text-gray-600 border-t border-gray-200">
+                                        <span className="hidden sm:inline">Lines: {codeEditor.code.split('\n').length} | Characters: {codeEditor.code.length} | Semantic Analysis: Active</span>
+                                        <span className="sm:hidden">Lines: {codeEditor.code.split('\n').length} | Chars: {codeEditor.code.length}</span>
                                     </div>
                                 </div>
 
                                 {/* Output and Testing Panel */}
                                 <div className="bg-gray-50 border border-gray-200 flex flex-col min-h-[400px] h-full border-t lg:border-t-0 lg:border-l">
-                                    <div className="bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
-                                        <span>🔍 Dynamic Analysis & Output</span>
+                                    <div className="bg-gray-100 px-2 sm:px-3 py-1 sm:py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
+                                        <span className="text-xs sm:text-sm">🔍 Dynamic Analysis & Output</span>
                                         <button
                                             onClick={() => setDebugMode(!debugMode)}
                                             className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
@@ -6995,8 +6996,8 @@ MODULE_LICENSE("GPL");`,
                                             {debugMode ? '🐛 Debug ON' : '🔧 Debug OFF'}
                                         </button>
                                     </div>
-                                    <div className="flex-1 p-4 overflow-y-auto bg-white">
-                    <pre className="text-sm whitespace-pre-wrap font-mono leading-relaxed text-gray-700">
+                                    <div className="flex-1 p-2 sm:p-4 overflow-y-auto bg-white">
+                    <pre className="text-xs sm:text-sm whitespace-pre-wrap font-mono leading-tight sm:leading-relaxed text-gray-700">
                       {codeEditor.output || "🚀 Professional testing environment ready...\n\nYour code will be dynamically analyzed for:\n• Syntax correctness\n• Logic implementation  \n• Best practices\n• Performance metrics\n• Memory safety\n• Kernel coding standards\n\nThis large editor provides:\n• Ample space for complex kernel modules\n• Real-time error detection\n• Code complexity analysis\n• Security vulnerability scanning\n• Performance optimization hints\n\n✨ RESIZE TIP: Drag the bottom edge of this panel to make it even larger!\n\nClick 'Run & Validate' to begin comprehensive testing!"}
                     </pre>
                                     </div>
