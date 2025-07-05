@@ -1453,6 +1453,10 @@ class LeetCodeStyleValidator {
 
         // Score calculation
         results.score = totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0;
+        
+        // Add test counts for frontend display (FIX for 1/1 passed bug)
+        results.totalTests = totalTests;
+        results.passedTests = passedTests;
 
         // Result determination - stricter for exact requirements
         if (criticalTests.length > 0 && passedCritical < criticalTests.length) {
