@@ -353,6 +353,31 @@ const SemanticCodeEditor = ({
                 lineNumbersMinChars: isMobile ? 2 : 3,
                 padding: { top: isMobile ? 8 : 12 }
             });
+
+            // Mobile-specific touch and keyboard handling
+            if (isMobile) {
+                // Auto-focus on mobile to enable keyboard
+                const editorContainer = editor.getDomNode();
+                if (editorContainer) {
+                    // Make the editor container touch-friendly
+                    editorContainer.style.touchAction = 'manipulation';
+                    
+                    // Add touch event listener to ensure focus
+                    const handleTouch = (e) => {
+                        e.preventDefault();
+                        editor.focus();
+                        // Trigger virtual keyboard on mobile
+                        const textArea = editorContainer.querySelector('textarea');
+                        if (textArea) {
+                            textArea.focus();
+                            textArea.click();
+                        }
+                    };
+
+                    editorContainer.addEventListener('touchstart', handleTouch, { passive: false });
+                    editorContainer.addEventListener('click', handleTouch);
+                }
+            }
         };
 
         // Initial setup
@@ -365,6 +390,28 @@ const SemanticCodeEditor = ({
 
         // Set theme
         monaco.editor.setTheme('vs-dark');
+
+        // Mobile-specific styling
+        const isMobile = window.innerWidth < 640;
+        if (isMobile) {
+            // Add mobile-friendly CSS directly to Monaco editor
+            const style = document.createElement('style');
+            style.textContent = `
+                .monaco-editor .inputarea {
+                    font-size: 16px !important; /* Prevents zoom on iOS */
+                    -webkit-user-select: text !important;
+                    user-select: text !important;
+                }
+                .monaco-editor .view-lines {
+                    -webkit-tap-highlight-color: transparent;
+                }
+                .monaco-editor textarea {
+                    opacity: 1 !important;
+                    pointer-events: auto !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
 
         // Enhanced language configuration for C
         monaco.languages.setLanguageConfiguration('c', {
@@ -500,7 +547,16 @@ const SemanticCodeEditor = ({
     };
 
     return (
-        <div className={`semantic-code-editor relative ${className}`} style={{ isolation: 'isolate' }}>
+        <div 
+            className={`semantic-code-editor relative ${className}`} 
+            style={{ isolation: 'isolate' }}
+            onClick={() => {
+                // Ensure editor gets focus when clicked anywhere in the container
+                if (editorRef.current) {
+                    editorRef.current.focus();
+                }
+            }}
+        >
             <Editor
                 height={height}
                 defaultLanguage="c"
@@ -528,6 +584,13 @@ const SemanticCodeEditor = ({
                     },
                     quickSuggestionsDelay: 10,
                     suggestOnTriggerCharacters: true,
+                    // Mobile-friendly options
+                    accessibilitySupport: 'on',
+                    ariaLabel: 'Kernel Code Editor',
+                    domReadOnly: false,
+                    links: true,
+                    mouseWheelZoom: false,
+                    smoothScrolling: true,
                     acceptSuggestionOnCommitCharacter: true,
                     acceptSuggestionOnEnter: 'on',
                     wordBasedSuggestions: true,
