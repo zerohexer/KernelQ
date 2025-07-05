@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { 
     KERNEL_HEADERS, 
@@ -21,6 +21,16 @@ const SemanticCodeEditor = ({
     className = ''
 }) => {
     const editorRef = useRef(null);
+    const resizeListenerRef = useRef(null);
+
+    // Cleanup resize listener on unmount
+    useEffect(() => {
+        return () => {
+            if (resizeListenerRef.current) {
+                window.removeEventListener('resize', resizeListenerRef.current);
+            }
+        };
+    }, []);
 
     // Handle editor mount with semantic analysis
     const handleEditorDidMount = (editor, monaco) => {
@@ -317,28 +327,41 @@ const SemanticCodeEditor = ({
             }
         });
 
-        // Configure Monaco editor settings
-        editor.updateOptions({
-            fontSize: 14,
-            lineHeight: 20,
-            fontFamily: 'Monaco, Consolas, "Ubuntu Mono", monospace',
-            tabSize: 4,
-            insertSpaces: false,
-            automaticLayout: true,
-            minimap: { enabled: true },
-            wordWrap: 'on',
-            lineNumbers: 'on',
-            glyphMargin: true,
-            folding: true,
-            showFoldingControls: 'always',
-            scrollBeyondLastLine: false,
-            renderWhitespace: 'selection',
-            bracketPairColorization: { enabled: true },
-            guides: {
-                bracketPairs: true,
-                indentation: true
-            }
-        });
+        // Configure Monaco editor settings with responsive font size
+        const updateEditorOptions = () => {
+            const isMobile = window.innerWidth < 640; // sm breakpoint
+            editor.updateOptions({
+                fontSize: isMobile ? 11 : 14,
+                lineHeight: isMobile ? 16 : 20,
+                fontFamily: 'Monaco, Consolas, "Ubuntu Mono", monospace',
+                tabSize: 4,
+                insertSpaces: false,
+                automaticLayout: true,
+                minimap: { enabled: !isMobile },
+                wordWrap: 'on',
+                lineNumbers: 'on',
+                glyphMargin: true,
+                folding: true,
+                showFoldingControls: isMobile ? 'mouseover' : 'always',
+                scrollBeyondLastLine: false,
+                renderWhitespace: 'selection',
+                bracketPairColorization: { enabled: true },
+                guides: {
+                    bracketPairs: true,
+                    indentation: true
+                },
+                lineNumbersMinChars: isMobile ? 2 : 3,
+                padding: { top: isMobile ? 8 : 12 }
+            });
+        };
+
+        // Initial setup
+        updateEditorOptions();
+
+        // Listen for window resize to update editor options
+        const resizeListener = () => updateEditorOptions();
+        resizeListenerRef.current = resizeListener;
+        window.addEventListener('resize', resizeListener);
 
         // Set theme
         monaco.editor.setTheme('vs-dark');
