@@ -155,7 +155,11 @@
                 "type": "string",
                 "enum": ["output_match", "symbol_check", "code_analysis", "structure_check", "variable_check"]
               },
-              "critical": { "type": "boolean" },
+              "critical": { 
+                "type": "boolean",
+                "default": true,
+                "description": "All test cases must be critical for proper validation counting"
+              },
               "expected": {
                 "type": "array",
                 "description": "Expected values for test"
@@ -183,23 +187,6 @@
         }
       },
       "description": "Frontend-only JavaScript tests"
-    },
-    "legacy": {
-      "type": "object",
-      "properties": {
-        "validation": {
-          "type": "object",
-          "properties": {
-            "compileTest": { "type": "boolean" },
-            "runtimeTest": { "type": "string" },
-            "requiredOutput": {
-              "type": "array",
-              "items": { "type": "string" }
-            }
-          }
-        },
-        "leetCodeStyle": { "type": "boolean" }
-      }
     }
   }
 }

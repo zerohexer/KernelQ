@@ -364,17 +364,21 @@ const SemanticCodeEditor = ({
                     
                     // Add touch event listener to ensure focus
                     const handleTouch = (e) => {
-                        e.preventDefault();
-                        editor.focus();
-                        // Trigger virtual keyboard on mobile
-                        const textArea = editorContainer.querySelector('textarea');
-                        if (textArea) {
-                            textArea.focus();
-                            textArea.click();
+                        // Don't prevent default on touch events to avoid Monaco conflicts
+                        if (e.type === 'touchstart') {
+                            // Just ensure editor focus without interfering with Monaco's touch handling
+                            setTimeout(() => {
+                                editor.focus();
+                            }, 0);
+                        } else if (e.type === 'click') {
+                            // Only handle click if it's not already handled by Monaco
+                            if (!e.target.closest('.monaco-editor')) {
+                                editor.focus();
+                            }
                         }
                     };
 
-                    editorContainer.addEventListener('touchstart', handleTouch, { passive: false });
+                    editorContainer.addEventListener('touchstart', handleTouch, { passive: true });
                     editorContainer.addEventListener('click', handleTouch);
                 }
             }
