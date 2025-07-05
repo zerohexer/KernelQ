@@ -5504,8 +5504,8 @@ MODULE_LICENSE("GPL");`,
                     return {
                         success: true,
                         overallResult: result.overallResult,
-                        totalTests: result.testResults?.length || 0,
-                        passedTests: result.testResults?.filter(t => t.status === 'PASSED').length || 0,
+                        totalTests: result.totalTests || result.testResults?.length || 0,
+                        passedTests: result.passedTests || result.testResults?.filter(t => t.status === 'PASSED').length || 0,
                         score: result.score,
                         testResults: result.testResults?.map(test => ({
                             testName: test.name || test.id,
@@ -5525,8 +5525,8 @@ MODULE_LICENSE("GPL");`,
                     return {
                         success: false,
                         overallResult: result.overallResult || 'WRONG_ANSWER',
-                        totalTests: result.testResults?.length || 1,
-                        passedTests: result.testResults?.filter(t => t.status === 'PASSED').length || 0,
+                        totalTests: result.totalTests || result.testResults?.length || 1,
+                        passedTests: result.passedTests || result.testResults?.filter(t => t.status === 'PASSED').length || 0,
                         score: result.score || 0,
                         testResults: result.testResults?.map(test => ({
                             testName: test.name || test.id,
