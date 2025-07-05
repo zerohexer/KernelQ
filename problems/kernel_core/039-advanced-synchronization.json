@@ -1,0 +1,151 @@
+{
+  "id": 39,
+  "title": "Advanced Synchronization Primitives",
+  "difficulty": 10,
+  "xp": 100,
+  "phase": "kernel_core",
+  "description": "Master advanced kernel synchronization including RCU, completion objects, atomic operations, and memory barriers. This teaches the sophisticated concurrency control mechanisms used in high-performance kernel subsystems at enterprise companies.",
+  "concepts": ["RCU", "completion", "atomic_operations", "memory_barriers", "lockless_programming", "read_write_locks"],
+  "skills": ["advanced_synchronization", "lockless_design", "memory_ordering", "high_performance_concurrency"],
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/slab.h>\n#include <linux/mutex.h>\n#include <linux/spinlock.h>\n#include <linux/rwlock.h>\n#include <linux/completion.h>\n#include <linux/atomic.h>\n#include <linux/rcupdate.h>\n#include <linux/kthread.h>\n#include <linux/delay.h>\n#include <linux/proc_fs.h>\n#include <linux/seq_file.h>\n\n// TODO: Define data structures for demonstration\nstruct shared_data {\n    struct rcu_head rcu;\n    atomic_t reference_count;\n    int value;\n    char name[32];\n    unsigned long timestamp;\n};\n\nstruct sync_stats {\n    atomic64_t rcu_reads;\n    atomic64_t rcu_updates; \n    atomic64_t completion_waits;\n    atomic64_t completion_signals;\n    atomic64_t atomic_operations;\n    atomic64_t barrier_calls;\n};\n\n// TODO: Global synchronization objects\nstatic struct shared_data __rcu *global_data = NULL;\nstatic DEFINE_MUTEX(update_mutex);\nstatic DEFINE_SPINLOCK(stats_lock);\nstatic DEFINE_RWLOCK(config_lock);\nstatic DECLARE_COMPLETION(init_complete);\nstatic DECLARE_COMPLETION(worker_complete);\n\n// TODO: Statistics and configuration\nstatic struct sync_stats stats;\nstatic atomic_t worker_count = ATOMIC_INIT(0);\nstatic atomic_t config_version = ATOMIC_INIT(1);\nstatic bool module_stopping = false;\n\n// TODO: Worker threads\nstatic struct task_struct *reader_thread = NULL;\nstatic struct task_struct *writer_thread = NULL;\nstatic struct task_struct *monitor_thread = NULL;\n\n// TODO: RCU callback for freeing old data\nstatic void free_shared_data_rcu(struct rcu_head *head)\n{\n    struct shared_data *data = container_of(head, struct shared_data, rcu);\n    \n    printk(KERN_INFO \"RCU callback: freeing data %p\\n\", data);\n    kfree(data);\n}\n\n// TODO: Implement RCU-protected read function\nstatic int read_shared_data(int *value, char *name, size_t name_size)\n{\n    struct shared_data *data;\n    int ret = 0;\n    \n    // TODO: Enter RCU read-side critical section\n    rcu_read_lock();\n    \n    // TODO: Get RCU-protected pointer\n    data = rcu_dereference(global_data);\n    if (data) {\n        // TODO: Read data under RCU protection\n        *value = data->value;\n        strncpy(name, data->name, name_size - 1);\n        name[name_size - 1] = '\\0';\n        \n        // TODO: Update statistics atomically\n        atomic64_inc(&stats.rcu_reads);\n        ret = 1;\n    }\n    \n    // TODO: Exit RCU read-side critical section\n    rcu_read_unlock();\n    \n    return ret;\n}\n\n// TODO: Implement RCU-protected update function\nstatic int update_shared_data(int new_value, const char *new_name)\n{\n    struct shared_data *new_data, *old_data;\n    \n    // TODO: Allocate new data structure\n    new_data = kmalloc(sizeof(*new_data), GFP_KERNEL);\n    if (!new_data) {\n        return -ENOMEM;\n    }\n    \n    // TODO: Initialize new data\n    atomic_set(&new_data->reference_count, 1);\n    new_data->value = new_value;\n    strncpy(new_data->name, new_name, sizeof(new_data->name) - 1);\n    new_data->name[sizeof(new_data->name) - 1] = '\\0';\n    new_data->timestamp = jiffies;\n    \n    // TODO: Update under mutex protection\n    mutex_lock(&update_mutex);\n    \n    // TODO: Get old data and update pointer\n    old_data = rcu_dereference_protected(global_data, lockdep_is_held(&update_mutex));\n    rcu_assign_pointer(global_data, new_data);\n    \n    // TODO: Memory barrier to ensure ordering\n    smp_wmb();\n    \n    // TODO: Update configuration version atomically\n    atomic_inc(&config_version);\n    \n    mutex_unlock(&update_mutex);\n    \n    // TODO: Wait for RCU grace period and free old data\n    if (old_data) {\n        call_rcu(&old_data->rcu, free_shared_data_rcu);\n    }\n    \n    // TODO: Update statistics\n    atomic64_inc(&stats.rcu_updates);\n    atomic64_inc(&stats.atomic_operations);\n    \n    printk(KERN_INFO \"Updated shared data: value=%d, name=%s\\n\", new_value, new_name);\n    return 0;\n}\n\n// TODO: Reader thread function\nstatic int reader_thread_fn(void *data)\n{\n    int value;\n    char name[32];\n    int read_count = 0;\n    \n    printk(KERN_INFO \"Reader thread started\\n\");\n    \n    // TODO: Signal completion of initialization\n    complete(&init_complete);\n    \n    while (!kthread_should_stop() && !module_stopping) {\n        // TODO: Read shared data using RCU\n        if (read_shared_data(&value, name, sizeof(name))) {\n            read_count++;\n            if (read_count % 100 == 0) {\n                printk(KERN_INFO \"Reader: read %d times, current value=%d, name=%s\\n\",\n                       read_count, value, name);\n            }\n        }\n        \n        // TODO: Small delay to avoid overwhelming the system\n        usleep_range(1000, 2000);\n        \n        // TODO: Check for completion signal\n        if (read_count >= 500) {\n            complete(&worker_complete);\n            read_count = 0;\n        }\n    }\n    \n    printk(KERN_INFO \"Reader thread exiting\\n\");\n    return 0;\n}\n\n// TODO: Writer thread function\nstatic int writer_thread_fn(void *data)\n{\n    int update_count = 0;\n    char name_buffer[32];\n    \n    printk(KERN_INFO \"Writer thread started\\n\");\n    \n    // TODO: Wait for initialization to complete\n    wait_for_completion(&init_complete);\n    \n    while (!kthread_should_stop() && !module_stopping) {\n        // TODO: Create new data for update\n        snprintf(name_buffer, sizeof(name_buffer), \"update_%d\", update_count);\n        \n        // TODO: Update shared data\n        if (update_shared_data(update_count * 10, name_buffer) == 0) {\n            update_count++;\n            \n            // TODO: Use memory barrier\n            smp_mb();\n            atomic64_inc(&stats.barrier_calls);\n        }\n        \n        // TODO: Longer delay between updates\n        msleep(100);\n        \n        // TODO: Check for worker completion\n        if (update_count % 5 == 0) {\n            if (wait_for_completion_timeout(&worker_complete, msecs_to_jiffies(1000))) {\n                atomic64_inc(&stats.completion_waits);\n                printk(KERN_INFO \"Writer: received completion signal\\n\");\n            }\n        }\n    }\n    \n    printk(KERN_INFO \"Writer thread exiting\\n\");\n    return 0;\n}\n\n// TODO: Monitor thread function\nstatic int monitor_thread_fn(void *data)\n{\n    unsigned long last_reads, last_updates;\n    \n    printk(KERN_INFO \"Monitor thread started\\n\");\n    \n    last_reads = atomic64_read(&stats.rcu_reads);\n    last_updates = atomic64_read(&stats.rcu_updates);\n    \n    while (!kthread_should_stop() && !module_stopping) {\n        msleep(5000); // Monitor every 5 seconds\n        \n        unsigned long current_reads = atomic64_read(&stats.rcu_reads);\n        unsigned long current_updates = atomic64_read(&stats.rcu_updates);\n        \n        printk(KERN_INFO \"Monitor: reads/sec=%lu, updates/sec=%lu, config_version=%d\\n\",\n               (current_reads - last_reads) / 5,\n               (current_updates - last_updates) / 5,\n               atomic_read(&config_version));\n        \n        last_reads = current_reads;\n        last_updates = current_updates;\n        \n        // TODO: Signal completion periodically\n        complete(&worker_complete);\n        atomic64_inc(&stats.completion_signals);\n    }\n    \n    printk(KERN_INFO \"Monitor thread exiting\\n\");\n    return 0;\n}\n\n// TODO: Proc interface for statistics\nstatic int sync_stats_show(struct seq_file *m, void *v)\n{\n    seq_printf(m, \"Advanced Synchronization Statistics\\n\");\n    seq_printf(m, \"===================================\\n\");\n    seq_printf(m, \"RCU reads: %llu\\n\", atomic64_read(&stats.rcu_reads));\n    seq_printf(m, \"RCU updates: %llu\\n\", atomic64_read(&stats.rcu_updates));\n    seq_printf(m, \"Completion waits: %llu\\n\", atomic64_read(&stats.completion_waits));\n    seq_printf(m, \"Completion signals: %llu\\n\", atomic64_read(&stats.completion_signals));\n    seq_printf(m, \"Atomic operations: %llu\\n\", atomic64_read(&stats.atomic_operations));\n    seq_printf(m, \"Memory barriers: %llu\\n\", atomic64_read(&stats.barrier_calls));\n    seq_printf(m, \"Worker count: %d\\n\", atomic_read(&worker_count));\n    seq_printf(m, \"Config version: %d\\n\", atomic_read(&config_version));\n    \n    return 0;\n}\n\nstatic int sync_stats_open(struct inode *inode, struct file *file)\n{\n    return single_open(file, sync_stats_show, NULL);\n}\n\nstatic const struct proc_ops sync_stats_ops = {\n    .proc_open = sync_stats_open,\n    .proc_read = seq_read,\n    .proc_lseek = seq_lseek,\n    .proc_release = single_release,\n};\n\nstatic int __init sync_module_init(void)\n{\n    int ret;\n    \n    printk(KERN_INFO \"Advanced synchronization module initializing...\\n\");\n    \n    // TODO: Initialize statistics\n    atomic64_set(&stats.rcu_reads, 0);\n    atomic64_set(&stats.rcu_updates, 0);\n    atomic64_set(&stats.completion_waits, 0);\n    atomic64_set(&stats.completion_signals, 0);\n    atomic64_set(&stats.atomic_operations, 0);\n    atomic64_set(&stats.barrier_calls, 0);\n    \n    // TODO: Create initial shared data\n    ret = update_shared_data(42, \"initial_data\");\n    if (ret) {\n        printk(KERN_ERR \"Failed to create initial data\\n\");\n        return ret;\n    }\n    \n    // TODO: Create proc entry\n    if (!proc_create(\"sync_stats\", 0444, NULL, &sync_stats_ops)) {\n        printk(KERN_ERR \"Failed to create proc entry\\n\");\n        return -ENOMEM;\n    }\n    \n    // TODO: Start worker threads\n    reader_thread = kthread_run(reader_thread_fn, NULL, \"sync_reader\");\n    if (IS_ERR(reader_thread)) {\n        proc_remove(\"sync_stats\");\n        return PTR_ERR(reader_thread);\n    }\n    \n    writer_thread = kthread_run(writer_thread_fn, NULL, \"sync_writer\");\n    if (IS_ERR(writer_thread)) {\n        kthread_stop(reader_thread);\n        proc_remove(\"sync_stats\");\n        return PTR_ERR(writer_thread);\n    }\n    \n    monitor_thread = kthread_run(monitor_thread_fn, NULL, \"sync_monitor\");\n    if (IS_ERR(monitor_thread)) {\n        kthread_stop(writer_thread);\n        kthread_stop(reader_thread);\n        proc_remove(\"sync_stats\");\n        return PTR_ERR(monitor_thread);\n    }\n    \n    atomic_set(&worker_count, 3);\n    \n    printk(KERN_INFO \"Advanced synchronization module loaded successfully\\n\");\n    printk(KERN_INFO \"Worker threads: reader, writer, monitor\\n\");\n    printk(KERN_INFO \"Statistics available at /proc/sync_stats\\n\");\n    \n    return 0;\n}\n\nstatic void __exit sync_module_exit(void)\n{\n    struct shared_data *data;\n    \n    printk(KERN_INFO \"Stopping advanced synchronization module...\\n\");\n    \n    // TODO: Signal threads to stop\n    module_stopping = true;\n    smp_wmb(); // Ensure visibility\n    \n    // TODO: Stop worker threads\n    if (monitor_thread) {\n        kthread_stop(monitor_thread);\n    }\n    if (writer_thread) {\n        kthread_stop(writer_thread);\n    }\n    if (reader_thread) {\n        kthread_stop(reader_thread);\n    }\n    \n    // TODO: Remove proc entry\n    proc_remove(\"sync_stats\");\n    \n    // TODO: Clean up shared data\n    mutex_lock(&update_mutex);\n    data = rcu_dereference_protected(global_data, lockdep_is_held(&update_mutex));\n    RCU_INIT_POINTER(global_data, NULL);\n    mutex_unlock(&update_mutex);\n    \n    // TODO: Wait for grace period and free\n    if (data) {\n        synchronize_rcu();\n        kfree(data);\n    }\n    \n    printk(KERN_INFO \"Advanced synchronization module unloaded\\n\");\n    printk(KERN_INFO \"Final stats - RCU reads: %llu, updates: %llu\\n\",\n           atomic64_read(&stats.rcu_reads), atomic64_read(&stats.rcu_updates));\n}\n\nmodule_init(sync_module_init);\nmodule_exit(sync_module_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Kernel Academy Student\");\nMODULE_DESCRIPTION(\"Advanced synchronization primitives demonstration\");\nMODULE_VERSION(\"1.0\");",
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "sync_module_init",
+        "sync_module_exit",
+        "read_shared_data", 
+        "update_shared_data",
+        "free_shared_data_rcu",
+        "reader_thread_fn",
+        "writer_thread_fn",
+        "monitor_thread_fn",
+        "sync_stats_show"
+      ],
+      "variables": [
+        {"name": "global_data", "type": "struct shared_data __rcu*"},
+        {"name": "update_mutex", "type": "struct mutex"},
+        {"name": "stats_lock", "type": "spinlock_t"},
+        {"name": "worker_count", "type": "atomic_t"},
+        {"name": "config_version", "type": "atomic_t"}
+      ],
+      "outputMessages": [
+        "Advanced synchronization module loaded successfully",
+        "Worker threads: reader, writer, monitor",
+        "Statistics available at /proc/sync_stats",
+        "Advanced synchronization module unloaded",
+        "Final stats - RCU reads:"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/atomic.h",
+        "linux/rcupdate.h",
+        "linux/completion.h"
+      ],
+      "mustContain": [
+        "rcu_read_lock",
+        "rcu_read_unlock",
+        "rcu_dereference",
+        "rcu_assign_pointer",
+        "call_rcu",
+        "synchronize_rcu",
+        "atomic64_inc",
+        "atomic64_read",
+        "complete",
+        "wait_for_completion",
+        "smp_wmb",
+        "smp_mb",
+        "container_of"
+      ]
+    },
+    "testCases": [
+      {
+        "id": "rcu_usage",
+        "name": "RCU Read-Side Critical Sections",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "rcu_read_lock()",
+          "rcu_read_unlock()",
+          "rcu_dereference(global_data)",
+          "rcu_assign_pointer(global_data, new_data)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "rcu_synchronization",
+        "name": "RCU Synchronization and Callbacks",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "call_rcu(&old_data->rcu, free_shared_data_rcu)",
+          "synchronize_rcu()",
+          "container_of(head, struct shared_data, rcu)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "atomic_operations",
+        "name": "Atomic Operations",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "atomic64_inc(&stats",
+          "atomic64_read(&stats",
+          "atomic_set(&new_data->reference_count, 1)",
+          "atomic_inc(&config_version)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "completion_objects",
+        "name": "Completion Objects",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "DECLARE_COMPLETION(init_complete)",
+          "complete(&init_complete)",
+          "wait_for_completion(&init_complete)",
+          "wait_for_completion_timeout"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "memory_barriers",
+        "name": "Memory Barriers",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "smp_wmb()",
+          "smp_mb()",
+          "atomic64_inc(&stats.barrier_calls)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "thread_management",
+        "name": "Kernel Thread Management",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "kthread_run(reader_thread_fn",
+          "kthread_run(writer_thread_fn",
+          "kthread_run(monitor_thread_fn",
+          "kthread_stop(reader_thread)",
+          "kthread_should_stop()"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "statistics_interface",
+        "name": "Statistics Proc Interface",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {"pattern": "Statistics available at /proc/sync_stats", "exact": true}
+        ]
+      }
+    ]
+  }
+}
