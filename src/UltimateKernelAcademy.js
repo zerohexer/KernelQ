@@ -6959,9 +6959,9 @@ MODULE_LICENSE("GPL");`,
                             </div>
 
                             {/* Large Resizable Editor Interface */}
-                            <div className="flex flex-col lg:grid lg:grid-cols-2 resize-y overflow-auto border-t border-gray-200" style={{ minHeight: '800px', height: '70vh' }}>
+                            <div className="flex flex-col lg:grid lg:grid-cols-2 resize-y overflow-auto border-t border-gray-200" style={{ minHeight: '1000px', height: '80vh' }}>
                                 {/* Code Input Panel */}
-                                <div className="lg:border-r border-gray-200 flex flex-col min-h-[400px] h-full">
+                                <div className="lg:border-r border-gray-200 flex flex-col min-h-[500px] h-full">
                                     <div className="bg-gray-100 px-2 sm:px-3 py-1 sm:py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
                                         <span className="text-xs sm:text-sm">📝 Semantic Kernel Code Editor</span>
                                         <span className="text-gray-500 hidden sm:inline text-xs">Real-time error detection</span>
@@ -6982,7 +6982,7 @@ MODULE_LICENSE("GPL");`,
                                 </div>
 
                                 {/* Output and Testing Panel */}
-                                <div className="bg-gray-50 border border-gray-200 flex flex-col min-h-[400px] h-full border-t lg:border-t-0 lg:border-l">
+                                <div className="bg-gray-50 border border-gray-200 flex flex-col min-h-[500px] h-full border-t lg:border-t-0 lg:border-l">
                                     <div className="bg-gray-100 px-2 sm:px-3 py-1 sm:py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
                                         <span className="text-xs sm:text-sm">🔍 Dynamic Analysis & Output</span>
                                         <button
