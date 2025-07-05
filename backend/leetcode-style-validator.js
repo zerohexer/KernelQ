@@ -836,15 +836,26 @@ class LeetCodeStyleValidator {
         const startTime = Date.now();
 
         try {
-            // Step 1: Get test definition
+            // Step 1: Get test definition - NO FALLBACK
             const testDef = this.testDefinitions.get(problemId) || 
-                           this.testDefinitions.get(parseInt(problemId)) ||
-                           this.getGenericTestDef(problemId);
+                           this.testDefinitions.get(parseInt(problemId));
+            
+            if (!testDef) {
+                console.error(`❌ VALIDATION SYSTEM ERROR: No test definition found for problem: ${problemId}`);
+                throw new Error(`VALIDATION SYSTEM ERROR: Problem ${problemId} has no test definition. This indicates a backend configuration issue.`);
+            }
             
             console.log(`🔍 Found test definition for problem ${problemId}: ${testDef.name}, testCases: ${testDef.testCases?.length || 0}`);
             
-            if (!testDef) {
-                throw new Error(`No test definition found for problem: ${problemId}`);
+            // STRICT: Validate test definition completeness
+            if (!testDef.testCases || testDef.testCases.length === 0) {
+                console.error(`❌ VALIDATION SYSTEM ERROR: Problem ${problemId} has no test cases defined`);
+                throw new Error(`VALIDATION SYSTEM ERROR: Problem ${problemId} has empty or missing testCases array. This indicates a test definition issue.`);
+            }
+            
+            if (testDef.testCases.length < 2) {
+                console.error(`❌ VALIDATION SYSTEM ERROR: Problem ${problemId} has insufficient test cases (${testDef.testCases.length})`);
+                throw new Error(`VALIDATION SYSTEM ERROR: Problem ${problemId} has only ${testDef.testCases.length} test case(s). Minimum 2 required for proper validation.`);
             }
 
             // Step 2: Pre-compilation validation
@@ -888,12 +899,23 @@ class LeetCodeStyleValidator {
             this.calculateResults(results, testDef);
 
         } catch (error) {
-            results.overallResult = 'SYSTEM_ERROR';
-            results.feedback.push({
-                type: 'error',
-                message: 'System error during validation',
-                details: error.message
-            });
+            // Check if this is a validation system configuration error
+            if (error.message.includes('VALIDATION SYSTEM ERROR')) {
+                results.overallResult = 'VALIDATION_SYSTEM_ERROR';
+                results.feedback.push({
+                    type: 'system_error',
+                    message: 'Backend/Validation System Error',
+                    details: error.message
+                });
+                console.error('🚨 VALIDATION SYSTEM ERROR:', error.message);
+            } else {
+                results.overallResult = 'SYSTEM_ERROR';
+                results.feedback.push({
+                    type: 'error',
+                    message: 'System error during validation',
+                    details: error.message
+                });
+            }
         } finally {
             await this.cleanup(sessionId);
             results.executionTime = Date.now() - startTime;
@@ -1024,6 +1046,8 @@ class LeetCodeStyleValidator {
 
         // Run each test case based on direct compilation output
         console.log(`🔍 Running ${testDef.testCases.length} test cases for problem ${testDef.name}`);
+        let successfulTests = 0;
+        
         for (const testCase of testDef.testCases) {
             let testResult = {
                 id: testCase.id,
@@ -1056,15 +1080,27 @@ class LeetCodeStyleValidator {
                         testResult.status = 'PASSED';
                         testResult.message = 'Direct compilation and testing completed';
                 }
+                
+                // Ensure the test result maintains proper structure
+                if (!testResult.id) testResult.id = testCase.id;
+                if (!testResult.name) testResult.name = testCase.name;
+                
+                successfulTests++;
+                console.log(`✅ Test ${successfulTests}/${testDef.testCases.length}: ${testResult.name} - ${testResult.status}`);
+                
             } catch (error) {
+                console.error(`❌ Test failed with exception: ${testCase.name}`, error);
                 testResult.status = 'ERROR';
                 testResult.message = `Test analysis failed: ${error.message}`;
+                // Continue with next test instead of breaking the loop
             }
 
             testResult.executionTime = Date.now() - testStart;
             testResult.critical = testCase.critical || false; // Add critical flag
             results.tests.push(testResult);
         }
+        
+        console.log(`🏁 Completed ${successfulTests}/${testDef.testCases.length} tests successfully`);
 
         return results;
     }
@@ -1457,6 +1493,17 @@ class LeetCodeStyleValidator {
         // Add test counts for frontend display (FIX for 1/1 passed bug)
         results.totalTests = totalTests;
         results.passedTests = passedTests;
+        
+        // SAFETY: Detect if we somehow ended up with suspiciously few tests
+        if (totalTests < 2) {
+            console.error(`🚨 VALIDATION SYSTEM WARNING: Only ${totalTests} test(s) executed for ${testDef.name}`);
+            console.error(`🚨 Expected: ${testDef.testCases?.length || 0} test cases from definition`);
+            results.feedback.push({
+                type: 'warning',
+                message: 'Validation System Warning',
+                details: `Only ${totalTests} test(s) were executed. This may indicate a validation system issue.`
+            });
+        }
 
         // Result determination - stricter for exact requirements
         if (criticalTests.length > 0 && passedCritical < criticalTests.length) {
@@ -1554,54 +1601,50 @@ class LeetCodeStyleValidator {
             name: `Generic Test for ${problemId}`,
             category: 'generic',
             exactRequirements: {
-                functionNames: ['module_init_func', 'module_exit_func'], // Require specific function names
-                outputMessages: [
-                    'Module loaded successfully',
-                    'Module unloaded successfully'
-                ],
-                requiredIncludes: ['linux/module.h', 'linux/kernel.h', 'linux/init.h'],
+                functionNames: [], // Don't require specific function names for generic
+                outputMessages: [],
+                requiredIncludes: ['linux/module.h', 'linux/kernel.h'],
                 mustContain: ['module_init(', 'module_exit(', 'MODULE_LICENSE']
             },
             testCases: [
                 {
-                    id: 'compilation_check',
-                    name: 'Compilation Check',
+                    id: 'basic_compilation',
+                    name: 'Basic Compilation Success',
                     type: 'structure_check',
                     critical: true,
                     expected: ['module_init', 'module_exit', 'MODULE_LICENSE']
                 },
                 {
-                    id: 'function_names_check',
-                    name: 'Required Function Names',
-                    type: 'symbol_check',
+                    id: 'kernel_headers',
+                    name: 'Kernel Headers Check',
+                    type: 'code_analysis',
                     critical: true,
-                    expected: ['module_init_func', 'module_exit_func']
+                    expectedSymbols: ['linux/module.h', 'linux/kernel.h'],
+                    prohibitedSymbols: ['stdio.h', 'stdlib.h']
                 },
                 {
-                    id: 'output_validation',
-                    name: 'Expected Output Messages',
-                    type: 'output_match',
-                    critical: true,
-                    expected: [
-                        { pattern: 'Module loaded successfully', exact: true },
-                        { pattern: 'Module unloaded successfully', exact: true }
-                    ]
-                },
-                {
-                    id: 'code_structure_analysis',
-                    name: 'Code Structure Analysis',
+                    id: 'module_structure',
+                    name: 'Module Structure Validation',
                     type: 'code_analysis',
                     critical: true,
                     expectedSymbols: ['module_init(', 'module_exit(', 'printk'],
-                    prohibitedSymbols: ['printf', 'malloc', 'free', '// TODO:']
+                    prohibitedSymbols: ['printf', 'malloc', 'free']
                 },
                 {
-                    id: 'module_metadata_check',
-                    name: 'Module Metadata Check',
+                    id: 'license_check',
+                    name: 'GPL License Required',
                     type: 'code_analysis',
                     critical: true,
                     expectedSymbols: ['MODULE_LICENSE', 'GPL'],
                     prohibitedSymbols: []
+                },
+                {
+                    id: 'syntax_validation',
+                    name: 'Basic Syntax Validation',
+                    type: 'code_analysis',
+                    critical: false,
+                    expectedSymbols: ['{', '}', 'static'],
+                    prohibitedSymbols: ['TODO:', 'FIXME:', '???']
                 }
             ]
         };

@@ -5679,7 +5679,8 @@ MODULE_LICENSE("GPL");`,
             'COMPILATION_ERROR': '❌',
             'RUNTIME_ERROR': '❌',
             'PARTIAL_CREDIT': '❌',
-            'SYSTEM_ERROR': '❌'
+            'SYSTEM_ERROR': '❌',
+            'VALIDATION_SYSTEM_ERROR': '🚨'
         };
         
         const resultText = {
@@ -5688,7 +5689,8 @@ MODULE_LICENSE("GPL");`,
             'COMPILATION_ERROR': 'Compilation Error',
             'RUNTIME_ERROR': 'Runtime Error',
             'PARTIAL_CREDIT': 'Wrong Answer',
-            'SYSTEM_ERROR': 'System Error'
+            'SYSTEM_ERROR': 'System Error',
+            'VALIDATION_SYSTEM_ERROR': 'Backend/Validation System Error'
         };
         
         output += `${resultEmoji[results.overallResult] || '❌'} ${resultText[results.overallResult] || 'Failed'}\n\n`;
