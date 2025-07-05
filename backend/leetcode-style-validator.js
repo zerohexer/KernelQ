@@ -841,6 +841,8 @@ class LeetCodeStyleValidator {
                            this.testDefinitions.get(parseInt(problemId)) ||
                            this.getGenericTestDef(problemId);
             
+            console.log(`🔍 Found test definition for problem ${problemId}: ${testDef.name}, testCases: ${testDef.testCases?.length || 0}`);
+            
             if (!testDef) {
                 throw new Error(`No test definition found for problem: ${problemId}`);
             }
@@ -1021,6 +1023,7 @@ class LeetCodeStyleValidator {
         }
 
         // Run each test case based on direct compilation output
+        console.log(`🔍 Running ${testDef.testCases.length} test cases for problem ${testDef.name}`);
         for (const testCase of testDef.testCases) {
             let testResult = {
                 id: testCase.id,
@@ -1142,12 +1145,33 @@ class LeetCodeStyleValidator {
             message: ''
         };
 
-        // If module compiled successfully, structure is likely correct
-        if (output.includes('LD [M]') && output.includes('.ko')) {
-            result.status = 'PASSED';
-            result.message = 'Module structure validated by successful compilation';
-        } else {
+        // Check for successful compilation first
+        if (!output.includes('LD [M]') || !output.includes('.ko')) {
             result.message = 'Module structure validation failed - compilation error';
+            return result;
+        }
+
+        // Compilation successful, now check for actual structure requirements
+        const missingStructures = [];
+        
+        if (testCase.expected) {
+            for (const expectedItem of testCase.expected) {
+                // Use the direct compilation output or symbol analysis for verification
+                if (expectedItem === 'module_init' && !output.includes('module_init')) {
+                    missingStructures.push('module_init registration');
+                } else if (expectedItem === 'module_exit' && !output.includes('module_exit')) {
+                    missingStructures.push('module_exit registration');
+                } else if (expectedItem === 'MODULE_LICENSE' && !output.includes('MODULE_LICENSE')) {
+                    missingStructures.push('MODULE_LICENSE declaration');
+                }
+            }
+        }
+        
+        if (missingStructures.length === 0) {
+            result.status = 'PASSED';
+            result.message = 'Module structure validated - all required elements found';
+        } else {
+            result.message = `Missing required structures: ${missingStructures.join(', ')}`;
         }
 
         return result;
@@ -1422,6 +1446,7 @@ class LeetCodeStyleValidator {
     calculateResults(results, testDef) {
         const totalTests = results.testResults.length;
         const passedTests = results.testResults.filter(t => t.status === 'PASSED').length;
+        console.log(`📊 Final test count for ${testDef.name}: ${totalTests} total, ${passedTests} passed`);
         const criticalTests = results.testResults.filter(t => t.critical);
         const passedCritical = criticalTests.filter(t => t.status === 'PASSED').length;
         const failedTests = results.testResults.filter(t => t.status === 'FAILED');
@@ -1520,15 +1545,59 @@ class LeetCodeStyleValidator {
 
     getGenericTestDef(problemId) {
         // Fallback test definition for unknown problems
+        // Create multiple comprehensive tests to prevent false positives
         return {
             name: `Generic Test for ${problemId}`,
             category: 'generic',
+            exactRequirements: {
+                functionNames: ['module_init_func', 'module_exit_func'], // Require specific function names
+                outputMessages: [
+                    'Module loaded successfully',
+                    'Module unloaded successfully'
+                ],
+                requiredIncludes: ['linux/module.h', 'linux/kernel.h', 'linux/init.h'],
+                mustContain: ['module_init(', 'module_exit(', 'MODULE_LICENSE']
+            },
             testCases: [
                 {
-                    id: 'basic_compilation',
-                    name: 'Basic Compilation',
+                    id: 'compilation_check',
+                    name: 'Compilation Check',
                     type: 'structure_check',
-                    expected: ['module_init', 'module_exit']
+                    critical: true,
+                    expected: ['module_init', 'module_exit', 'MODULE_LICENSE']
+                },
+                {
+                    id: 'function_names_check',
+                    name: 'Required Function Names',
+                    type: 'symbol_check',
+                    critical: true,
+                    expected: ['module_init_func', 'module_exit_func']
+                },
+                {
+                    id: 'output_validation',
+                    name: 'Expected Output Messages',
+                    type: 'output_match',
+                    critical: true,
+                    expected: [
+                        { pattern: 'Module loaded successfully', exact: true },
+                        { pattern: 'Module unloaded successfully', exact: true }
+                    ]
+                },
+                {
+                    id: 'code_structure_analysis',
+                    name: 'Code Structure Analysis',
+                    type: 'code_analysis',
+                    critical: true,
+                    expectedSymbols: ['module_init(', 'module_exit(', 'printk'],
+                    prohibitedSymbols: ['printf', 'malloc', 'free', '// TODO:']
+                },
+                {
+                    id: 'module_metadata_check',
+                    name: 'Module Metadata Check',
+                    type: 'code_analysis',
+                    critical: true,
+                    expectedSymbols: ['MODULE_LICENSE', 'GPL'],
+                    prohibitedSymbols: []
                 }
             ]
         };
