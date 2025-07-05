@@ -5504,8 +5504,8 @@ MODULE_LICENSE("GPL");`,
                     return {
                         success: true,
                         overallResult: result.overallResult,
-                        totalTests: result.totalTests || result.testResults?.length || 0,
-                        passedTests: result.passedTests || result.testResults?.filter(t => t.status === 'PASSED').length || 0,
+                        totalTests: result.testResults?.length || 0,
+                        passedTests: result.testResults?.filter(t => t.status === 'PASSED').length || 0,
                         score: result.score,
                         testResults: result.testResults?.map(test => ({
                             testName: test.name || test.id,
@@ -5525,8 +5525,8 @@ MODULE_LICENSE("GPL");`,
                     return {
                         success: false,
                         overallResult: result.overallResult || 'WRONG_ANSWER',
-                        totalTests: result.totalTests || result.testResults?.length || 1,
-                        passedTests: result.passedTests || result.testResults?.filter(t => t.status === 'PASSED').length || 0,
+                        totalTests: result.testResults?.length || 1,
+                        passedTests: result.testResults?.filter(t => t.status === 'PASSED').length || 0,
                         score: result.score || 0,
                         testResults: result.testResults?.map(test => ({
                             testName: test.name || test.id,
@@ -5679,8 +5679,7 @@ MODULE_LICENSE("GPL");`,
             'COMPILATION_ERROR': '❌',
             'RUNTIME_ERROR': '❌',
             'PARTIAL_CREDIT': '❌',
-            'SYSTEM_ERROR': '❌',
-            'VALIDATION_SYSTEM_ERROR': '🚨'
+            'SYSTEM_ERROR': '❌'
         };
         
         const resultText = {
@@ -5689,8 +5688,7 @@ MODULE_LICENSE("GPL");`,
             'COMPILATION_ERROR': 'Compilation Error',
             'RUNTIME_ERROR': 'Runtime Error',
             'PARTIAL_CREDIT': 'Wrong Answer',
-            'SYSTEM_ERROR': 'System Error',
-            'VALIDATION_SYSTEM_ERROR': 'Backend/Validation System Error'
+            'SYSTEM_ERROR': 'System Error'
         };
         
         output += `${resultEmoji[results.overallResult] || '❌'} ${resultText[results.overallResult] || 'Failed'}\n\n`;
@@ -5701,7 +5699,7 @@ MODULE_LICENSE("GPL");`,
             if (results.executionTime) {
                 output += `Time: ${(results.executionTime / 1000).toFixed(2)}s\n`;
             }
-            output += `Memory: 6.4MB\n`;
+            output += `Memory: Not yet implemented\n`;
             output += `Environment: QEMU Linux Kernel VM\n\n`;
         }
         
@@ -6647,22 +6645,22 @@ MODULE_LICENSE("GPL");`,
     );
 
     return (
-        <div className="max-w-7xl mx-auto p-6 bg-gray-100 min-h-screen">
+        <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6 bg-gray-100 min-h-screen">
             {/* Clean Professional Header */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-8 mb-8 shadow-sm">
-                <div className="flex justify-between items-start">
+            <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 shadow-sm">
+                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
                     <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
-                            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                                <Cpu className="w-6 h-6 text-white" />
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+                                <Cpu className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">KernelOne Academy</h1>
-                                <p className="text-gray-600">Professional Kernel Development Training</p>
+                                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">KernelOne Academy</h1>
+                                <p className="text-sm sm:text-base text-gray-600">Professional Kernel Development Training</p>
                             </div>
                         </div>
                         
-                        <div className="flex items-center gap-6 text-sm text-gray-600">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm text-gray-600">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                 <span>Current Phase: <strong className="text-gray-900">{phaseSystem[getCurrentPhase()].name}</strong></span>
@@ -6679,17 +6677,17 @@ MODULE_LICENSE("GPL");`,
                         </div>
                     </div>
                     
-                    <div className="flex gap-4">
-                        <div className="bg-gray-50 rounded-xl p-4 text-center min-w-[120px]">
-                            <div className="text-2xl font-bold text-gray-900 mb-1">{userProfile.xp.toLocaleString()}</div>
+                    <div className="flex flex-row sm:flex-row gap-2 sm:gap-4 overflow-x-auto">
+                        <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center min-w-[100px] sm:min-w-[120px] flex-shrink-0">
+                            <div className="text-lg sm:text-2xl font-bold text-gray-900 mb-1">{userProfile.xp.toLocaleString()}</div>
                             <div className="text-xs text-gray-600 font-medium">Total XP</div>
                         </div>
-                        <div className="bg-blue-50 rounded-xl p-4 text-center min-w-[120px]">
-                            <div className="text-2xl font-bold text-blue-600 mb-1">{userProfile.uniqueChallengesCompleted}</div>
+                        <div className="bg-blue-50 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center min-w-[100px] sm:min-w-[120px] flex-shrink-0">
+                            <div className="text-lg sm:text-2xl font-bold text-blue-600 mb-1">{userProfile.uniqueChallengesCompleted}</div>
                             <div className="text-xs text-gray-600 font-medium">Completed</div>
                         </div>
-                        <div className="bg-purple-50 rounded-xl p-4 text-center min-w-[120px]">
-                            <div className="text-2xl font-bold text-purple-600 mb-1">{userProfile.masteryPoints}</div>
+                        <div className="bg-purple-50 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center min-w-[100px] sm:min-w-[120px] flex-shrink-0">
+                            <div className="text-lg sm:text-2xl font-bold text-purple-600 mb-1">{userProfile.masteryPoints}</div>
                             <div className="text-xs text-gray-600 font-medium">Mastery Points</div>
                         </div>
                     </div>
@@ -6697,82 +6695,88 @@ MODULE_LICENSE("GPL");`,
             </div>
 
             {/* Clean Navigation Tabs */}
-            <div className="bg-white border border-gray-200 rounded-xl p-2 mb-8 shadow-sm">
-                <div className="flex gap-1">
+            <div className="bg-white border border-gray-200 rounded-xl p-2 mb-4 sm:mb-6 lg:mb-8 shadow-sm">
+                <div className="flex gap-1 sm:gap-2">
                     <button
                         onClick={() => setActiveTab('learning')}
-                        className={`px-4 py-3 rounded-lg font-medium transition-all flex items-center gap-2 flex-1 justify-center ${
+                        className={`px-3 sm:px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 ${
                             activeTab === 'learning' 
                                 ? 'bg-blue-600 text-white shadow-sm' 
                                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                         }`}
                     >
-                        <Brain size={18} />
-                        <span className="font-semibold">Learning</span>
+                        <Brain size={16} className="sm:w-[18px] sm:h-[18px]" />
+                        <span className="font-semibold text-sm sm:text-base hidden sm:inline">Learning</span>
+                        <span className="font-semibold text-xs sm:hidden">Learn</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('problems')}
-                        className={`px-4 py-3 rounded-lg font-medium transition-all flex items-center gap-2 flex-1 justify-center ${
+                        className={`px-3 sm:px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 ${
                             activeTab === 'problems' 
                                 ? 'bg-blue-600 text-white shadow-sm' 
                                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                         }`}
                     >
-                        <Trophy size={18} />
-                        <span className="font-semibold">Problems</span>
+                        <Trophy size={16} className="sm:w-[18px] sm:h-[18px]" />
+                        <span className="font-semibold text-sm sm:text-base hidden sm:inline">Problems</span>
+                        <span className="font-semibold text-xs sm:hidden">Problems</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('phases')}
-                        className={`px-4 py-3 rounded-lg font-medium transition-all flex items-center gap-2 flex-1 justify-center ${
+                        className={`px-3 sm:px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 ${
                             activeTab === 'phases' 
                                 ? 'bg-blue-600 text-white shadow-sm' 
                                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                         }`}
                     >
-                        <GitBranch size={18} />
-                        <span className="font-semibold">Phases</span>
+                        <GitBranch size={16} className="sm:w-[18px] sm:h-[18px]" />
+                        <span className="font-semibold text-sm sm:text-base hidden sm:inline">Phases</span>
+                        <span className="font-semibold text-xs sm:hidden">Phases</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('concepts')}
-                        className={`px-4 py-3 rounded-lg font-medium transition-all flex items-center gap-2 flex-1 justify-center ${
+                        className={`px-3 sm:px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 ${
                             activeTab === 'concepts' 
                                 ? 'bg-blue-600 text-white shadow-sm' 
                                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                         }`}
                     >
-                        <Book size={18} />
-                        <span className="font-semibold">Concepts</span>
+                        <Book size={16} className="sm:w-[18px] sm:h-[18px]" />
+                        <span className="font-semibold text-sm sm:text-base hidden sm:inline">Concepts</span>
+                        <span className="font-semibold text-xs sm:hidden">Theory</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('playground')}
-                        className={`px-4 py-3 rounded-lg font-medium transition-all flex items-center gap-2 flex-1 justify-center ${
+                        className={`px-3 sm:px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 ${
                             activeTab === 'playground' 
                                 ? 'bg-blue-600 text-white shadow-sm' 
                                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                         }`}
                     >
-                        <Terminal size={18} />
-                        <span className="font-semibold">Playground</span>
+                        <Terminal size={16} className="sm:w-[18px] sm:h-[18px]" />
+                        <span className="font-semibold text-sm sm:text-base hidden sm:inline">Playground</span>
+                        <span className="font-semibold text-xs sm:hidden">Code</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('analytics')}
-                        className={`px-4 py-3 rounded-lg font-medium transition-all flex items-center gap-2 flex-1 justify-center ${
+                        className={`px-3 sm:px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 ${
                             activeTab === 'analytics' 
                                 ? 'bg-blue-600 text-white shadow-sm' 
                                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                         }`}
                     >
-                        <TrendingUp size={18} />
-                        <span className="font-semibold">Analytics</span>
+                        <TrendingUp size={16} className="sm:w-[18px] sm:h-[18px]" />
+                        <span className="font-semibold text-sm sm:text-base hidden sm:inline">Analytics</span>
+                        <span className="font-semibold text-xs sm:hidden">Stats</span>
                     </button>
                 </div>
             </div>
 
             {/* Learning Tab - Unlimited Challenge Interface */}
             {activeTab === 'learning' && (
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
                     {/* Challenge Control Panel */}
-                    <div className="lg:col-span-1 space-y-4">
+                    <div className="lg:col-span-1 space-y-4 order-1 lg:order-1">
                         {/* Current Challenge Info */}
                         {currentChallenge && (
                             <div className="bg-white rounded-lg p-4 shadow-md border">
@@ -6900,50 +6904,54 @@ MODULE_LICENSE("GPL");`,
                     </div>
 
                     {/* Professional Code Editor - Full Height */}
-                    <div className="lg:col-span-3">
+                    <div className="lg:col-span-3 order-2 lg:order-2">
                         <div className="bg-white rounded-lg shadow-md overflow-hidden border">
-                            <div className="bg-gray-800 text-white p-3 flex justify-between items-center">
+                            <div className="bg-gray-800 text-white p-2 sm:p-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                                 <div className="flex items-center gap-2">
-                                    <Code size={18} />
-                                    <span className="font-medium">Professional Kernel IDE</span>
+                                    <Code size={16} className="sm:w-[18px] sm:h-[18px]" />
+                                    <span className="font-medium text-sm sm:text-base">Professional Kernel IDE</span>
                                     {currentChallenge && (
-                                        <span className="text-xs bg-white/20 px-2 py-1 rounded">
+                                        <span className="text-xs bg-white/20 px-2 py-1 rounded hidden sm:inline">
                       {currentChallenge.templateUsed}
                     </span>
                                     )}
                                 </div>
-                                <div className="flex gap-2">
-                  <span className="text-xs bg-white/10 px-2 py-1 rounded">
+                                <div className="flex flex-wrap gap-1 sm:gap-2">
+                  <span className="text-xs bg-white/10 px-2 py-1 rounded hidden sm:inline">
                     Auto-saves
                   </span>
                                     <button
                                         onClick={() => setShowHints(!showHints)}
-                                        className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded text-sm flex items-center gap-1 transition-colors"
+                                        className="bg-yellow-600 hover:bg-yellow-700 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm flex items-center gap-1 transition-colors"
                                     >
-                                        <Lightbulb size={14} />
-                                        Smart Hints
+                                        <Lightbulb size={12} className="sm:w-[14px] sm:h-[14px]" />
+                                        <span className="hidden sm:inline">Smart Hints</span>
+                                        <span className="sm:hidden">Hints</span>
                                     </button>
                                     <button
                                         onClick={() => setShowLessons(!showLessons)}
-                                        className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm flex items-center gap-1 transition-colors"
+                                        className="bg-blue-600 hover:bg-blue-700 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm flex items-center gap-1 transition-colors"
                                     >
-                                        <Book size={14} />
-                                        Learn Concepts
+                                        <Book size={12} className="sm:w-[14px] sm:h-[14px]" />
+                                        <span className="hidden sm:inline">Learn Concepts</span>
+                                        <span className="sm:hidden">Learn</span>
                                     </button>
                                     <button
                                         onClick={runCode}
                                         disabled={codeEditor.isRunning}
-                                        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 px-4 py-1 rounded text-sm flex items-center gap-1 transition-colors"
+                                        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 px-2 sm:px-4 py-1 rounded text-xs sm:text-sm flex items-center gap-1 transition-colors"
                                     >
                                         {codeEditor.isRunning ? (
                                             <>
-                                                <Timer size={14} className="animate-spin" />
-                                                Testing...
+                                                <Timer size={12} className="animate-spin sm:w-[14px] sm:h-[14px]" />
+                                                <span className="hidden sm:inline">Testing...</span>
+                                                <span className="sm:hidden">Test</span>
                                             </>
                                         ) : (
                                             <>
-                                                <Play size={14} />
-                                                Run & Validate
+                                                <Play size={12} className="sm:w-[14px] sm:h-[14px]" />
+                                                <span className="hidden sm:inline">Run & Validate</span>
+                                                <span className="sm:hidden">Run</span>
                                             </>
                                         )}
                                     </button>
@@ -6951,12 +6959,12 @@ MODULE_LICENSE("GPL");`,
                             </div>
 
                             {/* Large Resizable Editor Interface */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 resize-y overflow-auto border-t border-gray-200" style={{ minHeight: '600px', height: '70vh', maxHeight: '90vh' }}>
+                            <div className="flex flex-col lg:grid lg:grid-cols-2 resize-y overflow-auto border-t border-gray-200" style={{ minHeight: '800px', height: '70vh' }}>
                                 {/* Code Input Panel */}
-                                <div className="border-r border-gray-200 flex flex-col">
+                                <div className="lg:border-r border-gray-200 flex flex-col min-h-[400px] h-full">
                                     <div className="bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
                                         <span>📝 Semantic Kernel Code Editor</span>
-                                        <span className="text-gray-500">Real-time error detection</span>
+                                        <span className="text-gray-500 hidden sm:inline">Real-time error detection</span>
                                     </div>
                                     <div className="flex-1 relative">
                                         <SemanticCodeEditor
@@ -6973,7 +6981,7 @@ MODULE_LICENSE("GPL");`,
                                 </div>
 
                                 {/* Output and Testing Panel */}
-                                <div className="bg-gray-50 border border-gray-200 flex flex-col">
+                                <div className="bg-gray-50 border border-gray-200 flex flex-col min-h-[400px] h-full border-t lg:border-t-0 lg:border-l">
                                     <div className="bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
                                         <span>🔍 Dynamic Analysis & Output</span>
                                         <button
@@ -6987,7 +6995,7 @@ MODULE_LICENSE("GPL");`,
                                             {debugMode ? '🐛 Debug ON' : '🔧 Debug OFF'}
                                         </button>
                                     </div>
-                                    <div className="flex-1 p-4 overflow-y-auto bg-white" style={{ minHeight: '500px' }}>
+                                    <div className="flex-1 p-4 overflow-y-auto bg-white">
                     <pre className="text-sm whitespace-pre-wrap font-mono leading-relaxed text-gray-700">
                       {codeEditor.output || "🚀 Professional testing environment ready...\n\nYour code will be dynamically analyzed for:\n• Syntax correctness\n• Logic implementation  \n• Best practices\n• Performance metrics\n• Memory safety\n• Kernel coding standards\n\nThis large editor provides:\n• Ample space for complex kernel modules\n• Real-time error detection\n• Code complexity analysis\n• Security vulnerability scanning\n• Performance optimization hints\n\n✨ RESIZE TIP: Drag the bottom edge of this panel to make it even larger!\n\nClick 'Run & Validate' to begin comprehensive testing!"}
                     </pre>
@@ -7073,13 +7081,14 @@ MODULE_LICENSE("GPL");`,
 
             {/* Problems Bank Tab - Structured Problems List */}
             {activeTab === 'problems' && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                     {/* Problems Overview */}
-                    <div className="bg-white rounded-lg p-6 shadow-md">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-2xl font-semibold flex items-center gap-2">
-                                <Trophy className="text-yellow-500" />
-                                Kernel Development Problems Bank
+                    <div className="bg-white rounded-lg p-4 sm:p-6 shadow-md">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+                            <h2 className="text-lg sm:text-2xl font-semibold flex items-center gap-2">
+                                <Trophy className="text-yellow-500 w-5 h-5 sm:w-6 sm:h-6" />
+                                <span className="hidden sm:inline">Kernel Development Problems Bank</span>
+                                <span className="sm:hidden">Problems Bank</span>
                             </h2>
                             <div className="text-sm text-gray-600">
                                 {getProblemStats().completed} / {getProblemStats().total} completed
@@ -7146,13 +7155,13 @@ MODULE_LICENSE("GPL");`,
                         </div>
                         
                         {/* Filter Controls */}
-                        <div className="flex flex-wrap gap-4 mb-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Phase</label>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Phase</label>
                                 <select 
                                     value={problemFilters.phase}
                                     onChange={(e) => setProblemFilters(prev => ({...prev, phase: e.target.value}))}
-                                    className="border rounded-lg px-3 py-2 text-sm"
+                                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 >
                                     <option value="all">All Phases</option>
                                     <option value="foundations">Foundations</option>
@@ -7169,11 +7178,11 @@ MODULE_LICENSE("GPL");`,
                             </div>
                             
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Difficulty</label>
                                 <select 
                                     value={problemFilters.difficulty}
                                     onChange={(e) => setProblemFilters(prev => ({...prev, difficulty: e.target.value}))}
-                                    className="border rounded-lg px-3 py-2 text-sm"
+                                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 >
                                     <option value="all">All Levels</option>
                                     <option value="1">Level 1 (Beginner)</option>
@@ -7186,11 +7195,11 @@ MODULE_LICENSE("GPL");`,
                             </div>
                             
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Status</label>
                                 <select 
                                     value={problemFilters.completed}
                                     onChange={(e) => setProblemFilters(prev => ({...prev, completed: e.target.value}))}
-                                    className="border rounded-lg px-3 py-2 text-sm"
+                                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 >
                                     <option value="all">All Problems</option>
                                     <option value="incomplete">Not Completed</option>
@@ -7201,7 +7210,7 @@ MODULE_LICENSE("GPL");`,
                     </div>
                     
                     {/* Problems List */}
-                    <div className="bg-white rounded-lg p-6 shadow-md">
+                    <div className="bg-white rounded-lg p-4 sm:p-6 shadow-md">
                         <h3 className="text-lg font-semibold mb-4">
                             Problems ({getFilteredProblems().length} found)
                         </h3>
