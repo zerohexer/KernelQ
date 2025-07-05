@@ -20,7 +20,7 @@ class LeetCodeStyleValidator {
 
     initializeTestDefinitions() {
         // Start with generated test definitions from framework
-        this.testDefinitions = new Map(generatedTestDefinitions);
+        this.testDefinitions = generatedTestDefinitions;
         
         // Add legacy test definitions for backward compatibility
 /*
