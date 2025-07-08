@@ -36,14 +36,12 @@ backend/qemu-images/
 *~
 
 # Test files
-test-*.js
 test-*.c
 test-*.json
 debug-*.js
 simulate-*.js
 comprehensive-*.js
 enhanced-*.js
-direct-*.js
 
 # Analysis and temporary markdown files
 *-analysis.md
