@@ -1,0 +1,147 @@
+{
+  "id": 54,
+  "title": "Poll/Select Support and Asynchronous I/O",
+  "difficulty": 8,
+  "xp": 80,
+  "phase": "kernel_core",
+  "description": "Implement poll/select support for the character device to enable asynchronous I/O operations. This teaches advanced I/O patterns used in high-performance drivers and networking code at enterprise companies.",
+  "concepts": ["poll_select", "wait_queues", "async_io", "event_notification", "file_operations_poll"],
+  "skills": ["async_io_programming", "wait_queue_management", "event_driven_programming", "performance_optimization"],
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/fs.h>\n#include <linux/device.h>\n#include <linux/cdev.h>\n#include <linux/uaccess.h>\n#include <linux/slab.h>\n#include <linux/mutex.h>\n#include <linux/wait.h>\n#include <linux/poll.h>\n#include <linux/sched.h>\n#include <linux/timer.h>\n#include <linux/workqueue.h>\n\n#define DEVICE_NAME \"polldev\"\n#define CLASS_NAME \"pollclass\"\n#define BUFFER_SIZE 1024\n#define DATA_READY_THRESHOLD 64\n\n// TODO: Device state structure\nstruct poll_device {\n    struct cdev cdev;\n    struct device *device;\n    struct class *class;\n    dev_t dev_num;\n    \n    // Buffers for read and write\n    char *read_buffer;\n    char *write_buffer;\n    size_t read_data_available;\n    size_t write_space_available;\n    \n    // Wait queues for blocking operations\n    wait_queue_head_t read_wait;\n    wait_queue_head_t write_wait;\n    \n    // Synchronization\n    struct mutex device_mutex;\n    spinlock_t buffer_lock;\n    \n    // Asynchronous notification\n    struct fasync_struct *async_queue;\n    \n    // Statistics\n    unsigned long read_count;\n    unsigned long write_count;\n    unsigned long poll_count;\n    \n    // Simulated data generation\n    struct timer_list data_timer;\n    struct work_struct data_work;\n    bool data_generation_active;\n};\n\nstatic struct poll_device poll_dev;\n\n// TODO: Data generation work function (simulates hardware interrupts)\nstatic void data_generation_work(struct work_struct *work)\n{\n    struct poll_device *dev = container_of(work, struct poll_device, data_work);\n    unsigned long flags;\n    char new_data[32];\n    size_t data_len;\n    \n    // Generate some simulated data\n    data_len = snprintf(new_data, sizeof(new_data), \"Data_%lu\\n\", jiffies);\n    \n    spin_lock_irqsave(&dev->buffer_lock, flags);\n    \n    // Add data to read buffer if there's space\n    if (dev->read_data_available + data_len <= BUFFER_SIZE) {\n        memcpy(dev->read_buffer + dev->read_data_available, new_data, data_len);\n        dev->read_data_available += data_len;\n        \n        // Wake up any processes waiting for read data\n        wake_up_interruptible(&dev->read_wait);\n        \n        // Send async notification\n        if (dev->async_queue) {\n            kill_fasync(&dev->async_queue, SIGIO, POLL_IN);\n        }\n        \n        if (dev->read_data_available >= DATA_READY_THRESHOLD) {\n            printk(KERN_INFO \"Data ready for reading (%zu bytes)\\n\", dev->read_data_available);\n        }\n    }\n    \n    spin_unlock_irqrestore(&dev->buffer_lock, flags);\n}\n\n// TODO: Timer callback for simulated data generation\nstatic void data_timer_callback(struct timer_list *timer)\n{\n    struct poll_device *dev = container_of(timer, struct poll_device, data_timer);\n    \n    // Schedule work to generate data\n    if (dev->data_generation_active) {\n        schedule_work(&dev->data_work);\n        \n        // Restart timer for next data generation\n        mod_timer(&dev->data_timer, jiffies + msecs_to_jiffies(2000));\n    }\n}\n\n// TODO: Implement poll function\nstatic __poll_t device_poll(struct file *file, poll_table *wait)\n{\n    struct poll_device *dev = file->private_data;\n    __poll_t mask = 0;\n    unsigned long flags;\n    \n    // Add our wait queues to the poll table\n    poll_wait(file, &dev->read_wait, wait);\n    poll_wait(file, &dev->write_wait, wait);\n    \n    spin_lock_irqsave(&dev->buffer_lock, flags);\n    \n    dev->poll_count++;\n    \n    // Check if data is available for reading\n    if (dev->read_data_available > 0) {\n        mask |= EPOLLIN | EPOLLRDNORM; // Readable\n    }\n    \n    // Check if space is available for writing\n    if (dev->write_space_available > 0) {\n        mask |= EPOLLOUT | EPOLLWRNORM; // Writable\n    }\n    \n    spin_unlock_irqrestore(&dev->buffer_lock, flags);\n    \n    if (mask) {\n        printk(KERN_INFO \"Poll returning mask: 0x%x\\n\", mask);\n    }\n    \n    return mask;\n}\n\n// TODO: Implement fasync function for asynchronous notification\nstatic int device_fasync(int fd, struct file *file, int mode)\n{\n    struct poll_device *dev = file->private_data;\n    return fasync_helper(fd, file, mode, &dev->async_queue);\n}\n\nstatic int device_open(struct inode *inode, struct file *file)\n{\n    struct poll_device *dev = &poll_dev;\n    \n    file->private_data = dev;\n    \n    mutex_lock(&dev->device_mutex);\n    \n    // Start data generation when first opened\n    if (!dev->data_generation_active) {\n        dev->data_generation_active = true;\n        mod_timer(&dev->data_timer, jiffies + msecs_to_jiffies(1000));\n        printk(KERN_INFO \"Data generation started\\n\");\n    }\n    \n    mutex_unlock(&dev->device_mutex);\n    \n    printk(KERN_INFO \"Poll device opened\\n\");\n    return 0;\n}\n\nstatic int device_release(struct inode *inode, struct file *file)\n{\n    struct poll_device *dev = file->private_data;\n    \n    // Remove from async notification list\n    device_fasync(-1, file, 0);\n    \n    printk(KERN_INFO \"Poll device closed\\n\");\n    return 0;\n}\n\n// TODO: Implement non-blocking read\nstatic ssize_t device_read(struct file *file, char __user *user_buffer,\n                          size_t count, loff_t *offset)\n{\n    struct poll_device *dev = file->private_data;\n    ssize_t bytes_read = 0;\n    unsigned long flags;\n    \n    if (count == 0) {\n        return 0;\n    }\n    \n    // For non-blocking I/O, don't wait\n    if (file->f_flags & O_NONBLOCK) {\n        spin_lock_irqsave(&dev->buffer_lock, flags);\n        if (dev->read_data_available == 0) {\n            spin_unlock_irqrestore(&dev->buffer_lock, flags);\n            return -EAGAIN;\n        }\n        spin_unlock_irqrestore(&dev->buffer_lock, flags);\n    } else {\n        // For blocking I/O, wait for data\n        if (wait_event_interruptible(dev->read_wait, dev->read_data_available > 0)) {\n            return -ERESTARTSYS;\n        }\n    }\n    \n    spin_lock_irqsave(&dev->buffer_lock, flags);\n    \n    if (dev->read_data_available > 0) {\n        bytes_read = min(count, dev->read_data_available);\n        \n        if (copy_to_user(user_buffer, dev->read_buffer, bytes_read)) {\n            spin_unlock_irqrestore(&dev->buffer_lock, flags);\n            return -EFAULT;\n        }\n        \n        // Move remaining data to beginning of buffer\n        if (bytes_read < dev->read_data_available) {\n            memmove(dev->read_buffer, dev->read_buffer + bytes_read,\n                   dev->read_data_available - bytes_read);\n        }\n        \n        dev->read_data_available -= bytes_read;\n        dev->read_count++;\n    }\n    \n    spin_unlock_irqrestore(&dev->buffer_lock, flags);\n    \n    if (bytes_read > 0) {\n        printk(KERN_INFO \"Read %zu bytes\\n\", bytes_read);\n    }\n    \n    return bytes_read;\n}\n\n// TODO: Implement non-blocking write\nstatic ssize_t device_write(struct file *file, const char __user *user_buffer,\n                           size_t count, loff_t *offset)\n{\n    struct poll_device *dev = file->private_data;\n    ssize_t bytes_written = 0;\n    unsigned long flags;\n    \n    if (count == 0) {\n        return 0;\n    }\n    \n    // For non-blocking I/O, don't wait\n    if (file->f_flags & O_NONBLOCK) {\n        spin_lock_irqsave(&dev->buffer_lock, flags);\n        if (dev->write_space_available == 0) {\n            spin_unlock_irqrestore(&dev->buffer_lock, flags);\n            return -EAGAIN;\n        }\n        spin_unlock_irqrestore(&dev->buffer_lock, flags);\n    } else {\n        // For blocking I/O, wait for space\n        if (wait_event_interruptible(dev->write_wait, dev->write_space_available > 0)) {\n            return -ERESTARTSYS;\n        }\n    }\n    \n    spin_lock_irqsave(&dev->buffer_lock, flags);\n    \n    if (dev->write_space_available > 0) {\n        bytes_written = min(count, dev->write_space_available);\n        \n        if (copy_from_user(dev->write_buffer, user_buffer, bytes_written)) {\n            spin_unlock_irqrestore(&dev->buffer_lock, flags);\n            return -EFAULT;\n        }\n        \n        dev->write_space_available -= bytes_written;\n        dev->write_count++;\n        \n        // Wake up any processes waiting for write space\n        wake_up_interruptible(&dev->write_wait);\n    }\n    \n    spin_unlock_irqrestore(&dev->buffer_lock, flags);\n    \n    if (bytes_written > 0) {\n        printk(KERN_INFO \"Wrote %zu bytes\\n\", bytes_written);\n    }\n    \n    return bytes_written;\n}\n\nstatic const struct file_operations poll_dev_fops = {\n    .owner = THIS_MODULE,\n    .open = device_open,\n    .release = device_release,\n    .read = device_read,\n    .write = device_write,\n    .poll = device_poll,\n    .fasync = device_fasync,\n};\n\nstatic int __init poll_dev_init(void)\n{\n    int ret;\n    \n    printk(KERN_INFO \"Poll device driver initializing...\\n\");\n    \n    // TODO: Initialize device structure\n    memset(&poll_dev, 0, sizeof(poll_dev));\n    mutex_init(&poll_dev.device_mutex);\n    spin_lock_init(&poll_dev.buffer_lock);\n    \n    // TODO: Initialize wait queues\n    init_waitqueue_head(&poll_dev.read_wait);\n    init_waitqueue_head(&poll_dev.write_wait);\n    \n    // TODO: Allocate buffers\n    poll_dev.read_buffer = kzalloc(BUFFER_SIZE, GFP_KERNEL);\n    if (!poll_dev.read_buffer) {\n        return -ENOMEM;\n    }\n    \n    poll_dev.write_buffer = kzalloc(BUFFER_SIZE, GFP_KERNEL);\n    if (!poll_dev.write_buffer) {\n        kfree(poll_dev.read_buffer);\n        return -ENOMEM;\n    }\n    \n    // TODO: Initialize buffer state\n    poll_dev.read_data_available = 0;\n    poll_dev.write_space_available = BUFFER_SIZE;\n    \n    // TODO: Initialize timer and work\n    timer_setup(&poll_dev.data_timer, data_timer_callback, 0);\n    INIT_WORK(&poll_dev.data_work, data_generation_work);\n    \n    // TODO: Register character device\n    ret = alloc_chrdev_region(&poll_dev.dev_num, 0, 1, DEVICE_NAME);\n    if (ret < 0) {\n        kfree(poll_dev.write_buffer);\n        kfree(poll_dev.read_buffer);\n        return ret;\n    }\n    \n    cdev_init(&poll_dev.cdev, &poll_dev_fops);\n    poll_dev.cdev.owner = THIS_MODULE;\n    \n    ret = cdev_add(&poll_dev.cdev, poll_dev.dev_num, 1);\n    if (ret < 0) {\n        unregister_chrdev_region(poll_dev.dev_num, 1);\n        kfree(poll_dev.write_buffer);\n        kfree(poll_dev.read_buffer);\n        return ret;\n    }\n    \n    // TODO: Create device class and device\n    poll_dev.class = class_create(THIS_MODULE, CLASS_NAME);\n    if (IS_ERR(poll_dev.class)) {\n        cdev_del(&poll_dev.cdev);\n        unregister_chrdev_region(poll_dev.dev_num, 1);\n        kfree(poll_dev.write_buffer);\n        kfree(poll_dev.read_buffer);\n        return PTR_ERR(poll_dev.class);\n    }\n    \n    poll_dev.device = device_create(poll_dev.class, NULL, poll_dev.dev_num,\n                                   NULL, DEVICE_NAME);\n    if (IS_ERR(poll_dev.device)) {\n        class_destroy(poll_dev.class);\n        cdev_del(&poll_dev.cdev);\n        unregister_chrdev_region(poll_dev.dev_num, 1);\n        kfree(poll_dev.write_buffer);\n        kfree(poll_dev.read_buffer);\n        return PTR_ERR(poll_dev.device);\n    }\n    \n    printk(KERN_INFO \"Poll device driver loaded successfully\\n\");\n    printk(KERN_INFO \"Device: /dev/%s supports poll/select operations\\n\", DEVICE_NAME);\n    \n    return 0;\n}\n\nstatic void __exit poll_dev_exit(void)\n{\n    // TODO: Stop data generation\n    poll_dev.data_generation_active = false;\n    del_timer_sync(&poll_dev.data_timer);\n    flush_work(&poll_dev.data_work);\n    \n    // TODO: Wake up any waiting processes\n    wake_up_interruptible_all(&poll_dev.read_wait);\n    wake_up_interruptible_all(&poll_dev.write_wait);\n    \n    // TODO: Clean up device\n    device_destroy(poll_dev.class, poll_dev.dev_num);\n    class_destroy(poll_dev.class);\n    cdev_del(&poll_dev.cdev);\n    unregister_chrdev_region(poll_dev.dev_num, 1);\n    kfree(poll_dev.write_buffer);\n    kfree(poll_dev.read_buffer);\n    \n    printk(KERN_INFO \"Poll device driver unloaded\\n\");\n    printk(KERN_INFO \"Final stats - Reads: %lu, Writes: %lu, Polls: %lu\\n\",\n           poll_dev.read_count, poll_dev.write_count, poll_dev.poll_count);\n}\n\nmodule_init(poll_dev_init);\nmodule_exit(poll_dev_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Kernel Academy Student\");\nMODULE_DESCRIPTION(\"Character device with poll/select support\");\nMODULE_VERSION(\"1.0\");",
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "poll_dev_init",
+        "poll_dev_exit",
+        "device_poll",
+        "device_fasync",
+        "data_generation_work",
+        "data_timer_callback"
+      ],
+      "variables": [
+        {"name": "poll_dev", "type": "struct poll_device"},
+        {"name": "poll_dev_fops", "type": "struct file_operations"}
+      ],
+      "outputMessages": [
+        "Poll device driver loaded successfully",
+        "Device: /dev/polldev supports poll/select operations",
+        "Poll device driver unloaded",
+        "Final stats - Reads:"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/fs.h",
+        "linux/wait.h",
+        "linux/poll.h"
+      ],
+      "mustContain": [
+        "poll_wait",
+        "wake_up_interruptible",
+        "wait_event_interruptible",
+        "init_waitqueue_head",
+        "fasync_helper",
+        "kill_fasync",
+        "EPOLLIN",
+        "EPOLLOUT"
+      ]
+    },
+    "testCases": [
+      {
+        "id": "poll_function_implementation",
+        "name": "Poll Function Implementation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "poll_wait(file, &dev->read_wait, wait)",
+          "poll_wait(file, &dev->write_wait, wait)",
+          "mask |= EPOLLIN | EPOLLRDNORM",
+          "mask |= EPOLLOUT | EPOLLWRNORM"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "wait_queue_management",
+        "name": "Wait Queue Management",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "init_waitqueue_head(&poll_dev.read_wait)",
+          "init_waitqueue_head(&poll_dev.write_wait)",
+          "wake_up_interruptible(&dev->read_wait)",
+          "wake_up_interruptible(&dev->write_wait)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "async_notification",
+        "name": "Asynchronous Notification",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "fasync_helper(fd, file, mode, &dev->async_queue)",
+          "kill_fasync(&dev->async_queue, SIGIO, POLL_IN)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "nonblocking_io",
+        "name": "Non-blocking I/O Support",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "if (file->f_flags & O_NONBLOCK)",
+          "return -EAGAIN",
+          "wait_event_interruptible"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "file_operations_poll",
+        "name": "File Operations Poll Entry",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          ".poll = device_poll",
+          ".fasync = device_fasync"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "buffer_synchronization",
+        "name": "Buffer Synchronization",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "spin_lock_irqsave(&dev->buffer_lock, flags)",
+          "spin_unlock_irqrestore(&dev->buffer_lock, flags)",
+          "spin_lock_init(&poll_dev.buffer_lock)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "timer_work_integration",
+        "name": "Timer and Work Integration",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "timer_setup(&poll_dev.data_timer",
+          "INIT_WORK(&poll_dev.data_work",
+          "schedule_work(&dev->data_work)",
+          "container_of(work, struct poll_device, data_work)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "poll_support_message",
+        "name": "Poll Support Message",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {"pattern": "Device: /dev/polldev supports poll/select operations", "exact": true}
+        ]
+      }
+    ]
+  }
+}

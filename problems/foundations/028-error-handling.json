@@ -1,0 +1,102 @@
+{
+  "id": 28,
+  "title": "Kernel Error Handling and Return Codes",
+  "phase": "foundations",
+  "difficulty": 5,
+  "xp": 45,
+  "description": "Learn proper error handling in kernel space using standard Linux error codes. Understand error propagation and cleanup patterns essential for reliable kernel code.",
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/slab.h>\n#include <linux/errno.h>\n\n// TODO: Create function 'allocate_buffer' that:\n// - Takes size parameter\n// - Returns pointer on success, NULL on failure\n// - Handles allocation errors properly\n\n// TODO: Create function 'process_data' that:\n// - Takes buffer pointer and size\n// - Returns 0 on success, negative error code on failure\n// - Validates parameters (returns -EINVAL for NULL pointer or zero size)\n\nstatic int __init error_handling_init(void) {\n    char *buffer;\n    int result;\n    int size = 1024;\n    \n    // TODO: Call allocate_buffer and handle errors\n    // TODO: Call process_data and handle errors\n    // TODO: Implement proper cleanup on errors\n    \n    // Expected output:\n    // \"Buffer allocated successfully (1024 bytes)\"\n    // \"Data processed successfully\"\n    // \"Cleanup completed\"\n    \n    return 0;\n}\n\nstatic void __exit error_handling_exit(void) {\n    printk(KERN_INFO \"Error handling module unloaded\\n\");\n}\n\nmodule_init(error_handling_init);\nmodule_exit(error_handling_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Your Name\");\nMODULE_DESCRIPTION(\"Error handling demonstration module\");",
+  "concepts": [
+    "kernel error codes",
+    "error propagation",
+    "cleanup patterns",
+    "EINVAL, ENOMEM",
+    "defensive programming"
+  ],
+  "skills": [
+    "Error handling",
+    "Defensive programming",
+    "Resource cleanup",
+    "Code reliability"
+  ],
+  "inputOutput": {
+    "expectedOutput": [
+      "Buffer allocated successfully (1024 bytes)",
+      "Data processed successfully",
+      "Cleanup completed"
+    ],
+    "requirements": [
+      "Use required function names: error_handling_init, error_handling_exit",
+      "Include linux/errno.h for error codes",
+      "Create function 'allocate_buffer' that returns char* (NULL on failure)",
+      "Create function 'process_data' that returns int (0 success, negative error)",
+      "Use standard error codes: -ENOMEM for allocation failure, -EINVAL for invalid parameters",
+      "Handle all error conditions with proper cleanup",
+      "Print success messages in exact format shown above",
+      "Free allocated memory in all code paths"
+    ]
+  },
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["error_handling_init", "error_handling_exit", "allocate_buffer", "process_data"],
+      "variables": [
+        { "name": "buffer", "type": "char*", "value": "allocation_result" },
+        { "name": "result", "type": "int", "value": "function_result" },
+        { "name": "size", "type": "int", "value": 1024 }
+      ],
+      "outputMessages": [
+        "Buffer allocated successfully \\(1024 bytes\\)",
+        "Data processed successfully",
+        "Cleanup completed"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/slab.h",
+        "linux/errno.h"
+      ],
+      "mustContain": ["ENOMEM", "EINVAL", "if (", "return -", "kfree"],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "error_code_usage",
+        "name": "Standard Error Code Usage",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["-ENOMEM", "-EINVAL"],
+        "prohibitedSymbols": ["return -1", "return 1"]
+      },
+      {
+        "id": "error_checking",
+        "name": "Proper Error Checking",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["if (", "== NULL", "!buffer", "< 0"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "cleanup_handling",
+        "name": "Cleanup on Error Paths",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["kfree"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "success_path",
+        "name": "Success Path Output",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Buffer allocated successfully \\(1024 bytes\\)", "exact": false },
+          { "pattern": "Data processed successfully", "exact": true },
+          { "pattern": "Cleanup completed", "exact": true }
+        ]
+      }
+    ]
+  }
+}

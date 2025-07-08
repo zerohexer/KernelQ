@@ -1,0 +1,135 @@
+{
+  "id": 9,
+  "title": "Switch-Case Statements and Multi-way Branching",
+  "phase": "foundations",
+  "difficulty": 3,
+  "xp": 25,
+  "description": "Master switch-case statements for multi-way branching and understand when to use switch vs if-else. Learn proper use of break statements and default cases.",
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n\nstatic int __init switch_init(void) {\n    int operation = 2;\n    int a = 15, b = 5;\n    int result = 0;\n    char grade = 'B';\n    int day = 3;\n    \n    // TODO: Use switch statement for arithmetic operations\n    // case 1: addition (a + b)\n    // case 2: subtraction (a - b) \n    // case 3: multiplication (a * b)\n    // case 4: division (a / b)\n    // default: print \"Invalid operation\"\n    // Print: \"Operation 2 result: 10\"\n    \n    // TODO: Use switch statement for grade interpretation\n    // case 'A': print \"Excellent\"\n    // case 'B': print \"Good\"\n    // case 'C': print \"Average\" \n    // case 'D': print \"Below Average\"\n    // case 'F': print \"Fail\"\n    // default: print \"Invalid grade\"\n    // Print: \"Grade B: Good\"\n    \n    // TODO: Use switch with fall-through for day grouping\n    // case 1,2,3,4,5: print \"Weekday\"\n    // case 6,7: print \"Weekend\"\n    // default: print \"Invalid day\"\n    // Print: \"Day 3: Weekday\"\n    \n    return 0;\n}\n\nstatic void __exit switch_exit(void) {\n    printk(KERN_INFO \"Switch statements module unloaded\\n\");\n}\n\nmodule_init(switch_init);\nmodule_exit(switch_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Your Name\");\nMODULE_DESCRIPTION(\"Switch-case statements module\");",
+  "concepts": [
+    "switch statements",
+    "case labels",
+    "break statements",
+    "default case",
+    "fall-through behavior"
+  ],
+  "skills": [
+    "Multi-way branching",
+    "Switch vs if-else selection", 
+    "Control flow design",
+    "Pattern matching"
+  ],
+  "inputOutput": {
+    "expectedOutput": [
+      "Operation 2 result: 10",
+      "Grade B: Good",
+      "Day 3: Weekday"
+    ],
+    "requirements": [
+      "Use required function names: switch_init, switch_exit",
+      "Use exact variable values: operation=2, a=15, b=5, grade='B', day=3",
+      "Implement switch statement for arithmetic operations (cases 1-4, default)",
+      "Implement switch statement for grade interpretation (cases A-F, default)",
+      "Implement switch statement with fall-through for weekday/weekend",
+      "Use proper break statements to prevent fall-through where needed",
+      "Include default cases in all switch statements",
+      "Print results in exact format shown above"
+    ]
+  },
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["switch_init", "switch_exit"],
+      "variables": [
+        { "name": "operation", "type": "int", "value": 2 },
+        { "name": "a", "type": "int", "value": 15 },
+        { "name": "b", "type": "int", "value": 5 },
+        { "name": "result", "type": "int", "value": "calculated" },
+        { "name": "grade", "type": "char", "value": "'B'" },
+        { "name": "day", "type": "int", "value": 3 }
+      ],
+      "outputMessages": [
+        "Operation 2 result: 10",
+        "Grade B: Good", 
+        "Day 3: Weekday"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h"
+      ],
+      "mustContain": ["switch (", "case", "break", "default", "a + b", "a - b", "a * b", "a / b"],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "switch_structure",
+        "name": "Proper Switch Statement Structure",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["switch (", "case", "break", "default"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "arithmetic_switch",
+        "name": "Arithmetic Operations Switch",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["switch (operation)", "case 1", "case 2", "case 3", "case 4"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "character_switch",
+        "name": "Character Grade Switch",
+        "type": "code_analysis", 
+        "critical": true,
+        "expectedSymbols": ["switch (grade)", "case 'A'", "case 'B'", "case 'C'"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "arithmetic_operations",
+        "name": "Actual Arithmetic in Cases",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["a + b", "a - b", "a * b", "a / b"],
+        "prohibitedSymbols": ["result = 10", "result = 20", "result = 75", "result = 3"]
+      },
+      {
+        "id": "break_statements",
+        "name": "Proper Break Statement Usage",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["break;"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "default_cases",
+        "name": "Default Cases Present",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["default:"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "correct_switch_results",
+        "name": "Correct Switch Logic Results",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Operation 2 result: 10", "exact": true },
+          { "pattern": "Grade B: Good", "exact": true },
+          { "pattern": "Day 3: Weekday", "exact": true }
+        ]
+      },
+      {
+        "id": "fall_through_weekday",
+        "name": "Fall-through for Weekday Cases",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["case 1", "case 2", "case 3", "case 4", "case 5"],
+        "prohibitedSymbols": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "id": 33,
+  "title": "Kernel Error Handling Patterns",
+  "difficulty": 5,
+  "xp": 50,
+  "phase": "kernel_core",
+  "description": "Master kernel error handling patterns including proper error codes, cleanup on failure, and resource management. This is critical for writing production-quality kernel code that can handle failures gracefully without causing system instability.",
+  "concepts": ["error_codes", "cleanup_patterns", "resource_management", "failure_handling", "ENOSYS", "ENOMEM", "EINVAL"],
+  "skills": ["error_handling", "resource_cleanup", "defensive_programming", "system_stability"],
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/slab.h>\n#include <linux/errno.h>\n#include <linux/proc_fs.h>\n#include <linux/uaccess.h>\n\n// TODO: Implement proper error handling for multiple resource allocation\n// TODO: Use correct error codes (ENOMEM, EINVAL, etc.)\n// TODO: Implement proper cleanup patterns\n\nstatic void *buffer1 = NULL;\nstatic void *buffer2 = NULL;\nstatic struct proc_dir_entry *proc_entry = NULL;\n\n// TODO: Implement a function that allocates multiple resources\n// and handles failures properly\nstatic int allocate_resources(void)\n{\n    // TODO: Allocate buffer1 (1024 bytes)\n    // TODO: Allocate buffer2 (2048 bytes)  \n    // TODO: Create proc entry \"error_demo\"\n    // TODO: Handle each allocation failure with proper cleanup\n    // TODO: Return appropriate error codes\n    \n    return 0;\n}\n\n// TODO: Implement proper cleanup function\nstatic void cleanup_resources(void)\n{\n    // TODO: Clean up all allocated resources safely\n    // TODO: Handle NULL pointers correctly\n}\n\nstatic int __init error_module_init(void)\n{\n    int ret;\n    \n    printk(KERN_INFO \"Error handling module loading...\\n\");\n    \n    ret = allocate_resources();\n    if (ret) {\n        printk(KERN_ERR \"Resource allocation failed: %d\\n\", ret);\n        return ret;\n    }\n    \n    printk(KERN_INFO \"All resources allocated successfully\\n\");\n    return 0;\n}\n\nstatic void __exit error_module_exit(void)\n{\n    cleanup_resources();\n    printk(KERN_INFO \"Error handling module unloaded\\n\");\n}\n\nmodule_init(error_module_init);\nmodule_exit(error_module_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Kernel Academy Student\");\nMODULE_DESCRIPTION(\"Error handling patterns demonstration\");\nMODULE_VERSION(\"1.0\");",
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["error_module_init", "error_module_exit", "allocate_resources", "cleanup_resources"],
+      "variables": [
+        {"name": "buffer1", "type": "void*"},
+        {"name": "buffer2", "type": "void*"},
+        {"name": "proc_entry", "type": "struct proc_dir_entry*"}
+      ],
+      "outputMessages": [
+        "Error handling module loading...",
+        "All resources allocated successfully",
+        "Error handling module unloaded"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/slab.h",
+        "linux/errno.h",
+        "linux/proc_fs.h"
+      ],
+      "mustContain": [
+        "kmalloc",
+        "kfree",
+        "ENOMEM",
+        "EINVAL",
+        "proc_create",
+        "proc_remove"
+      ]
+    },
+    "testCases": [
+      {
+        "id": "error_code_usage",
+        "name": "Proper Error Code Usage",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["-ENOMEM", "-EINVAL", "-ENOSYS"],
+        "prohibitedSymbols": ["return -1", "return 1", "return 2"]
+      },
+      {
+        "id": "resource_allocation",
+        "name": "Resource Allocation Patterns",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "kmalloc(1024",
+          "kmalloc(2048", 
+          "proc_create",
+          "GFP_KERNEL"
+        ],
+        "prohibitedSymbols": ["malloc", "calloc"]
+      },
+      {
+        "id": "null_pointer_checks",
+        "name": "NULL Pointer Checks",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "if (!buffer1)",
+          "if (!buffer2)",
+          "if (!proc_entry)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "cleanup_patterns",
+        "name": "Proper Cleanup Patterns",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "kfree(buffer1)",
+          "kfree(buffer2)", 
+          "proc_remove"
+        ],
+        "prohibitedSymbols": ["free"]
+      },
+      {
+        "id": "cleanup_safety",
+        "name": "Safe Cleanup (NULL checks)",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "if (buffer1)",
+          "if (buffer2)",
+          "if (proc_entry)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "error_propagation",
+        "name": "Error Propagation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["return ret", "if (ret)"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "successful_allocation",
+        "name": "Successful Resource Allocation",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {"pattern": "All resources allocated successfully", "exact": true}
+        ]
+      }
+    ]
+  }
+}
