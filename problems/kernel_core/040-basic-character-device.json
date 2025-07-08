@@ -1,0 +1,147 @@
+{
+  "id": 40,
+  "title": "Basic Character Device Registration",
+  "difficulty": 6,
+  "xp": 60,
+  "phase": "kernel_core",
+  "description": "Create a basic character device driver that registers a device, allocates a major/minor number, and implements basic file operations. This is fundamental for all Linux device driver development at enterprise companies.",
+  "concepts": ["character_device", "major_minor", "device_registration", "file_operations", "cdev"],
+  "skills": ["device_driver_basics", "device_registration", "kernel_device_model", "file_operations"],
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/fs.h>\n#include <linux/device.h>\n#include <linux/cdev.h>\n#include <linux/uaccess.h>\n#include <linux/slab.h>\n\n#define DEVICE_NAME \"mychardev\"\n#define CLASS_NAME \"mychar\"\n#define MINOR_COUNT 1\n\n// TODO: Define device state structure\nstruct char_device_data {\n    struct cdev cdev;\n    struct device *device;\n    struct class *class;\n    dev_t dev_num;\n    int major;\n    int minor;\n    char *buffer;\n    size_t buffer_size;\n    struct mutex device_mutex;\n};\n\nstatic struct char_device_data char_dev;\n\n// TODO: Implement device open function\nstatic int device_open(struct inode *inode, struct file *file)\n{\n    // TODO: Get device data from inode\n    // TODO: Store device data in file private_data\n    // TODO: Initialize any per-open state\n    // TODO: Log device open\n    \n    printk(KERN_INFO \"Character device opened\\n\");\n    return 0;\n}\n\n// TODO: Implement device release function\nstatic int device_release(struct inode *inode, struct file *file)\n{\n    // TODO: Clean up any per-open state\n    // TODO: Log device close\n    \n    printk(KERN_INFO \"Character device closed\\n\");\n    return 0;\n}\n\n// TODO: Implement device read function\nstatic ssize_t device_read(struct file *file, char __user *user_buffer,\n                          size_t count, loff_t *offset)\n{\n    struct char_device_data *dev_data;\n    ssize_t bytes_read = 0;\n    \n    // TODO: Get device data from file\n    dev_data = (struct char_device_data *)file->private_data;\n    if (!dev_data || !dev_data->buffer) {\n        return -EINVAL;\n    }\n    \n    // TODO: Use mutex for thread safety\n    if (mutex_lock_interruptible(&dev_data->device_mutex)) {\n        return -ERESTARTSYS;\n    }\n    \n    // TODO: Check offset bounds\n    if (*offset >= dev_data->buffer_size) {\n        mutex_unlock(&dev_data->device_mutex);\n        return 0; // EOF\n    }\n    \n    // TODO: Calculate bytes to read\n    bytes_read = min(count, dev_data->buffer_size - *offset);\n    \n    // TODO: Copy data to user space\n    if (copy_to_user(user_buffer, dev_data->buffer + *offset, bytes_read)) {\n        mutex_unlock(&dev_data->device_mutex);\n        return -EFAULT;\n    }\n    \n    // TODO: Update offset\n    *offset += bytes_read;\n    \n    mutex_unlock(&dev_data->device_mutex);\n    \n    printk(KERN_INFO \"Device read: %zu bytes\\n\", bytes_read);\n    return bytes_read;\n}\n\n// TODO: Implement device write function\nstatic ssize_t device_write(struct file *file, const char __user *user_buffer,\n                           size_t count, loff_t *offset)\n{\n    struct char_device_data *dev_data;\n    ssize_t bytes_written = 0;\n    \n    // TODO: Get device data from file\n    dev_data = (struct char_device_data *)file->private_data;\n    if (!dev_data || !dev_data->buffer) {\n        return -EINVAL;\n    }\n    \n    // TODO: Use mutex for thread safety\n    if (mutex_lock_interruptible(&dev_data->device_mutex)) {\n        return -ERESTARTSYS;\n    }\n    \n    // TODO: Check offset bounds\n    if (*offset >= dev_data->buffer_size) {\n        mutex_unlock(&dev_data->device_mutex);\n        return -ENOSPC;\n    }\n    \n    // TODO: Calculate bytes to write\n    bytes_written = min(count, dev_data->buffer_size - *offset);\n    \n    // TODO: Copy data from user space\n    if (copy_from_user(dev_data->buffer + *offset, user_buffer, bytes_written)) {\n        mutex_unlock(&dev_data->device_mutex);\n        return -EFAULT;\n    }\n    \n    // TODO: Update offset\n    *offset += bytes_written;\n    \n    mutex_unlock(&dev_data->device_mutex);\n    \n    printk(KERN_INFO \"Device write: %zu bytes\\n\", bytes_written);\n    return bytes_written;\n}\n\n// TODO: Define file operations structure\nstatic const struct file_operations char_dev_fops = {\n    .owner = THIS_MODULE,\n    .open = device_open,\n    .release = device_release,\n    .read = device_read,\n    .write = device_write,\n};\n\nstatic int __init char_dev_init(void)\n{\n    int ret;\n    \n    printk(KERN_INFO \"Character device driver initializing...\\n\");\n    \n    // TODO: Initialize mutex\n    mutex_init(&char_dev.device_mutex);\n    \n    // TODO: Allocate device buffer\n    char_dev.buffer_size = 1024;\n    char_dev.buffer = kmalloc(char_dev.buffer_size, GFP_KERNEL);\n    if (!char_dev.buffer) {\n        printk(KERN_ERR \"Failed to allocate device buffer\\n\");\n        return -ENOMEM;\n    }\n    \n    // TODO: Initialize buffer with default data\n    strcpy(char_dev.buffer, \"Hello from character device!\\n\");\n    \n    // TODO: Allocate device number dynamically\n    ret = alloc_chrdev_region(&char_dev.dev_num, 0, MINOR_COUNT, DEVICE_NAME);\n    if (ret < 0) {\n        printk(KERN_ERR \"Failed to allocate device number\\n\");\n        kfree(char_dev.buffer);\n        return ret;\n    }\n    \n    char_dev.major = MAJOR(char_dev.dev_num);\n    char_dev.minor = MINOR(char_dev.dev_num);\n    \n    // TODO: Initialize character device\n    cdev_init(&char_dev.cdev, &char_dev_fops);\n    char_dev.cdev.owner = THIS_MODULE;\n    \n    // TODO: Add character device to system\n    ret = cdev_add(&char_dev.cdev, char_dev.dev_num, MINOR_COUNT);\n    if (ret < 0) {\n        printk(KERN_ERR \"Failed to add character device\\n\");\n        unregister_chrdev_region(char_dev.dev_num, MINOR_COUNT);\n        kfree(char_dev.buffer);\n        return ret;\n    }\n    \n    // TODO: Create device class\n    char_dev.class = class_create(THIS_MODULE, CLASS_NAME);\n    if (IS_ERR(char_dev.class)) {\n        printk(KERN_ERR \"Failed to create device class\\n\");\n        cdev_del(&char_dev.cdev);\n        unregister_chrdev_region(char_dev.dev_num, MINOR_COUNT);\n        kfree(char_dev.buffer);\n        return PTR_ERR(char_dev.class);\n    }\n    \n    // TODO: Create device file\n    char_dev.device = device_create(char_dev.class, NULL, char_dev.dev_num, \n                                   NULL, DEVICE_NAME);\n    if (IS_ERR(char_dev.device)) {\n        printk(KERN_ERR \"Failed to create device\\n\");\n        class_destroy(char_dev.class);\n        cdev_del(&char_dev.cdev);\n        unregister_chrdev_region(char_dev.dev_num, MINOR_COUNT);\n        kfree(char_dev.buffer);\n        return PTR_ERR(char_dev.device);\n    }\n    \n    printk(KERN_INFO \"Character device driver loaded successfully\\n\");\n    printk(KERN_INFO \"Device registered: /dev/%s (major %d, minor %d)\\n\",\n           DEVICE_NAME, char_dev.major, char_dev.minor);\n    \n    return 0;\n}\n\nstatic void __exit char_dev_exit(void)\n{\n    // TODO: Clean up in reverse order\n    device_destroy(char_dev.class, char_dev.dev_num);\n    class_destroy(char_dev.class);\n    cdev_del(&char_dev.cdev);\n    unregister_chrdev_region(char_dev.dev_num, MINOR_COUNT);\n    kfree(char_dev.buffer);\n    \n    printk(KERN_INFO \"Character device driver unloaded\\n\");\n}\n\nmodule_init(char_dev_init);\nmodule_exit(char_dev_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Kernel Academy Student\");\nMODULE_DESCRIPTION(\"Basic character device driver\");\nMODULE_VERSION(\"1.0\");",
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "char_dev_init",
+        "char_dev_exit",
+        "device_open",
+        "device_release",
+        "device_read",
+        "device_write"
+      ],
+      "variables": [
+        {"name": "char_dev", "type": "struct char_device_data"},
+        {"name": "char_dev_fops", "type": "struct file_operations"}
+      ],
+      "outputMessages": [
+        "Character device driver loaded successfully",
+        "Device registered: /dev/mychardev",
+        "Character device driver unloaded"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/fs.h",
+        "linux/device.h",
+        "linux/cdev.h",
+        "linux/uaccess.h"
+      ],
+      "mustContain": [
+        "alloc_chrdev_region",
+        "cdev_init",
+        "cdev_add",
+        "class_create",
+        "device_create",
+        "copy_to_user",
+        "copy_from_user"
+      ]
+    },
+    "testCases": [
+      {
+        "id": "device_registration",
+        "name": "Device Registration",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "alloc_chrdev_region(&char_dev.dev_num",
+          "cdev_init(&char_dev.cdev",
+          "cdev_add(&char_dev.cdev"
+        ],
+        "prohibitedSymbols": ["register_chrdev"]
+      },
+      {
+        "id": "device_class_creation",
+        "name": "Device Class and Node Creation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "class_create(THIS_MODULE, CLASS_NAME)",
+          "device_create(char_dev.class"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "file_operations",
+        "name": "File Operations Implementation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          ".open = device_open",
+          ".release = device_release",
+          ".read = device_read",
+          ".write = device_write"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "user_space_interaction",
+        "name": "User Space Data Transfer",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "copy_to_user(user_buffer",
+          "copy_from_user(dev_data->buffer",
+          "return -EFAULT"
+        ],
+        "prohibitedSymbols": ["memcpy", "strcpy"]
+      },
+      {
+        "id": "thread_safety",
+        "name": "Thread Safety Implementation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "mutex_init(&char_dev.device_mutex)",
+          "mutex_lock_interruptible(&dev_data->device_mutex)",
+          "mutex_unlock(&dev_data->device_mutex)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "error_handling",
+        "name": "Proper Error Handling",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "return -ENOMEM",
+          "return -EFAULT",
+          "return -EINVAL",
+          "IS_ERR(char_dev.class)"
+        ],
+        "prohibitedSymbols": ["return -1"]
+      },
+      {
+        "id": "cleanup_order",
+        "name": "Proper Cleanup Order",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "device_destroy(char_dev.class",
+          "class_destroy(char_dev.class)",
+          "cdev_del(&char_dev.cdev)",
+          "unregister_chrdev_region"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "device_registration_message",
+        "name": "Device Registration Message",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {"pattern": "Device registered: /dev/mychardev", "exact": true}
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "id": 46,
+  "title": "Device Power Management and Runtime PM",
+  "difficulty": 8,
+  "xp": 80,
+  "phase": "kernel_core",
+  "description": "Implement device power management with runtime power management support, including suspend/resume operations and power state transitions. This teaches power management techniques essential for mobile and embedded device drivers.",
+  "concepts": ["power_management", "runtime_pm", "suspend_resume", "power_states", "pm_ops", "device_pm"],
+  "skills": ["power_management_programming", "runtime_pm_usage", "power_optimization", "embedded_systems"],
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/fs.h>\n#include <linux/device.h>\n#include <linux/cdev.h>\n#include <linux/uaccess.h>\n#include <linux/slab.h>\n#include <linux/mutex.h>\n#include <linux/pm.h>\n#include <linux/pm_runtime.h>\n#include <linux/platform_device.h>\n#include <linux/timer.h>\n#include <linux/jiffies.h>\n#include <linux/workqueue.h>\n\n#define DEVICE_NAME \"pmdev\"\n#define CLASS_NAME \"pmclass\"\n#define BUFFER_SIZE 1024\n#define IDLE_TIMEOUT_MS 5000\n\n// TODO: Power states enumeration\nenum pm_device_state {\n    PM_STATE_ACTIVE,\n    PM_STATE_IDLE,\n    PM_STATE_SUSPENDED,\n    PM_STATE_OFF\n};\n\n// TODO: Power statistics\nstruct pm_stats {\n    unsigned long suspend_count;\n    unsigned long resume_count;\n    unsigned long runtime_suspend_count;\n    unsigned long runtime_resume_count;\n    unsigned long idle_count;\n    unsigned long active_time_ms;\n    unsigned long suspended_time_ms;\n    unsigned long last_activity_jiffies;\n    unsigned long state_change_count;\n};\n\n// TODO: Device structure with power management\nstruct pm_device {\n    struct cdev cdev;\n    struct device *device;\n    struct class *class;\n    dev_t dev_num;\n    \n    // Platform device for PM operations\n    struct platform_device *pdev;\n    \n    // Power management state\n    enum pm_device_state current_state;\n    enum pm_device_state previous_state;\n    struct mutex pm_mutex;\n    \n    // Runtime PM\n    bool runtime_pm_enabled;\n    struct timer_list idle_timer;\n    struct work_struct suspend_work;\n    \n    // Device data\n    char *buffer;\n    size_t buffer_used;\n    struct mutex device_mutex;\n    \n    // Statistics\n    struct pm_stats stats;\n    unsigned long state_enter_jiffies;\n    \n    // Configuration\n    bool auto_suspend_enabled;\n    int auto_suspend_delay_ms;\n};\n\nstatic struct pm_device pm_dev;\n\n// TODO: State transition helper\nstatic void pm_change_state(struct pm_device *dev, enum pm_device_state new_state)\n{\n    unsigned long now = jiffies;\n    unsigned long duration;\n    \n    mutex_lock(&dev->pm_mutex);\n    \n    if (dev->current_state == new_state) {\n        mutex_unlock(&dev->pm_mutex);\n        return;\n    }\n    \n    // Calculate time in previous state\n    duration = jiffies_to_msecs(now - dev->state_enter_jiffies);\n    \n    switch (dev->current_state) {\n    case PM_STATE_ACTIVE:\n        dev->stats.active_time_ms += duration;\n        break;\n    case PM_STATE_SUSPENDED:\n        dev->stats.suspended_time_ms += duration;\n        break;\n    default:\n        break;\n    }\n    \n    dev->previous_state = dev->current_state;\n    dev->current_state = new_state;\n    dev->state_enter_jiffies = now;\n    dev->stats.state_change_count++;\n    \n    printk(KERN_INFO \"Power state changed: %d -> %d (duration: %lu ms)\\n\",\n           dev->previous_state, new_state, duration);\n    \n    mutex_unlock(&dev->pm_mutex);\n}\n\n// TODO: Update activity timestamp\nstatic void pm_update_activity(struct pm_device *dev)\n{\n    dev->stats.last_activity_jiffies = jiffies;\n    \n    // Mark device as active for runtime PM\n    if (dev->runtime_pm_enabled && dev->pdev) {\n        pm_runtime_mark_last_busy(&dev->pdev->dev);\n        \n        // Request resume if suspended\n        if (dev->current_state == PM_STATE_SUSPENDED) {\n            pm_runtime_get_sync(&dev->pdev->dev);\n        }\n    }\n}\n\n// TODO: Idle timer callback\nstatic void idle_timer_callback(struct timer_list *timer)\n{\n    struct pm_device *dev = container_of(timer, struct pm_device, idle_timer);\n    unsigned long inactive_time;\n    \n    inactive_time = jiffies - dev->stats.last_activity_jiffies;\n    \n    if (jiffies_to_msecs(inactive_time) >= dev->auto_suspend_delay_ms) {\n        if (dev->current_state == PM_STATE_ACTIVE) {\n            pm_change_state(dev, PM_STATE_IDLE);\n            dev->stats.idle_count++;\n            \n            // Schedule suspend work\n            if (dev->auto_suspend_enabled) {\n                schedule_work(&dev->suspend_work);\n            }\n        }\n    } else {\n        // Restart timer\n        mod_timer(&dev->idle_timer, jiffies + msecs_to_jiffies(1000));\n    }\n}\n\n// TODO: Suspend work function\nstatic void suspend_work_handler(struct work_struct *work)\n{\n    struct pm_device *dev = container_of(work, struct pm_device, suspend_work);\n    \n    if (dev->current_state == PM_STATE_IDLE && dev->runtime_pm_enabled) {\n        // Request runtime suspend\n        pm_runtime_put_sync(&dev->pdev->dev);\n    }\n}\n\n// TODO: Runtime suspend callback\nstatic int pm_runtime_suspend(struct device *device)\n{\n    struct platform_device *pdev = to_platform_device(device);\n    struct pm_device *dev = platform_get_drvdata(pdev);\n    \n    printk(KERN_INFO \"Runtime suspend called\\n\");\n    \n    if (dev->current_state == PM_STATE_SUSPENDED) {\n        return 0;\n    }\n    \n    // Simulate device power down\n    pm_change_state(dev, PM_STATE_SUSPENDED);\n    dev->stats.runtime_suspend_count++;\n    \n    // Stop idle timer\n    del_timer_sync(&dev->idle_timer);\n    \n    printk(KERN_INFO \"Device runtime suspended\\n\");\n    return 0;\n}\n\n// TODO: Runtime resume callback\nstatic int pm_runtime_resume(struct device *device)\n{\n    struct platform_device *pdev = to_platform_device(device);\n    struct pm_device *dev = platform_get_drvdata(pdev);\n    \n    printk(KERN_INFO \"Runtime resume called\\n\");\n    \n    if (dev->current_state == PM_STATE_ACTIVE) {\n        return 0;\n    }\n    \n    // Simulate device power up\n    pm_change_state(dev, PM_STATE_ACTIVE);\n    dev->stats.runtime_resume_count++;\n    \n    // Update activity and restart idle timer\n    pm_update_activity(dev);\n    \n    if (dev->auto_suspend_enabled) {\n        mod_timer(&dev->idle_timer, jiffies + msecs_to_jiffies(1000));\n    }\n    \n    printk(KERN_INFO \"Device runtime resumed\\n\");\n    return 0;\n}\n\n// TODO: System suspend callback\nstatic int pm_suspend(struct device *device)\n{\n    struct platform_device *pdev = to_platform_device(device);\n    struct pm_device *dev = platform_get_drvdata(pdev);\n    \n    printk(KERN_INFO \"System suspend called\\n\");\n    \n    mutex_lock(&dev->device_mutex);\n    \n    // Save device state and power down\n    pm_change_state(dev, PM_STATE_SUSPENDED);\n    dev->stats.suspend_count++;\n    \n    // Stop timers and work\n    del_timer_sync(&dev->idle_timer);\n    cancel_work_sync(&dev->suspend_work);\n    \n    mutex_unlock(&dev->device_mutex);\n    \n    printk(KERN_INFO \"Device system suspended\\n\");\n    return 0;\n}\n\n// TODO: System resume callback\nstatic int pm_resume(struct device *device)\n{\n    struct platform_device *pdev = to_platform_device(device);\n    struct pm_device *dev = platform_get_drvdata(pdev);\n    \n    printk(KERN_INFO \"System resume called\\n\");\n    \n    mutex_lock(&dev->device_mutex);\n    \n    // Restore device state and power up\n    pm_change_state(dev, PM_STATE_ACTIVE);\n    dev->stats.resume_count++;\n    \n    // Update activity and restart timers if needed\n    pm_update_activity(dev);\n    \n    if (dev->auto_suspend_enabled) {\n        mod_timer(&dev->idle_timer, jiffies + msecs_to_jiffies(1000));\n    }\n    \n    mutex_unlock(&dev->device_mutex);\n    \n    printk(KERN_INFO \"Device system resumed\\n\");\n    return 0;\n}\n\n// TODO: Define power management operations\nstatic const struct dev_pm_ops pm_dev_pm_ops = {\n    .suspend = pm_suspend,\n    .resume = pm_resume,\n    .runtime_suspend = pm_runtime_suspend,\n    .runtime_resume = pm_runtime_resume,\n};\n\nstatic int device_open(struct inode *inode, struct file *file)\n{\n    struct pm_device *dev = &pm_dev;\n    \n    file->private_data = dev;\n    \n    // Mark device as active\n    pm_update_activity(dev);\n    \n    // Ensure device is resumed\n    if (dev->runtime_pm_enabled && dev->current_state == PM_STATE_SUSPENDED) {\n        pm_runtime_get_sync(&dev->pdev->dev);\n    }\n    \n    printk(KERN_INFO \"PM device opened\\n\");\n    return 0;\n}\n\nstatic int device_release(struct inode *inode, struct file *file)\n{\n    struct pm_device *dev = file->private_data;\n    \n    // Update activity timestamp\n    pm_update_activity(dev);\n    \n    // Allow device to be suspended\n    if (dev->runtime_pm_enabled) {\n        pm_runtime_put(&dev->pdev->dev);\n    }\n    \n    printk(KERN_INFO \"PM device closed\\n\");\n    return 0;\n}\n\nstatic ssize_t device_read(struct file *file, char __user *user_buffer,\n                          size_t count, loff_t *offset)\n{\n    struct pm_device *dev = file->private_data;\n    ssize_t bytes_read = 0;\n    \n    // Update activity\n    pm_update_activity(dev);\n    \n    // Ensure device is active\n    if (dev->current_state != PM_STATE_ACTIVE) {\n        if (dev->runtime_pm_enabled) {\n            int ret = pm_runtime_get_sync(&dev->pdev->dev);\n            if (ret < 0) {\n                return ret;\n            }\n        }\n    }\n    \n    mutex_lock(&dev->device_mutex);\n    \n    if (*offset >= dev->buffer_used) {\n        mutex_unlock(&dev->device_mutex);\n        goto out;\n    }\n    \n    bytes_read = min(count, dev->buffer_used - *offset);\n    \n    if (copy_to_user(user_buffer, dev->buffer + *offset, bytes_read)) {\n        mutex_unlock(&dev->device_mutex);\n        bytes_read = -EFAULT;\n        goto out;\n    }\n    \n    *offset += bytes_read;\n    \n    mutex_unlock(&dev->device_mutex);\n    \n    printk(KERN_INFO \"Read %zu bytes (state: %d)\\n\", bytes_read, dev->current_state);\n    \nout:\n    if (dev->runtime_pm_enabled) {\n        pm_runtime_put(&dev->pdev->dev);\n    }\n    \n    return bytes_read;\n}\n\nstatic ssize_t device_write(struct file *file, const char __user *user_buffer,\n                           size_t count, loff_t *offset)\n{\n    struct pm_device *dev = file->private_data;\n    ssize_t bytes_written = 0;\n    \n    // Update activity\n    pm_update_activity(dev);\n    \n    // Ensure device is active\n    if (dev->current_state != PM_STATE_ACTIVE) {\n        if (dev->runtime_pm_enabled) {\n            int ret = pm_runtime_get_sync(&dev->pdev->dev);\n            if (ret < 0) {\n                return ret;\n            }\n        }\n    }\n    \n    mutex_lock(&dev->device_mutex);\n    \n    if (*offset >= BUFFER_SIZE) {\n        mutex_unlock(&dev->device_mutex);\n        bytes_written = -ENOSPC;\n        goto out;\n    }\n    \n    bytes_written = min(count, BUFFER_SIZE - *offset);\n    \n    if (copy_from_user(dev->buffer + *offset, user_buffer, bytes_written)) {\n        mutex_unlock(&dev->device_mutex);\n        bytes_written = -EFAULT;\n        goto out;\n    }\n    \n    *offset += bytes_written;\n    if (*offset > dev->buffer_used) {\n        dev->buffer_used = *offset;\n    }\n    \n    mutex_unlock(&dev->device_mutex);\n    \n    printk(KERN_INFO \"Wrote %zu bytes (state: %d)\\n\", bytes_written, dev->current_state);\n    \nout:\n    if (dev->runtime_pm_enabled) {\n        pm_runtime_put(&dev->pdev->dev);\n    }\n    \n    return bytes_written;\n}\n\nstatic const struct file_operations pm_dev_fops = {\n    .owner = THIS_MODULE,\n    .open = device_open,\n    .release = device_release,\n    .read = device_read,\n    .write = device_write,\n};\n\n// TODO: Platform driver structure\nstatic struct platform_driver pm_platform_driver = {\n    .driver = {\n        .name = \"pm-demo\",\n        .pm = &pm_dev_pm_ops,\n    },\n};\n\nstatic int __init pm_dev_init(void)\n{\n    int ret;\n    \n    printk(KERN_INFO \"Power management device initializing...\\n\");\n    \n    // TODO: Initialize device structure\n    memset(&pm_dev, 0, sizeof(pm_dev));\n    mutex_init(&pm_dev.device_mutex);\n    mutex_init(&pm_dev.pm_mutex);\n    \n    // TODO: Initialize power management state\n    pm_dev.current_state = PM_STATE_ACTIVE;\n    pm_dev.runtime_pm_enabled = true;\n    pm_dev.auto_suspend_enabled = true;\n    pm_dev.auto_suspend_delay_ms = IDLE_TIMEOUT_MS;\n    pm_dev.state_enter_jiffies = jiffies;\n    pm_dev.stats.last_activity_jiffies = jiffies;\n    \n    // TODO: Allocate buffer\n    pm_dev.buffer = kzalloc(BUFFER_SIZE, GFP_KERNEL);\n    if (!pm_dev.buffer) {\n        return -ENOMEM;\n    }\n    \n    // Initialize buffer with device info\n    pm_dev.buffer_used = snprintf(pm_dev.buffer, BUFFER_SIZE,\n                                 \"Power Management Device\\nState: Active\\nTimestamp: %lu\\n\",\n                                 jiffies);\n    \n    // TODO: Register platform driver\n    ret = platform_driver_register(&pm_platform_driver);\n    if (ret) {\n        kfree(pm_dev.buffer);\n        return ret;\n    }\n    \n    // TODO: Create platform device\n    pm_dev.pdev = platform_device_register_simple(\"pm-demo\", -1, NULL, 0);\n    if (IS_ERR(pm_dev.pdev)) {\n        platform_driver_unregister(&pm_platform_driver);\n        kfree(pm_dev.buffer);\n        return PTR_ERR(pm_dev.pdev);\n    }\n    \n    // TODO: Set driver data\n    platform_set_drvdata(pm_dev.pdev, &pm_dev);\n    \n    // TODO: Enable runtime PM\n    pm_runtime_enable(&pm_dev.pdev->dev);\n    pm_runtime_set_autosuspend_delay(&pm_dev.pdev->dev, pm_dev.auto_suspend_delay_ms);\n    pm_runtime_use_autosuspend(&pm_dev.pdev->dev);\n    \n    // TODO: Initialize timer and work\n    timer_setup(&pm_dev.idle_timer, idle_timer_callback, 0);\n    INIT_WORK(&pm_dev.suspend_work, suspend_work_handler);\n    \n    // TODO: Start idle timer\n    mod_timer(&pm_dev.idle_timer, jiffies + msecs_to_jiffies(1000));\n    \n    // TODO: Register character device\n    ret = alloc_chrdev_region(&pm_dev.dev_num, 0, 1, DEVICE_NAME);\n    if (ret < 0) {\n        del_timer_sync(&pm_dev.idle_timer);\n        pm_runtime_disable(&pm_dev.pdev->dev);\n        platform_device_unregister(pm_dev.pdev);\n        platform_driver_unregister(&pm_platform_driver);\n        kfree(pm_dev.buffer);\n        return ret;\n    }\n    \n    cdev_init(&pm_dev.cdev, &pm_dev_fops);\n    pm_dev.cdev.owner = THIS_MODULE;\n    \n    ret = cdev_add(&pm_dev.cdev, pm_dev.dev_num, 1);\n    if (ret < 0) {\n        unregister_chrdev_region(pm_dev.dev_num, 1);\n        del_timer_sync(&pm_dev.idle_timer);\n        pm_runtime_disable(&pm_dev.pdev->dev);\n        platform_device_unregister(pm_dev.pdev);\n        platform_driver_unregister(&pm_platform_driver);\n        kfree(pm_dev.buffer);\n        return ret;\n    }\n    \n    // TODO: Create device class and device\n    pm_dev.class = class_create(THIS_MODULE, CLASS_NAME);\n    if (IS_ERR(pm_dev.class)) {\n        cdev_del(&pm_dev.cdev);\n        unregister_chrdev_region(pm_dev.dev_num, 1);\n        del_timer_sync(&pm_dev.idle_timer);\n        pm_runtime_disable(&pm_dev.pdev->dev);\n        platform_device_unregister(pm_dev.pdev);\n        platform_driver_unregister(&pm_platform_driver);\n        kfree(pm_dev.buffer);\n        return PTR_ERR(pm_dev.class);\n    }\n    \n    pm_dev.device = device_create(pm_dev.class, NULL, pm_dev.dev_num,\n                                 NULL, DEVICE_NAME);\n    if (IS_ERR(pm_dev.device)) {\n        class_destroy(pm_dev.class);\n        cdev_del(&pm_dev.cdev);\n        unregister_chrdev_region(pm_dev.dev_num, 1);\n        del_timer_sync(&pm_dev.idle_timer);\n        pm_runtime_disable(&pm_dev.pdev->dev);\n        platform_device_unregister(pm_dev.pdev);\n        platform_driver_unregister(&pm_platform_driver);\n        kfree(pm_dev.buffer);\n        return PTR_ERR(pm_dev.device);\n    }\n    \n    printk(KERN_INFO \"Power management device loaded successfully\\n\");\n    printk(KERN_INFO \"Device: /dev/%s with runtime PM support\\n\", DEVICE_NAME);\n    printk(KERN_INFO \"Auto-suspend delay: %d ms\\n\", pm_dev.auto_suspend_delay_ms);\n    \n    return 0;\n}\n\nstatic void __exit pm_dev_exit(void)\n{\n    printk(KERN_INFO \"Power management device unloading...\\n\");\n    \n    // TODO: Stop timers and work\n    del_timer_sync(&pm_dev.idle_timer);\n    cancel_work_sync(&pm_dev.suspend_work);\n    \n    // TODO: Disable runtime PM\n    pm_runtime_disable(&pm_dev.pdev->dev);\n    \n    // TODO: Clean up device\n    device_destroy(pm_dev.class, pm_dev.dev_num);\n    class_destroy(pm_dev.class);\n    cdev_del(&pm_dev.cdev);\n    unregister_chrdev_region(pm_dev.dev_num, 1);\n    \n    // TODO: Clean up platform device and driver\n    platform_device_unregister(pm_dev.pdev);\n    platform_driver_unregister(&pm_platform_driver);\n    \n    kfree(pm_dev.buffer);\n    \n    printk(KERN_INFO \"Power management device unloaded\\n\");\n    printk(KERN_INFO \"PM stats - Suspend: %lu, Resume: %lu, Runtime Suspend: %lu, Runtime Resume: %lu\\n\",\n           pm_dev.stats.suspend_count, pm_dev.stats.resume_count,\n           pm_dev.stats.runtime_suspend_count, pm_dev.stats.runtime_resume_count);\n    printk(KERN_INFO \"Active time: %lu ms, Suspended time: %lu ms\\n\",\n           pm_dev.stats.active_time_ms, pm_dev.stats.suspended_time_ms);\n}\n\nmodule_init(pm_dev_init);\nmodule_exit(pm_dev_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Kernel Academy Student\");\nMODULE_DESCRIPTION(\"Character device with power management support\");\nMODULE_VERSION(\"1.0\");",
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "pm_dev_init",
+        "pm_dev_exit",
+        "pm_runtime_suspend",
+        "pm_runtime_resume",
+        "pm_suspend",
+        "pm_resume",
+        "pm_change_state",
+        "pm_update_activity",
+        "idle_timer_callback",
+        "suspend_work_handler"
+      ],
+      "variables": [
+        {"name": "pm_dev", "type": "struct pm_device"},
+        {"name": "pm_dev_pm_ops", "type": "struct dev_pm_ops"},
+        {"name": "pm_platform_driver", "type": "struct platform_driver"}
+      ],
+      "outputMessages": [
+        "Power management device loaded successfully",
+        "Device: /dev/pmdev with runtime PM support",
+        "Auto-suspend delay:",
+        "Power management device unloaded",
+        "PM stats - Suspend:"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/pm.h",
+        "linux/pm_runtime.h",
+        "linux/platform_device.h"
+      ],
+      "mustContain": [
+        "pm_runtime_enable",
+        "pm_runtime_disable",
+        "pm_runtime_get_sync",
+        "pm_runtime_put",
+        "pm_runtime_mark_last_busy",
+        "pm_runtime_set_autosuspend_delay",
+        "pm_runtime_use_autosuspend",
+        "dev_pm_ops",
+        "platform_driver_register",
+        "platform_device_register_simple"
+      ]
+    },
+    "testCases": [
+      {
+        "id": "runtime_pm_setup",
+        "name": "Runtime PM Setup",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "pm_runtime_enable(&pm_dev.pdev->dev)",
+          "pm_runtime_set_autosuspend_delay(&pm_dev.pdev->dev",
+          "pm_runtime_use_autosuspend(&pm_dev.pdev->dev)",
+          "pm_runtime_disable(&pm_dev.pdev->dev)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "pm_ops_structure",
+        "name": "Power Management Operations",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "struct dev_pm_ops pm_dev_pm_ops",
+          ".suspend = pm_suspend",
+          ".resume = pm_resume",
+          ".runtime_suspend = pm_runtime_suspend",
+          ".runtime_resume = pm_runtime_resume"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "platform_device_integration",
+        "name": "Platform Device Integration",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "platform_driver_register(&pm_platform_driver)",
+          "platform_device_register_simple(\"pm-demo\"",
+          "platform_set_drvdata(pm_dev.pdev, &pm_dev)",
+          "platform_get_drvdata(pdev)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "runtime_pm_usage",
+        "name": "Runtime PM Usage in Operations",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "pm_runtime_get_sync(&dev->pdev->dev)",
+          "pm_runtime_put(&dev->pdev->dev)",
+          "pm_runtime_mark_last_busy(&dev->pdev->dev)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "power_state_management",
+        "name": "Power State Management",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "enum pm_device_state",
+          "PM_STATE_ACTIVE",
+          "PM_STATE_SUSPENDED",
+          "pm_change_state(dev, PM_STATE_SUSPENDED)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "activity_tracking",
+        "name": "Activity Tracking",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "pm_update_activity(dev)",
+          "dev->stats.last_activity_jiffies = jiffies",
+          "jiffies - dev->stats.last_activity_jiffies"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "auto_suspend_timer",
+        "name": "Auto-suspend Timer",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "timer_setup(&pm_dev.idle_timer, idle_timer_callback",
+          "mod_timer(&dev->idle_timer",
+          "del_timer_sync(&pm_dev.idle_timer)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "runtime_pm_message",
+        "name": "Runtime PM Support Message",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {"pattern": "Device: /dev/pmdev with runtime PM support", "exact": true}
+        ]
+      }
+    ]
+  }
+}
