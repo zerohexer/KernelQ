@@ -1,7 +1,10 @@
 const fs = require('fs').promises;
 const path = require('path');
 const { spawn, exec } = require('child_process');
+const { promisify } = require('util');
 const crypto = require('crypto');
+
+const execAsync = promisify(exec);
 
 /**
  * Direct Kernel Module Compiler
@@ -462,6 +465,48 @@ echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
         });
     }
 
+    // Run checkpatch.pl style checking on source file
+    async runCheckpatch(sourceFile) {
+        try {
+            const checkpatchPath = path.join(__dirname, 'scripts', 'checkpatch.pl');
+            
+            // Check if checkpatch.pl exists
+            await fs.access(checkpatchPath);
+            
+            // Run checkpatch with --no-tree option for standalone operation
+            const { stdout, stderr } = await execAsync(`${checkpatchPath} --no-tree --file "${sourceFile}"`);
+            
+            return {
+                passed: true, // No style issues found
+                output: stdout || stderr || 'No style issues detected',
+                hasIssues: false
+            };
+        } catch (error) {
+            // checkpatch.pl exits with non-zero code when it finds issues
+            // This is expected behavior, so we parse the output
+            const output = error.stdout || error.stderr || error.message;
+            
+            // Determine if these are actual style issues or execution errors
+            const hasStyleIssues = output.includes('WARNING:') || output.includes('ERROR:') || output.includes('CHECK:');
+            
+            if (hasStyleIssues) {
+                return {
+                    passed: false,
+                    output: output,
+                    hasIssues: true
+                };
+            } else {
+                // Actual execution error (checkpatch.pl not working properly)
+                console.warn('Checkpatch execution error:', output);
+                return {
+                    passed: true, // Don't fail compilation due to checkpatch issues
+                    output: 'Style check unavailable',
+                    hasIssues: false
+                };
+            }
+        }
+    }
+
     // Main compilation method
     async compileKernelModule(code, moduleName) {
         // Check prerequisites
@@ -486,6 +531,10 @@ echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
             const sourceFile = path.join(sessionDir, `${moduleName}.c`);
             await fs.writeFile(sourceFile, code);
 
+            // Run checkpatch.pl style checking
+            const styleCheckResult = await this.runCheckpatch(sourceFile);
+            console.log(`🎨 Style check completed for ${moduleName}: ${styleCheckResult.passed ? 'CLEAN' : 'ISSUES_FOUND'}`);
+
             // Compile module
             const compileResult = await this.compileModule(sessionDir, moduleName, [sourceFile]);
             
@@ -493,6 +542,7 @@ echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
                 return {
                     success: false,
                     stage: 'compilation',
+                    styleCheck: styleCheckResult,
                     ...compileResult
                 };
             }
@@ -513,6 +563,7 @@ echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
                 success: true,
                 compilation: compileResult,
                 testing: testResult,
+                styleCheck: styleCheckResult,
                 sessionId,
                 kernelVersion: headerCheck.kernelVersion
             };

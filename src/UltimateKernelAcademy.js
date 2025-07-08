@@ -5751,6 +5751,31 @@ MODULE_LICENSE("GPL");`,
             }
         }
         
+        // Display kernel coding style feedback from checkpatch.pl
+        if (results.feedback && results.feedback.length > 0) {
+            const styleFeedback = results.feedback.find(f => f.type === 'style_guide');
+            if (styleFeedback) {
+                output += `\n📋 Maintainer's Review (Kernel Style Guide):\n`;
+                
+                if (styleFeedback.styleFeedback && styleFeedback.styleFeedback.length > 0) {
+                    output += `\`\`\`diff\n`;
+                    styleFeedback.styleFeedback.forEach(issue => {
+                        if (issue.type === 'error') {
+                            output += `- [ERROR] ${issue.message}\n`;
+                        } else if (issue.type === 'warning') {
+                            output += `! [WARNING] ${issue.message}\n`;
+                        } else if (issue.type === 'check') {
+                            output += `? [CHECK] ${issue.message}\n`;
+                        }
+                    });
+                    output += `\`\`\`\n`;
+                    output += `💡 *Style issues don't affect functionality but improve code maintainability*\n\n`;
+                } else {
+                    output += `✅ No style issues detected - code follows kernel coding standards!\n\n`;
+                }
+            }
+        }
+        
         return output;
     };
 
