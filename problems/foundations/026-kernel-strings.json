@@ -1,5 +1,5 @@
 {
-  "id": 24,
+  "id": 26,
   "title": "Kernel Memory Management - Part 2: Dynamic Strings with kstrdup",
   "phase": "foundations",
   "difficulty": 5,

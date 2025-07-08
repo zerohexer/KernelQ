@@ -113,7 +113,7 @@ export const KERNEL_FUNCTIONS = [
     {
         name: 'printk',
         // Monaco snippet syntax. ${1:label} is a placeholder.
-        signature: 'printk(KERN_INFO "${1:Your message here}\\n");',
+        // eslint-disable-next-line no-template-curly-in-string\n        signature: 'printk(KERN_INFO "${1:Your message here}\\n");',
         description: 'Prints a message to the kernel log buffer. The kernel equivalent of printf.',
         category: 'logging',
         // Detailed parameters for signature help
