@@ -817,6 +817,24 @@ class LeetCodeStyleValidator {
  */
     }
 
+    // Parse checkpatch.pl output and extract style feedback
+    parseCheckpatchOutput(rawOutput) {
+        const lines = rawOutput.split('\n');
+        const feedback = [];
+        const regex = /^(WARNING|ERROR|CHECK):\s*(.*)/;
+
+        for (const line of lines) {
+            const match = line.match(regex);
+            if (match) {
+                feedback.push({
+                    type: match[1].toLowerCase(), // 'warning', 'error', or 'check'
+                    message: match[2].trim()
+                });
+            }
+        }
+        
+        return feedback;
+    }
 
     // Main validation function - LeetCode style
     async validateSolution(code, problemId, moduleName) {
@@ -867,6 +885,29 @@ class LeetCodeStyleValidator {
                     details: compilation.error
                 });
                 return results;
+            }
+
+            // Step 3.5: Process style check results from checkpatch.pl
+            if (compilation.directResults?.styleCheck?.output) {
+                const styleFeedback = this.parseCheckpatchOutput(compilation.directResults.styleCheck.output);
+                if (styleFeedback.length > 0) {
+                    // Add style feedback as non-critical information
+                    results.feedback.push({
+                        type: 'style_guide',
+                        message: 'Kernel Coding Style Analysis (checkpatch.pl)',
+                        details: styleFeedback.map(f => `[${f.type.toUpperCase()}] ${f.message}`).join('\n'),
+                        styleFeedback: styleFeedback // Raw feedback for frontend processing
+                    });
+                    console.log(`🎨 Style feedback added: ${styleFeedback.length} issues found`);
+                } else {
+                    // No style issues found
+                    results.feedback.push({
+                        type: 'style_guide',
+                        message: 'Kernel Coding Style Analysis (checkpatch.pl)',
+                        details: '✅ No style issues detected - code follows kernel coding standards!',
+                        styleFeedback: []
+                    });
+                }
             }
 
             // Step 4: Post-compilation testing (Direct compilation results analysis)
