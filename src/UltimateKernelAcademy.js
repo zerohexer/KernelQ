@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, ChevronDown, Play, CheckCircle, Clock, Code, Terminal, Book, Users, Award, Target, Zap, Brain, Shuffle, GitBranch, Cpu, Settings, Star, Trophy, Timer, Lightbulb, Infinity, TrendingUp, Lock, Unlock } from 'lucide-react';
-import ValidationSystem, { upgradeProblems } from './validation-system.js';
 import PostCompilationTester from './post-compilation-testing.js';
 import generatedProblems from './generated-problems.js';
 import SemanticCodeEditor from './SemanticCodeEditor.js';
@@ -6119,14 +6118,17 @@ MODULE_LICENSE("GPL");`,
         }
     };
 
-    // Initialize the enhanced validation system
-    const validationSystem = new ValidationSystem();
     const postCompilationTester = new PostCompilationTester();
 
     // Enhanced validation system for problemBank challenges
     const validateProblemSolution = async (problem, userCode) => {
-        // Use the new flexible validation system
-        const baseResults = await validationSystem.validateProblemSolution(problem, userCode);
+        // Simple validation results structure
+        const baseResults = {
+            score: 0,
+            allPassed: false,
+            testResults: [],
+            feedback: []
+        };
 
         // CRITICAL: Only fail immediately for truly dangerous patterns (like printf/malloc in kernel)
         const hasCriticalSafetyErrors = baseResults.testResults.some(test => 
@@ -6251,7 +6253,7 @@ MODULE_LICENSE("GPL");`,
         const passedTests = baseResults.testResults.filter(t => t.passed).length;
         const totalTests = baseResults.testResults.length;
         baseResults.score = totalTests > 0 ? (passedTests / totalTests) * 100 : 0;
-        baseResults.allPassed = baseResults.score >= validationSystem.successThreshold;
+        baseResults.allPassed = baseResults.score >= 80; // 80% success threshold
 
         return baseResults;
     };
