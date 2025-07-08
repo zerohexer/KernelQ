@@ -1,0 +1,98 @@
+{
+  "id": 16,
+  "title": "Pointers and Functions - Part 3: Pass by Reference",
+  "phase": "foundations",
+  "difficulty": 5,
+  "xp": 40,
+  "description": "Master passing pointers to functions to modify values by reference. Learn the difference between pass-by-value and pass-by-reference. This completes the pointer series foundation.",
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n\n// From Parts 1-2 - COMPLETED CONCEPTS:\n// ✓ Pointer declaration and dereferencing\n// ✓ Array traversal with pointer arithmetic\n\n// Part 3 - NEW CONCEPTS:\n// TODO: Create function 'swap_values' that takes two int pointers and swaps their values\n// TODO: Create function 'double_value' that takes an int pointer and doubles the value\n\nstatic int __init pointers_functions_init(void) {\n    int x = 10, y = 20;\n    int z = 15;\n    \n    printk(KERN_INFO \"Before swap: x=%d, y=%d\\n\", x, y);\n    printk(KERN_INFO \"Before doubling: z=%d\\n\", z);\n    \n    // TODO: Call swap_values(&x, &y)\n    // TODO: Call double_value(&z)\n    \n    printk(KERN_INFO \"After swap: x=%d, y=%d\\n\", x, y);\n    printk(KERN_INFO \"After doubling: z=%d\\n\", z);\n    \n    return 0;\n}\n\nstatic void __exit pointers_functions_exit(void) {\n    printk(KERN_INFO \"Pointers and functions module unloaded\\n\");\n}\n\nmodule_init(pointers_functions_init);\nmodule_exit(pointers_functions_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Your Name\");\nMODULE_DESCRIPTION(\"Pointers and functions demonstration module\");",
+  "concepts": [
+    "pass by reference",
+    "pointers as function parameters",
+    "function pointer parameters",
+    "value modification via pointers"
+  ],
+  "skills": [
+    "Advanced function design",
+    "Reference parameter handling", 
+    "Pointer-based value modification",
+    "Function interface design"
+  ],
+  "multiPart": {
+    "part": 3,
+    "totalParts": 3,
+    "nextProblemId": 9,
+    "previousProblemId": 7
+  },
+  "inputOutput": {
+    "expectedOutput": [
+      "Before swap: x=10, y=20",
+      "Before doubling: z=15",
+      "After swap: x=20, y=10",
+      "After doubling: z=30"
+    ],
+    "requirements": [
+      "Use required function names: pointers_functions_init, pointers_functions_exit",
+      "Create function 'swap_values' with parameters (int *a, int *b)",
+      "Create function 'double_value' with parameter (int *val)",
+      "Functions must modify values through pointers",
+      "Use exact variable names and values: x=10, y=20, z=15",
+      "Print in exact format shown above"
+    ]
+  },
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["pointers_functions_init", "pointers_functions_exit", "swap_values", "double_value"],
+      "variables": [
+        { "name": "x", "type": "int", "value": 10 },
+        { "name": "y", "type": "int", "value": 20 },
+        { "name": "z", "type": "int", "value": 15 }
+      ],
+      "outputMessages": [
+        "Before swap: x=10, y=20",
+        "Before doubling: z=15", 
+        "After swap: x=20, y=10",
+        "After doubling: z=30"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h"
+      ],
+      "mustContain": ["void swap_values", "void double_value", "int *", "&x", "&y", "&z"],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_signatures",
+        "name": "Correct Function Signatures",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["void swap_values", "int *a", "int *b", "void double_value", "int *val"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "pointer_parameters",
+        "name": "Pointer Parameters Used",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["&x", "&y", "&z"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "correct_modifications",
+        "name": "Values Correctly Modified",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Before swap: x=10, y=20", "exact": true },
+          { "pattern": "Before doubling: z=15", "exact": true },
+          { "pattern": "After swap: x=20, y=10", "exact": true },
+          { "pattern": "After doubling: z=30", "exact": true }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "id": 26,
+  "title": "Kernel Memory Management - Part 3: Dynamic Structures",
+  "phase": "foundations",
+  "difficulty": 6,
+  "xp": 50,
+  "description": "Master dynamic allocation of structures in kernel space. Combine structure knowledge with kernel memory management. This completes the kernel memory series and prepares for advanced concepts.",
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/slab.h>\n#include <linux/string.h>\n\n// From Parts 1-2 - COMPLETED CONCEPTS:\n// ✓ kmalloc/kfree for basic memory allocation\n// ✓ kstrdup and kernel string functions\n// ✓ Structure definition and usage\n\n// Define a kernel data structure:\nstruct device_info {\n    int device_id;\n    char *device_name;\n    int status;  // 0=inactive, 1=active\n    unsigned long timestamp;\n};\n\n// Part 3 - NEW CONCEPTS:\n// TODO: Dynamic allocation of structures with embedded pointers\n\nstatic int __init kmem_structures_init(void) {\n    struct device_info *dev;\n    \n    // TODO: Allocate memory for struct device_info using kmalloc\n    // TODO: Initialize: device_id=100, device_name=\"eth0\", status=1, timestamp=123456789\n    // TODO: Use kstrdup for device_name allocation\n    // TODO: Print all structure members\n    // TODO: Free device_name first, then the structure\n    \n    // Expected output:\n    // \"Device allocated successfully\"\n    // \"Device ID: 100\"\n    // \"Device Name: eth0\"\n    // \"Device Status: 1 (active)\"\n    // \"Device Timestamp: 123456789\"\n    // \"Device memory freed successfully\"\n    \n    return 0;\n}\n\nstatic void __exit kmem_structures_exit(void) {\n    printk(KERN_INFO \"Kernel memory structures module unloaded\\n\");\n}\n\nmodule_init(kmem_structures_init);\nmodule_exit(kmem_structures_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Your Name\");\nMODULE_DESCRIPTION(\"Kernel memory structures demonstration module\");",
+  "concepts": [
+    "dynamic structure allocation",
+    "embedded pointers in structures",
+    "complex memory cleanup",
+    "kernel data structures",
+    "memory management patterns"
+  ],
+  "skills": [
+    "Advanced memory management",
+    "Complex data structure handling",
+    "Resource cleanup patterns",
+    "Kernel programming best practices"
+  ],
+  "multiPart": {
+    "part": 3,
+    "totalParts": 3,
+    "nextProblemId": 15,
+    "previousProblemId": 13
+  },
+  "inputOutput": {
+    "expectedOutput": [
+      "Device allocated successfully",
+      "Device ID: 100",
+      "Device Name: eth0",
+      "Device Status: 1 (active)",
+      "Device Timestamp: 123456789",
+      "Device memory freed successfully"
+    ],
+    "requirements": [
+      "Use required function names: kmem_structures_init, kmem_structures_exit",
+      "Use provided struct device_info definition",
+      "Allocate structure using kmalloc(sizeof(struct device_info), GFP_KERNEL)",
+      "Initialize with exact values: device_id=100, device_name=\"eth0\", status=1, timestamp=123456789",
+      "Use kstrdup for device_name allocation",
+      "Check for allocation failures",
+      "Access members using arrow operator",
+      "Free device_name first, then structure",
+      "Print in exact format shown above"
+    ]
+  },
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["kmem_structures_init", "kmem_structures_exit"],
+      "variables": [
+        { "name": "dev", "type": "struct device_info*", "value": "kmalloc_result" }
+      ],
+      "outputMessages": [
+        "Device allocated successfully",
+        "Device ID: 100",
+        "Device Name: eth0",
+        "Device Status: 1 \\(active\\)",
+        "Device Timestamp: 123456789",
+        "Device memory freed successfully"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/slab.h",
+        "linux/string.h"
+      ],
+      "mustContain": ["kmalloc", "sizeof(struct device_info)", "kstrdup", "dev->device_id", "dev->device_name", "kfree"],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "structure_allocation",
+        "name": "Structure Allocation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["kmalloc", "sizeof(struct device_info)", "GFP_KERNEL"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "embedded_string_allocation",
+        "name": "Embedded String Allocation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["kstrdup", "dev->device_name"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "proper_cleanup",
+        "name": "Proper Memory Cleanup Order",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["kfree(dev->device_name)", "kfree(dev)"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "structure_usage",
+        "name": "Structure Member Access",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Device allocated successfully", "exact": true },
+          { "pattern": "Device ID: 100", "exact": true },
+          { "pattern": "Device Name: eth0", "exact": true },
+          { "pattern": "Device Status: 1 \\(active\\)", "exact": false },
+          { "pattern": "Device Timestamp: 123456789", "exact": true },
+          { "pattern": "Device memory freed successfully", "exact": true }
+        ]
+      }
+    ]
+  }
+}

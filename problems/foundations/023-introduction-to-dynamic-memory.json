@@ -1,0 +1,88 @@
+{
+  "id": 23,
+  "title": "Introduction to Dynamic Memory Allocation",
+  "phase": "foundations",
+  "difficulty": 4,
+  "xp": 35,
+  "description": "Learn your first dynamic memory allocation using kmalloc and kfree. Understand the basic pattern of allocating, using, and freeing memory. This introduces heap memory management in a simple, controlled way.",
+  "concepts": ["dynamic_memory", "kmalloc", "kfree", "memory_management", "heap_allocation"],
+  "skills": ["memory_allocation", "resource_management", "basic_debugging"],
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/slab.h>\n\n// CONCEPT: Dynamic Memory Allocation\n// kmalloc() - allocates memory from kernel heap\n// kfree() - frees memory allocated by kmalloc\n// GFP_KERNEL - memory allocation flags (can sleep, use in process context)\n//\n// Basic Pattern:\n// 1. ptr = kmalloc(size, GFP_KERNEL)\n// 2. Check if ptr is NULL (allocation failed)\n// 3. Use the memory\n// 4. kfree(ptr) when done\n//\n// WHY: When stack memory is too small or data must survive function calls\n\n// TODO: First dynamic memory allocation\nstatic int demonstrate_basic_kmalloc(void)\n{\n    char *dynamic_buffer;\n    \n    // Step 1: Allocate memory from heap\n    dynamic_buffer = kmalloc(256, GFP_KERNEL);\n    \n    // Step 2: Always check for allocation failure\n    if (!dynamic_buffer) {\n        printk(KERN_ERR \"Failed to allocate memory!\\n\");\n        return -ENOMEM;\n    }\n    \n    // Step 3: Use the memory\n    strcpy(dynamic_buffer, \"Hello from heap memory!\");\n    printk(KERN_INFO \"Dynamic buffer contains: %s\\n\", dynamic_buffer);\n    \n    // Step 4: Free the memory (very important!)\n    kfree(dynamic_buffer);\n    \n    printk(KERN_INFO \"Memory allocated, used, and freed successfully\\n\");\n    return 0;\n}\n\n// TODO: Demonstrate memory sizes\nstatic void demonstrate_memory_sizes(void)\n{\n    void *small_mem, *medium_mem, *large_mem;\n    \n    // Different sizes of memory allocation\n    small_mem = kmalloc(64, GFP_KERNEL);\n    medium_mem = kmalloc(1024, GFP_KERNEL);\n    large_mem = kmalloc(4096, GFP_KERNEL);\n    \n    printk(KERN_INFO \"Memory allocation sizes:\\n\");\n    printk(KERN_INFO \"Small (64 bytes): %s\\n\", small_mem ? \"Success\" : \"Failed\");\n    printk(KERN_INFO \"Medium (1KB): %s\\n\", medium_mem ? \"Success\" : \"Failed\");\n    printk(KERN_INFO \"Large (4KB): %s\\n\", large_mem ? \"Success\" : \"Failed\");\n    \n    // Always free what you allocate\n    if (small_mem) kfree(small_mem);\n    if (medium_mem) kfree(medium_mem);\n    if (large_mem) kfree(large_mem);\n    \n    printk(KERN_INFO \"All memory freed\\n\");\n}\n\n// TODO: Show what happens with allocation failure\nstatic void demonstrate_allocation_failure(void)\n{\n    void *huge_mem;\n    \n    // Try to allocate a very large amount (likely to fail)\n    huge_mem = kmalloc(1024 * 1024 * 10, GFP_KERNEL); // 10MB\n    \n    if (!huge_mem) {\n        printk(KERN_INFO \"Large allocation failed - this is normal\\n\");\n        printk(KERN_INFO \"Always check kmalloc return value!\\n\");\n    } else {\n        printk(KERN_INFO \"Large allocation succeeded\\n\");\n        kfree(huge_mem);\n    }\n}\n\nstatic int __init dynamic_memory_init(void)\n{\n    int ret;\n    \n    printk(KERN_INFO \"Dynamic memory module loaded\\n\");\n    printk(KERN_INFO \"Learning kmalloc and kfree\\n\");\n    \n    ret = demonstrate_basic_kmalloc();\n    if (ret) {\n        return ret;\n    }\n    \n    demonstrate_memory_sizes();\n    demonstrate_allocation_failure();\n    \n    printk(KERN_INFO \"Remember: Every kmalloc needs a kfree!\\n\");\n    return 0;\n}\n\nstatic void __exit dynamic_memory_exit(void)\n{\n    printk(KERN_INFO \"Dynamic memory module unloaded\\n\");\n    printk(KERN_INFO \"Pattern: kmalloc -> check -> use -> kfree\\n\");\n}\n\nmodule_init(dynamic_memory_init);\nmodule_exit(dynamic_memory_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Kernel Academy Student\");\nMODULE_DESCRIPTION(\"Introduction to dynamic memory allocation\");\nMODULE_VERSION(\"1.0\");",
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "dynamic_memory_init",
+        "dynamic_memory_exit",
+        "demonstrate_basic_kmalloc",
+        "demonstrate_memory_sizes",
+        "demonstrate_allocation_failure"
+      ],
+      "variables": [],
+      "outputMessages": [
+        "Dynamic memory module loaded",
+        "Learning kmalloc and kfree",
+        "Dynamic buffer contains: Hello from heap memory!",
+        "Memory allocated, used, and freed successfully",
+        "Memory allocation sizes:",
+        "Always check kmalloc return value!",
+        "Remember: Every kmalloc needs a kfree!",
+        "Dynamic memory module unloaded"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/slab.h"
+      ],
+      "mustContain": [
+        "kmalloc",
+        "kfree",
+        "GFP_KERNEL",
+        "if (!dynamic_buffer)"
+      ]
+    },
+    "testCases": [
+      {
+        "id": "basic_kmalloc_usage",
+        "name": "Basic kmalloc Usage",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "kmalloc(256, GFP_KERNEL)",
+          "if (!dynamic_buffer)",
+          "kfree(dynamic_buffer)"
+        ],
+        "prohibitedSymbols": ["malloc", "free"]
+      },
+      {
+        "id": "error_checking",
+        "name": "Proper Error Checking",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "if (!dynamic_buffer)",
+          "return -ENOMEM"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "memory_pattern",
+        "name": "Memory Management Pattern",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {"pattern": "Memory allocated, used, and freed successfully", "exact": true},
+          {"pattern": "Pattern: kmalloc -> check -> use -> kfree", "exact": true}
+        ]
+      },
+      {
+        "id": "required_includes",
+        "name": "Required Header Files",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["linux/slab.h"],
+        "prohibitedSymbols": []
+      }
+    ]
+  }
+}

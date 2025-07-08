@@ -1,0 +1,137 @@
+{
+  "id": 48,
+  "title": "Introduction to DMA Concepts",
+  "phase": "kernel_core",
+  "difficulty": 8,
+  "xp": 75,
+  "description": "Learn the fundamental concepts of Direct Memory Access (DMA) and why it's essential for high-performance I/O operations. Understand the difference between programmed I/O and DMA, and the basic requirements for DMA-safe memory.",
+  "concepts": ["dma", "direct_memory_access", "programmed_io", "bus_addresses", "dma_coherency"],
+  "skills": ["dma_concepts", "hardware_understanding", "io_performance"],
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/slab.h>\n#include <linux/delay.h>\n#include <linux/kthread.h>\n#include <linux/timer.h>\n#include <linux/jiffies.h>\n#include <linux/string.h>\n\n// CONCEPT: Direct Memory Access (DMA)\n// Programmed I/O: CPU moves data between memory and device\n// DMA: Device controller moves data directly to/from memory\n// \n// Why DMA is needed:\n// 1. CPU efficiency - CPU can do other work while DMA transfers data\n// 2. Performance - DMA can transfer data faster than CPU\n// 3. Bandwidth - Multiple DMA channels can work simultaneously\n//\n// WHY: Modern devices (network, storage, graphics) require high-speed data transfer\n\n// Simulate different I/O methods\nstruct io_performance_test {\n    char *source_buffer;\n    char *dest_buffer;\n    size_t buffer_size;\n    unsigned long programmed_io_time;\n    unsigned long dma_simulation_time;\n};\n\nstatic struct io_performance_test perf_test;\nstatic struct timer_list dma_simulation_timer;\nstatic volatile bool dma_transfer_complete = false;\nstatic size_t dma_bytes_transferred = 0;\n\n// TODO: Simulate programmed I/O (CPU does all the work)\nstatic void simulate_programmed_io(void)\n{\n    ktime_t start, end;\n    int i;\n    \n    printk(KERN_INFO \"=== PROGRAMMED I/O SIMULATION ===\");\n    printk(KERN_INFO \"CPU manually transfers data byte by byte\\n\");\n    \n    start = ktime_get();\n    \n    // Simulate CPU transferring data manually\n    for (i = 0; i < perf_test.buffer_size; i++) {\n        // Simulate reading from device (slow)\n        char data = perf_test.source_buffer[i];\n        \n        // Simulate processing delay (device is slow)\n        udelay(1); // 1 microsecond per byte\n        \n        // Simulate writing to memory\n        perf_test.dest_buffer[i] = data;\n        \n        // CPU is busy the entire time!\n    }\n    \n    end = ktime_get();\n    perf_test.programmed_io_time = ktime_to_us(ktime_sub(end, start));\n    \n    printk(KERN_INFO \"Programmed I/O completed in %lu microseconds\\n\", \n           perf_test.programmed_io_time);\n    printk(KERN_INFO \"CPU was busy for the entire transfer\\n\");\n    printk(KERN_INFO \"Bytes transferred: %zu\\n\", perf_test.buffer_size);\n}\n\n// TODO: DMA simulation timer callback\nstatic void dma_simulation_callback(struct timer_list *timer)\n{\n    const size_t chunk_size = 64; // Transfer 64 bytes at a time\n    \n    // Simulate DMA controller transferring data\n    if (dma_bytes_transferred < perf_test.buffer_size) {\n        size_t bytes_to_transfer = min(chunk_size, \n                                     perf_test.buffer_size - dma_bytes_transferred);\n        \n        // DMA controller copies data (CPU is free!)\n        memcpy(perf_test.dest_buffer + dma_bytes_transferred,\n               perf_test.source_buffer + dma_bytes_transferred,\n               bytes_to_transfer);\n        \n        dma_bytes_transferred += bytes_to_transfer;\n        \n        // Schedule next DMA transfer\n        mod_timer(&dma_simulation_timer, jiffies + usecs_to_jiffies(10));\n        \n        printk(KERN_INFO \"DMA transferred %zu bytes (total: %zu/%zu)\\n\",\n               bytes_to_transfer, dma_bytes_transferred, perf_test.buffer_size);\n    } else {\n        // DMA transfer complete\n        dma_transfer_complete = true;\n        printk(KERN_INFO \"DMA transfer completed!\\n\");\n    }\n}\n\n// TODO: Simulate DMA transfer\nstatic void simulate_dma_transfer(void)\n{\n    ktime_t start, end;\n    \n    printk(KERN_INFO \"=== DMA SIMULATION ===\");\n    printk(KERN_INFO \"DMA controller transfers data while CPU does other work\\n\");\n    \n    start = ktime_get();\n    \n    // Reset DMA state\n    dma_transfer_complete = false;\n    dma_bytes_transferred = 0;\n    \n    // Start DMA transfer\n    timer_setup(&dma_simulation_timer, dma_simulation_callback, 0);\n    mod_timer(&dma_simulation_timer, jiffies + usecs_to_jiffies(10));\n    \n    // CPU can do other work while DMA transfers data\n    printk(KERN_INFO \"CPU is free to do other work while DMA transfers data\\n\");\n    \n    // Simulate CPU doing other work\n    while (!dma_transfer_complete) {\n        // CPU can process other tasks\n        printk(KERN_INFO \"CPU doing other work...\\n\");\n        msleep(50);\n    }\n    \n    end = ktime_get();\n    perf_test.dma_simulation_time = ktime_to_us(ktime_sub(end, start));\n    \n    // Stop the timer\n    del_timer_sync(&dma_simulation_timer);\n    \n    printk(KERN_INFO \"DMA simulation completed in %lu microseconds\\n\", \n           perf_test.dma_simulation_time);\n}\n\n// TODO: Compare I/O methods\nstatic void compare_io_methods(void)\n{\n    printk(KERN_INFO \"=== I/O METHODS COMPARISON ===\");\n    printk(KERN_INFO \"Programmed I/O: %lu microseconds\\n\", perf_test.programmed_io_time);\n    printk(KERN_INFO \"DMA simulation: %lu microseconds\\n\", perf_test.dma_simulation_time);\n    \n    if (perf_test.programmed_io_time > perf_test.dma_simulation_time) {\n        printk(KERN_INFO \"DMA is %lu%% faster!\\n\", \n               ((perf_test.programmed_io_time - perf_test.dma_simulation_time) * 100) / \n               perf_test.programmed_io_time);\n    }\n    \n    printk(KERN_INFO \"\\nProgrammed I/O characteristics:\\n\");\n    printk(KERN_INFO \"- CPU is busy during entire transfer\\n\");\n    printk(KERN_INFO \"- Simple to implement\\n\");\n    printk(KERN_INFO \"- Good for small transfers\\n\");\n    printk(KERN_INFO \"- CPU utilization: 100%%\\n\");\n    \n    printk(KERN_INFO \"\\nDMA characteristics:\\n\");\n    printk(KERN_INFO \"- CPU is free during transfer\\n\");\n    printk(KERN_INFO \"- Complex to implement\\n\");\n    printk(KERN_INFO \"- Good for large transfers\\n\");\n    printk(KERN_INFO \"- CPU utilization: Low\\n\");\n}\n\n// TODO: Explain DMA requirements\nstatic void explain_dma_requirements(void)\n{\n    printk(KERN_INFO \"=== DMA REQUIREMENTS ===\");\n    printk(KERN_INFO \"For DMA to work correctly, memory must be:\\n\");\n    \n    printk(KERN_INFO \"1. Physically contiguous\\n\");\n    printk(KERN_INFO \"   - DMA controller uses physical addresses\\n\");\n    printk(KERN_INFO \"   - Virtual memory may be fragmented\\n\");\n    \n    printk(KERN_INFO \"2. Cache coherent\\n\");\n    printk(KERN_INFO \"   - CPU and DMA must see same data\\n\");\n    printk(KERN_INFO \"   - Requires cache management\\n\");\n    \n    printk(KERN_INFO \"3. Accessible to device\\n\");\n    printk(KERN_INFO \"   - Within device's addressing range\\n\");\n    printk(KERN_INFO \"   - Some devices have 32-bit limitations\\n\");\n    \n    printk(KERN_INFO \"4. Properly aligned\\n\");\n    printk(KERN_INFO \"   - Many devices require specific alignment\\n\");\n    printk(KERN_INFO \"   - Usually cache line or page aligned\\n\");\n}\n\n// TODO: Explain bus addresses vs virtual addresses\nstatic void explain_address_types(void)\n{\n    void *virtual_addr;\n    \n    printk(KERN_INFO \"=== ADDRESS TYPES IN DMA ===\");\n    \n    virtual_addr = kmalloc(1024, GFP_KERNEL);\n    if (virtual_addr) {\n        printk(KERN_INFO \"Virtual address: %p\\n\", virtual_addr);\n        printk(KERN_INFO \"Physical address: %llx\\n\", \n               (unsigned long long)virt_to_phys(virtual_addr));\n        \n        kfree(virtual_addr);\n    }\n    \n    printk(KERN_INFO \"\\nAddress types:\\n\");\n    printk(KERN_INFO \"1. Virtual Address\\n\");\n    printk(KERN_INFO \"   - What CPU/kernel sees\\n\");\n    printk(KERN_INFO \"   - Managed by MMU\\n\");\n    printk(KERN_INFO \"   - May not be contiguous\\n\");\n    \n    printk(KERN_INFO \"2. Physical Address\\n\");\n    printk(KERN_INFO \"   - Real RAM address\\n\");\n    printk(KERN_INFO \"   - What DMA controller needs\\n\");\n    printk(KERN_INFO \"   - Must be contiguous for DMA\\n\");\n    \n    printk(KERN_INFO \"3. Bus Address (dma_addr_t)\\n\");\n    printk(KERN_INFO \"   - Address as seen by device\\n\");\n    printk(KERN_INFO \"   - May differ from physical address\\n\");\n    printk(KERN_INFO \"   - Handled by IOMMU if present\\n\");\n}\n\n// TODO: Explain DMA directions\nstatic void explain_dma_directions(void)\n{\n    printk(KERN_INFO \"=== DMA TRANSFER DIRECTIONS ===\");\n    printk(KERN_INFO \"DMA transfers can be:\\n\");\n    \n    printk(KERN_INFO \"1. DMA_TO_DEVICE\\n\");\n    printk(KERN_INFO \"   - Memory -> Device\\n\");\n    printk(KERN_INFO \"   - Example: Sending data to network card\\n\");\n    \n    printk(KERN_INFO \"2. DMA_FROM_DEVICE\\n\");\n    printk(KERN_INFO \"   - Device -> Memory\\n\");\n    printk(KERN_INFO \"   - Example: Receiving data from network card\\n\");\n    \n    printk(KERN_INFO \"3. DMA_BIDIRECTIONAL\\n\");\n    printk(KERN_INFO \"   - Both directions\\n\");\n    printk(KERN_INFO \"   - Example: Disk I/O\\n\");\n    \n    printk(KERN_INFO \"Next lesson: Implementing actual DMA operations\\n\");\n}\n\nstatic int __init dma_concepts_init(void)\n{\n    printk(KERN_INFO \"DMA concepts module loaded\\n\");\n    printk(KERN_INFO \"Learning Direct Memory Access fundamentals\\n\");\n    \n    // Allocate test buffers\n    perf_test.buffer_size = 1024;\n    perf_test.source_buffer = kmalloc(perf_test.buffer_size, GFP_KERNEL);\n    perf_test.dest_buffer = kmalloc(perf_test.buffer_size, GFP_KERNEL);\n    \n    if (!perf_test.source_buffer || !perf_test.dest_buffer) {\n        printk(KERN_ERR \"Failed to allocate test buffers\\n\");\n        kfree(perf_test.source_buffer);\n        kfree(perf_test.dest_buffer);\n        return -ENOMEM;\n    }\n    \n    // Initialize source buffer with test data\n    memset(perf_test.source_buffer, 0xAA, perf_test.buffer_size);\n    memset(perf_test.dest_buffer, 0x00, perf_test.buffer_size);\n    \n    // Run demonstrations\n    explain_dma_requirements();\n    explain_address_types();\n    explain_dma_directions();\n    simulate_programmed_io();\n    simulate_dma_transfer();\n    compare_io_methods();\n    \n    return 0;\n}\n\nstatic void __exit dma_concepts_exit(void)\n{\n    // Clean up timer if still active\n    del_timer_sync(&dma_simulation_timer);\n    \n    // Free test buffers\n    kfree(perf_test.source_buffer);\n    kfree(perf_test.dest_buffer);\n    \n    printk(KERN_INFO \"DMA concepts module unloaded\\n\");\n    printk(KERN_INFO \"Remember: DMA needs special memory management!\\n\");\n}\n\nmodule_init(dma_concepts_init);\nmodule_exit(dma_concepts_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Kernel Academy Student\");\nMODULE_DESCRIPTION(\"Direct Memory Access concepts and fundamentals\");\nMODULE_VERSION(\"1.0\");",
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "dma_concepts_init",
+        "dma_concepts_exit",
+        "simulate_programmed_io",
+        "dma_simulation_callback",
+        "simulate_dma_transfer",
+        "compare_io_methods",
+        "explain_dma_requirements",
+        "explain_address_types",
+        "explain_dma_directions"
+      ],
+      "variables": [
+        {"name": "perf_test", "type": "struct io_performance_test"},
+        {"name": "dma_simulation_timer", "type": "struct timer_list"},
+        {"name": "dma_transfer_complete", "type": "volatile bool"},
+        {"name": "dma_bytes_transferred", "type": "size_t"}
+      ],
+      "outputMessages": [
+        "DMA concepts module loaded",
+        "Learning Direct Memory Access fundamentals",
+        "=== PROGRAMMED I/O SIMULATION ===",
+        "CPU manually transfers data byte by byte",
+        "=== DMA SIMULATION ===",
+        "DMA controller transfers data while CPU does other work",
+        "=== I/O METHODS COMPARISON ===",
+        "=== DMA REQUIREMENTS ===",
+        "=== ADDRESS TYPES IN DMA ===",
+        "=== DMA TRANSFER DIRECTIONS ===",
+        "Remember: DMA needs special memory management!"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/slab.h",
+        "linux/timer.h",
+        "linux/jiffies.h"
+      ],
+      "mustContain": [
+        "virt_to_phys",
+        "timer_setup",
+        "mod_timer",
+        "del_timer_sync",
+        "ktime_get",
+        "memcpy"
+      ]
+    },
+    "testCases": [
+      {
+        "id": "programmed_io_simulation",
+        "name": "Programmed I/O Simulation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "ktime_get()",
+          "udelay(1)",
+          "perf_test.programmed_io_time",
+          "for (i = 0; i < perf_test.buffer_size; i++)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "dma_simulation",
+        "name": "DMA Transfer Simulation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "timer_setup(&dma_simulation_timer, dma_simulation_callback, 0)",
+          "mod_timer(&dma_simulation_timer",
+          "dma_transfer_complete = true",
+          "memcpy(perf_test.dest_buffer"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "address_explanation",
+        "name": "Address Types Explanation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "virt_to_phys(virtual_addr)",
+          "Virtual address:",
+          "Physical address:",
+          "Bus Address (dma_addr_t)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "dma_requirements",
+        "name": "DMA Requirements Explanation",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {"pattern": "=== DMA REQUIREMENTS ===", "exact": true},
+          {"pattern": "Physically contiguous", "exact": false},
+          {"pattern": "Cache coherent", "exact": false},
+          {"pattern": "Properly aligned", "exact": false}
+        ]
+      },
+      {
+        "id": "dma_directions",
+        "name": "DMA Directions Explanation",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {"pattern": "=== DMA TRANSFER DIRECTIONS ===", "exact": true},
+          {"pattern": "DMA_TO_DEVICE", "exact": true},
+          {"pattern": "DMA_FROM_DEVICE", "exact": true},
+          {"pattern": "DMA_BIDIRECTIONAL", "exact": true}
+        ]
+      },
+      {
+        "id": "performance_comparison",
+        "name": "Performance Comparison",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {"pattern": "=== I/O METHODS COMPARISON ===", "exact": true},
+          {"pattern": "Programmed I/O:", "exact": false},
+          {"pattern": "DMA simulation:", "exact": false}
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "id": 55,
+  "title": "Memory Mapping (mmap) Implementation",
+  "difficulty": 9,
+  "xp": 90,
+  "phase": "kernel_core",
+  "description": "Implement memory mapping support for the character device, allowing userspace applications to directly map device memory. This teaches advanced memory management techniques critical for high-performance drivers and shared memory systems.",
+  "concepts": ["mmap", "vm_operations", "memory_mapping", "page_allocation", "vm_area_struct", "fault_handling"],
+  "skills": ["memory_management", "virtual_memory", "page_fault_handling", "shared_memory", "zero_copy_operations"],
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/fs.h>\n#include <linux/device.h>\n#include <linux/cdev.h>\n#include <linux/uaccess.h>\n#include <linux/slab.h>\n#include <linux/mutex.h>\n#include <linux/mm.h>\n#include <linux/mman.h>\n#include <linux/vmalloc.h>\n#include <linux/page-flags.h>\n#include <linux/highmem.h>\n\n#define DEVICE_NAME \"mmapdev\"\n#define CLASS_NAME \"mmapclass\"\n#define MMAP_SIZE (PAGE_SIZE * 4)  // 4 pages\n#define MAX_MAPPINGS 16\n\n// TODO: Memory mapping information structure\nstruct mmap_info {\n    struct list_head list;\n    struct vm_area_struct *vma;\n    unsigned long virt_addr;\n    unsigned long phys_addr;\n    size_t size;\n    pid_t pid;\n    char comm[TASK_COMM_LEN];\n    unsigned long created_jiffies;\n};\n\n// TODO: Device structure\nstruct mmap_device {\n    struct cdev cdev;\n    struct device *device;\n    struct class *class;\n    dev_t dev_num;\n    \n    // Memory management\n    void *kernel_buffer;\n    unsigned long buffer_size;\n    struct page **pages;\n    int num_pages;\n    \n    // Mapping tracking\n    struct list_head mappings;\n    struct mutex mappings_mutex;\n    atomic_t mapping_count;\n    \n    // Statistics\n    unsigned long total_mappings;\n    unsigned long active_mappings;\n    unsigned long fault_count;\n    unsigned long map_requests;\n};\n\nstatic struct mmap_device mmap_dev;\n\n// TODO: VM operations structure forward declaration\nstatic const struct vm_operations_struct mmap_vm_ops;\n\n// TODO: VMA open callback\nstatic void mmap_vma_open(struct vm_area_struct *vma)\n{\n    struct mmap_info *info = vma->vm_private_data;\n    \n    if (info) {\n        atomic_inc(&mmap_dev.mapping_count);\n        printk(KERN_INFO \"VMA opened: pid=%d, addr=0x%lx, size=%lu\\n\",\n               current->pid, vma->vm_start, vma->vm_end - vma->vm_start);\n    }\n}\n\n// TODO: VMA close callback\nstatic void mmap_vma_close(struct vm_area_struct *vma)\n{\n    struct mmap_info *info = vma->vm_private_data;\n    \n    if (info) {\n        mutex_lock(&mmap_dev.mappings_mutex);\n        list_del(&info->list);\n        mutex_unlock(&mmap_dev.mappings_mutex);\n        \n        atomic_dec(&mmap_dev.mapping_count);\n        \n        printk(KERN_INFO \"VMA closed: pid=%d, addr=0x%lx, mapping duration=%lu jiffies\\n\",\n               info->pid, info->virt_addr, jiffies - info->created_jiffies);\n        \n        kfree(info);\n    }\n}\n\n// TODO: Page fault handler\nstatic vm_fault_t mmap_vma_fault(struct vm_fault *vmf)\n{\n    struct vm_area_struct *vma = vmf->vma;\n    struct mmap_info *info = vma->vm_private_data;\n    unsigned long offset;\n    struct page *page;\n    \n    if (!info) {\n        return VM_FAULT_SIGBUS;\n    }\n    \n    // Calculate offset into our buffer\n    offset = vmf->pgoff << PAGE_SHIFT;\n    \n    if (offset >= mmap_dev.buffer_size) {\n        printk(KERN_ERR \"Fault beyond buffer: offset=0x%lx, size=0x%lx\\n\",\n               offset, mmap_dev.buffer_size);\n        return VM_FAULT_SIGBUS;\n    }\n    \n    // Get the page corresponding to this offset\n    page = mmap_dev.pages[vmf->pgoff];\n    if (!page) {\n        printk(KERN_ERR \"No page for offset 0x%lx\\n\", offset);\n        return VM_FAULT_SIGBUS;\n    }\n    \n    // Increment page reference count\n    get_page(page);\n    vmf->page = page;\n    \n    mmap_dev.fault_count++;\n    \n    printk(KERN_INFO \"Page fault handled: pid=%d, offset=0x%lx, page=%p\\n\",\n           current->pid, offset, page);\n    \n    return 0;\n}\n\n// TODO: Define VM operations\nstatic const struct vm_operations_struct mmap_vm_ops = {\n    .open = mmap_vma_open,\n    .close = mmap_vma_close,\n    .fault = mmap_vma_fault,\n};\n\n// TODO: Implement mmap file operation\nstatic int device_mmap(struct file *file, struct vm_area_struct *vma)\n{\n    struct mmap_info *info;\n    unsigned long size = vma->vm_end - vma->vm_start;\n    unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;\n    \n    mmap_dev.map_requests++;\n    \n    // Validate mapping request\n    if (offset + size > mmap_dev.buffer_size) {\n        printk(KERN_ERR \"mmap request beyond buffer: offset=0x%lx, size=0x%lx, buffer_size=0x%lx\\n\",\n               offset, size, mmap_dev.buffer_size);\n        return -EINVAL;\n    }\n    \n    if (size == 0 || size > mmap_dev.buffer_size) {\n        printk(KERN_ERR \"Invalid mmap size: %lu\\n\", size);\n        return -EINVAL;\n    }\n    \n    // Check if we exceed maximum mappings\n    if (atomic_read(&mmap_dev.mapping_count) >= MAX_MAPPINGS) {\n        printk(KERN_ERR \"Maximum mappings exceeded\\n\");\n        return -ENOMEM;\n    }\n    \n    // Create mapping info\n    info = kzalloc(sizeof(*info), GFP_KERNEL);\n    if (!info) {\n        return -ENOMEM;\n    }\n    \n    info->vma = vma;\n    info->virt_addr = vma->vm_start;\n    info->size = size;\n    info->pid = current->pid;\n    get_task_comm(info->comm, current);\n    info->created_jiffies = jiffies;\n    \n    // Set VM area flags\n    vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;\n    vma->vm_private_data = info;\n    vma->vm_ops = &mmap_vm_ops;\n    \n    // Add to mappings list\n    mutex_lock(&mmap_dev.mappings_mutex);\n    list_add(&info->list, &mmap_dev.mappings);\n    mutex_unlock(&mmap_dev.mappings_mutex);\n    \n    atomic_inc(&mmap_dev.mapping_count);\n    mmap_dev.total_mappings++;\n    \n    // Call open to initialize reference counting\n    mmap_vma_open(vma);\n    \n    printk(KERN_INFO \"Memory mapped: pid=%d (%s), addr=0x%lx-0x%lx, size=%lu, offset=0x%lx\\n\",\n           current->pid, current->comm, vma->vm_start, vma->vm_end, size, offset);\n    \n    return 0;\n}\n\nstatic int device_open(struct inode *inode, struct file *file)\n{\n    printk(KERN_INFO \"Mmap device opened by pid=%d (%s)\\n\", current->pid, current->comm);\n    return 0;\n}\n\nstatic int device_release(struct inode *inode, struct file *file)\n{\n    printk(KERN_INFO \"Mmap device closed by pid=%d (%s)\\n\", current->pid, current->comm);\n    return 0;\n}\n\n// TODO: Read function to show buffer content\nstatic ssize_t device_read(struct file *file, char __user *user_buffer,\n                          size_t count, loff_t *offset)\n{\n    ssize_t bytes_read = 0;\n    \n    if (*offset >= mmap_dev.buffer_size) {\n        return 0; // EOF\n    }\n    \n    bytes_read = min(count, mmap_dev.buffer_size - *offset);\n    \n    if (copy_to_user(user_buffer, mmap_dev.kernel_buffer + *offset, bytes_read)) {\n        return -EFAULT;\n    }\n    \n    *offset += bytes_read;\n    \n    printk(KERN_INFO \"Read %zu bytes from offset %lld\\n\", bytes_read, *offset - bytes_read);\n    return bytes_read;\n}\n\n// TODO: Write function to modify buffer content\nstatic ssize_t device_write(struct file *file, const char __user *user_buffer,\n                           size_t count, loff_t *offset)\n{\n    ssize_t bytes_written = 0;\n    \n    if (*offset >= mmap_dev.buffer_size) {\n        return -ENOSPC;\n    }\n    \n    bytes_written = min(count, mmap_dev.buffer_size - *offset);\n    \n    if (copy_from_user(mmap_dev.kernel_buffer + *offset, user_buffer, bytes_written)) {\n        return -EFAULT;\n    }\n    \n    *offset += bytes_written;\n    \n    printk(KERN_INFO \"Wrote %zu bytes to offset %lld\\n\", bytes_written, *offset - bytes_written);\n    return bytes_written;\n}\n\nstatic const struct file_operations mmap_dev_fops = {\n    .owner = THIS_MODULE,\n    .open = device_open,\n    .release = device_release,\n    .read = device_read,\n    .write = device_write,\n    .mmap = device_mmap,\n};\n\n// TODO: Allocate and setup pages for mapping\nstatic int allocate_buffer_pages(void)\n{\n    int i;\n    struct page *page;\n    \n    mmap_dev.num_pages = mmap_dev.buffer_size / PAGE_SIZE;\n    \n    // Allocate array to hold page pointers\n    mmap_dev.pages = kcalloc(mmap_dev.num_pages, sizeof(struct page *), GFP_KERNEL);\n    if (!mmap_dev.pages) {\n        return -ENOMEM;\n    }\n    \n    // Allocate individual pages\n    for (i = 0; i < mmap_dev.num_pages; i++) {\n        page = alloc_page(GFP_KERNEL | __GFP_ZERO);\n        if (!page) {\n            // Free previously allocated pages\n            while (--i >= 0) {\n                __free_page(mmap_dev.pages[i]);\n            }\n            kfree(mmap_dev.pages);\n            return -ENOMEM;\n        }\n        mmap_dev.pages[i] = page;\n    }\n    \n    // Map pages into kernel virtual memory\n    mmap_dev.kernel_buffer = vmap(mmap_dev.pages, mmap_dev.num_pages, VM_MAP, PAGE_KERNEL);\n    if (!mmap_dev.kernel_buffer) {\n        for (i = 0; i < mmap_dev.num_pages; i++) {\n            __free_page(mmap_dev.pages[i]);\n        }\n        kfree(mmap_dev.pages);\n        return -ENOMEM;\n    }\n    \n    // Initialize buffer with pattern\n    for (i = 0; i < mmap_dev.buffer_size / sizeof(int); i++) {\n        ((int *)mmap_dev.kernel_buffer)[i] = i;\n    }\n    \n    printk(KERN_INFO \"Allocated %d pages (%lu bytes) for mmap buffer\\n\",\n           mmap_dev.num_pages, mmap_dev.buffer_size);\n    \n    return 0;\n}\n\n// TODO: Free allocated pages\nstatic void free_buffer_pages(void)\n{\n    int i;\n    \n    if (mmap_dev.kernel_buffer) {\n        vunmap(mmap_dev.kernel_buffer);\n    }\n    \n    if (mmap_dev.pages) {\n        for (i = 0; i < mmap_dev.num_pages; i++) {\n            if (mmap_dev.pages[i]) {\n                __free_page(mmap_dev.pages[i]);\n            }\n        }\n        kfree(mmap_dev.pages);\n    }\n}\n\nstatic int __init mmap_dev_init(void)\n{\n    int ret;\n    \n    printk(KERN_INFO \"Mmap device driver initializing...\\n\");\n    \n    // TODO: Initialize device structure\n    memset(&mmap_dev, 0, sizeof(mmap_dev));\n    mutex_init(&mmap_dev.mappings_mutex);\n    INIT_LIST_HEAD(&mmap_dev.mappings);\n    atomic_set(&mmap_dev.mapping_count, 0);\n    \n    // TODO: Set buffer size (must be page-aligned)\n    mmap_dev.buffer_size = MMAP_SIZE;\n    \n    // TODO: Allocate buffer pages\n    ret = allocate_buffer_pages();\n    if (ret) {\n        printk(KERN_ERR \"Failed to allocate buffer pages\\n\");\n        return ret;\n    }\n    \n    // TODO: Register character device\n    ret = alloc_chrdev_region(&mmap_dev.dev_num, 0, 1, DEVICE_NAME);\n    if (ret < 0) {\n        free_buffer_pages();\n        return ret;\n    }\n    \n    cdev_init(&mmap_dev.cdev, &mmap_dev_fops);\n    mmap_dev.cdev.owner = THIS_MODULE;\n    \n    ret = cdev_add(&mmap_dev.cdev, mmap_dev.dev_num, 1);\n    if (ret < 0) {\n        unregister_chrdev_region(mmap_dev.dev_num, 1);\n        free_buffer_pages();\n        return ret;\n    }\n    \n    // TODO: Create device class and device\n    mmap_dev.class = class_create(THIS_MODULE, CLASS_NAME);\n    if (IS_ERR(mmap_dev.class)) {\n        cdev_del(&mmap_dev.cdev);\n        unregister_chrdev_region(mmap_dev.dev_num, 1);\n        free_buffer_pages();\n        return PTR_ERR(mmap_dev.class);\n    }\n    \n    mmap_dev.device = device_create(mmap_dev.class, NULL, mmap_dev.dev_num,\n                                   NULL, DEVICE_NAME);\n    if (IS_ERR(mmap_dev.device)) {\n        class_destroy(mmap_dev.class);\n        cdev_del(&mmap_dev.cdev);\n        unregister_chrdev_region(mmap_dev.dev_num, 1);\n        free_buffer_pages();\n        return PTR_ERR(mmap_dev.device);\n    }\n    \n    printk(KERN_INFO \"Mmap device driver loaded successfully\\n\");\n    printk(KERN_INFO \"Device: /dev/%s with %lu bytes mappable memory\\n\",\n           DEVICE_NAME, mmap_dev.buffer_size);\n    \n    return 0;\n}\n\nstatic void __exit mmap_dev_exit(void)\n{\n    struct mmap_info *info, *tmp;\n    \n    printk(KERN_INFO \"Mmap device driver unloading...\\n\");\n    \n    // TODO: Force unmap any remaining mappings\n    mutex_lock(&mmap_dev.mappings_mutex);\n    list_for_each_entry_safe(info, tmp, &mmap_dev.mappings, list) {\n        list_del(&info->list);\n        printk(KERN_WARNING \"Force unmapping: pid=%d, addr=0x%lx\\n\",\n               info->pid, info->virt_addr);\n        kfree(info);\n    }\n    mutex_unlock(&mmap_dev.mappings_mutex);\n    \n    // TODO: Clean up device\n    device_destroy(mmap_dev.class, mmap_dev.dev_num);\n    class_destroy(mmap_dev.class);\n    cdev_del(&mmap_dev.cdev);\n    unregister_chrdev_region(mmap_dev.dev_num, 1);\n    \n    // TODO: Free buffer pages\n    free_buffer_pages();\n    \n    printk(KERN_INFO \"Mmap device driver unloaded\\n\");\n    printk(KERN_INFO \"Final stats - Total mappings: %lu, Faults: %lu, Requests: %lu\\n\",\n           mmap_dev.total_mappings, mmap_dev.fault_count, mmap_dev.map_requests);\n}\n\nmodule_init(mmap_dev_init);\nmodule_exit(mmap_dev_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Kernel Academy Student\");\nMODULE_DESCRIPTION(\"Character device with mmap support\");\nMODULE_VERSION(\"1.0\");",
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "mmap_dev_init",
+        "mmap_dev_exit",
+        "device_mmap",
+        "mmap_vma_open",
+        "mmap_vma_close",
+        "mmap_vma_fault",
+        "allocate_buffer_pages",
+        "free_buffer_pages"
+      ],
+      "variables": [
+        {"name": "mmap_dev", "type": "struct mmap_device"},
+        {"name": "mmap_vm_ops", "type": "struct vm_operations_struct"}
+      ],
+      "outputMessages": [
+        "Mmap device driver loaded successfully",
+        "Device: /dev/mmapdev with",
+        "bytes mappable memory",
+        "Mmap device driver unloaded",
+        "Final stats - Total mappings:"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/fs.h",
+        "linux/mm.h",
+        "linux/mman.h",
+        "linux/vmalloc.h"
+      ],
+      "mustContain": [
+        "alloc_page",
+        "__free_page",
+        "vmap",
+        "vunmap",
+        "get_page",
+        "vm_operations_struct",
+        "VM_FAULT_SIGBUS",
+        "vm_fault"
+      ]
+    },
+    "testCases": [
+      {
+        "id": "mmap_file_operation",
+        "name": "Mmap File Operation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          ".mmap = device_mmap",
+          "vm_area_struct *vma"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "vm_operations_structure",
+        "name": "VM Operations Structure",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "struct vm_operations_struct mmap_vm_ops",
+          ".open = mmap_vma_open",
+          ".close = mmap_vma_close",
+          ".fault = mmap_vma_fault"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "page_allocation",
+        "name": "Page Allocation and Management",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "alloc_page(GFP_KERNEL",
+          "__free_page(mmap_dev.pages[i])",
+          "vmap(mmap_dev.pages",
+          "vunmap(mmap_dev.kernel_buffer)"
+        ],
+        "prohibitedSymbols": ["kmalloc", "vmalloc"]
+      },
+      {
+        "id": "fault_handling",
+        "name": "Page Fault Handling",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "vm_fault_t mmap_vma_fault",
+          "get_page(page)",
+          "vmf->page = page",
+          "return VM_FAULT_SIGBUS"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "vma_management",
+        "name": "VMA Management",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "vma->vm_flags |= VM_DONTEXPAND",
+          "vma->vm_private_data = info",
+          "vma->vm_ops = &mmap_vm_ops"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "mapping_validation",
+        "name": "Mapping Request Validation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "if (offset + size > mmap_dev.buffer_size)",
+          "return -EINVAL",
+          "vma->vm_end - vma->vm_start"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "reference_counting",
+        "name": "Reference Counting",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "atomic_inc(&mmap_dev.mapping_count)",
+          "atomic_dec(&mmap_dev.mapping_count)",
+          "get_page(page)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "mappable_memory_message",
+        "name": "Mappable Memory Message",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {"pattern": "bytes mappable memory", "exact": true}
+        ]
+      }
+    ]
+  }
+}

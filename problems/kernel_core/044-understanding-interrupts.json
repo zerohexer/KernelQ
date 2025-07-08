@@ -1,0 +1,118 @@
+{
+  "id": 44,
+  "title": "Understanding Hardware Interrupts",
+  "phase": "kernel_core",
+  "difficulty": 6,
+  "xp": 55,
+  "description": "Learn what hardware interrupts are and how they work in the kernel. Understand the difference between process context and interrupt context, and why interrupt handlers have special requirements.",
+  "concepts": ["interrupts", "hardware_events", "interrupt_context", "process_context", "asynchronous_events"],
+  "skills": ["interrupt_concepts", "context_awareness", "hardware_understanding"],
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/timer.h>\n#include <linux/jiffies.h>\n#include <linux/interrupt.h>\n#include <linux/workqueue.h>\n#include <linux/delay.h>\n\n// CONCEPT: Hardware Interrupts\n// Interrupt = Asynchronous signal from hardware to CPU\n// Examples: Keyboard press, mouse movement, network packet, disk I/O complete\n// \n// Process Context vs Interrupt Context:\n// - Process Context: Normal code execution (syscalls, kernel threads)\n// - Interrupt Context: Handling hardware events (interrupt handlers)\n//\n// WHY: Hardware events need immediate attention, can't wait for normal scheduling\n\n// Timer to simulate hardware interrupts\nstatic struct timer_list interrupt_simulator;\nstatic unsigned long interrupt_count = 0;\nstatic unsigned long last_interrupt_time = 0;\n\n// TODO: Simulate an interrupt handler\nstatic void simulated_interrupt_handler(struct timer_list *timer)\n{\n    unsigned long current_time = jiffies;\n    unsigned long time_diff = current_time - last_interrupt_time;\n    \n    // This code runs in INTERRUPT CONTEXT\n    interrupt_count++;\n    last_interrupt_time = current_time;\n    \n    printk(KERN_INFO \"INTERRUPT #%lu: Hardware event occurred!\\n\", interrupt_count);\n    printk(KERN_INFO \"  Time since last interrupt: %lu jiffies\\n\", time_diff);\n    printk(KERN_INFO \"  Running in INTERRUPT CONTEXT\\n\");\n    \n    // Demonstrate interrupt context properties\n    printk(KERN_INFO \"  - Cannot sleep (no msleep allowed)\\n\");\n    printk(KERN_INFO \"  - Cannot use mutex (would sleep)\\n\");\n    printk(KERN_INFO \"  - Must be fast and atomic\\n\");\n    printk(KERN_INFO \"  - Can use spinlocks\\n\");\n    \n    // Schedule next \"interrupt\" in 2 seconds\n    mod_timer(&interrupt_simulator, jiffies + msecs_to_jiffies(2000));\n}\n\n// TODO: Demonstrate process context\nstatic void demonstrate_process_context(void)\n{\n    printk(KERN_INFO \"=== PROCESS CONTEXT DEMONSTRATION ===\");\n    printk(KERN_INFO \"This code runs in PROCESS CONTEXT\\n\");\n    \n    // In process context, we CAN:\n    printk(KERN_INFO \"Process context capabilities:\\n\");\n    printk(KERN_INFO \"  - Can sleep (msleep allowed)\\n\");\n    printk(KERN_INFO \"  - Can use mutexes\\n\");\n    printk(KERN_INFO \"  - Can allocate memory with GFP_KERNEL\\n\");\n    printk(KERN_INFO \"  - Can access user space\\n\");\n    \n    // Demonstrate sleeping in process context\n    printk(KERN_INFO \"Sleeping for 100ms in process context...\\n\");\n    msleep(100);\n    printk(KERN_INFO \"Woke up! This proves we're in process context\\n\");\n}\n\n// TODO: Demonstrate interrupt context restrictions\nstatic void demonstrate_interrupt_context_restrictions(void)\n{\n    printk(KERN_INFO \"=== INTERRUPT CONTEXT RESTRICTIONS ===\");\n    printk(KERN_INFO \"Interrupt handlers CANNOT:\\n\");\n    printk(KERN_INFO \"  - Sleep (no msleep, no mutex_lock)\\n\");\n    printk(KERN_INFO \"  - Access user space\\n\");\n    printk(KERN_INFO \"  - Use GFP_KERNEL (must use GFP_ATOMIC)\\n\");\n    printk(KERN_INFO \"  - Take too long (impacts system responsiveness)\\n\");\n    \n    printk(KERN_INFO \"Interrupt handlers CAN:\\n\");\n    printk(KERN_INFO \"  - Use spinlocks\\n\");\n    printk(KERN_INFO \"  - Access kernel data structures\\n\");\n    printk(KERN_INFO \"  - Schedule work for later (workqueues)\\n\");\n    printk(KERN_INFO \"  - Use atomic operations\\n\");\n}\n\n// TODO: Explain why interrupts are important\nstatic void explain_interrupt_importance(void)\n{\n    printk(KERN_INFO \"=== WHY INTERRUPTS ARE IMPORTANT ===\");\n    printk(KERN_INFO \"Hardware events need immediate attention:\\n\");\n    printk(KERN_INFO \"  - Network packet arrived (must be processed quickly)\\n\");\n    printk(KERN_INFO \"  - Disk I/O completed (data is ready)\\n\");\n    printk(KERN_INFO \"  - Timer expired (time-critical operations)\\n\");\n    printk(KERN_INFO \"  - Keyboard/mouse input (user interaction)\\n\");\n    \n    printk(KERN_INFO \"Without interrupts:\\n\");\n    printk(KERN_INFO \"  - CPU would have to constantly poll hardware\\n\");\n    printk(KERN_INFO \"  - Waste CPU cycles\\n\");\n    printk(KERN_INFO \"  - Poor responsiveness\\n\");\n    printk(KERN_INFO \"  - Missed events\\n\");\n}\n\n// TODO: Explain interrupt handling strategy\nstatic void explain_interrupt_handling_strategy(void)\n{\n    printk(KERN_INFO \"=== INTERRUPT HANDLING STRATEGY ===\");\n    printk(KERN_INFO \"Good interrupt handler design:\\n\");\n    printk(KERN_INFO \"  1. Acknowledge the interrupt\\n\");\n    printk(KERN_INFO \"  2. Read minimal data from hardware\\n\");\n    printk(KERN_INFO \"  3. Schedule work for later if needed\\n\");\n    printk(KERN_INFO \"  4. Return quickly\\n\");\n    \n    printk(KERN_INFO \"Top-half vs Bottom-half (next lesson):\\n\");\n    printk(KERN_INFO \"  - Top-half: Interrupt handler (fast, atomic)\\n\");\n    printk(KERN_INFO \"  - Bottom-half: Deferred work (can sleep)\\n\");\n}\n\nstatic int __init interrupt_concepts_init(void)\n{\n    printk(KERN_INFO \"Interrupt concepts module loaded\\n\");\n    printk(KERN_INFO \"Learning about hardware interrupts and contexts\\n\");\n    \n    // This runs in process context (module initialization)\n    demonstrate_process_context();\n    demonstrate_interrupt_context_restrictions();\n    explain_interrupt_importance();\n    explain_interrupt_handling_strategy();\n    \n    // Set up timer to simulate hardware interrupts\n    timer_setup(&interrupt_simulator, simulated_interrupt_handler, 0);\n    \n    printk(KERN_INFO \"Starting interrupt simulation...\\n\");\n    mod_timer(&interrupt_simulator, jiffies + msecs_to_jiffies(1000));\n    \n    return 0;\n}\n\nstatic void __exit interrupt_concepts_exit(void)\n{\n    printk(KERN_INFO \"Stopping interrupt simulation...\\n\");\n    \n    // Stop the timer (prevent further \"interrupts\")\n    del_timer_sync(&interrupt_simulator);\n    \n    printk(KERN_INFO \"Interrupt concepts module unloaded\\n\");\n    printk(KERN_INFO \"Total simulated interrupts: %lu\\n\", interrupt_count);\n    printk(KERN_INFO \"Remember: Interrupt context is special!\\n\");\n}\n\nmodule_init(interrupt_concepts_init);\nmodule_exit(interrupt_concepts_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Kernel Academy Student\");\nMODULE_DESCRIPTION(\"Understanding hardware interrupts and execution contexts\");\nMODULE_VERSION(\"1.0\");",
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "interrupt_concepts_init",
+        "interrupt_concepts_exit",
+        "simulated_interrupt_handler",
+        "demonstrate_process_context",
+        "demonstrate_interrupt_context_restrictions",
+        "explain_interrupt_importance",
+        "explain_interrupt_handling_strategy"
+      ],
+      "variables": [
+        {"name": "interrupt_simulator", "type": "struct timer_list"},
+        {"name": "interrupt_count", "type": "unsigned long"},
+        {"name": "last_interrupt_time", "type": "unsigned long"}
+      ],
+      "outputMessages": [
+        "Interrupt concepts module loaded",
+        "Learning about hardware interrupts and contexts",
+        "=== PROCESS CONTEXT DEMONSTRATION ===",
+        "This code runs in PROCESS CONTEXT",
+        "=== INTERRUPT CONTEXT RESTRICTIONS ===",
+        "=== WHY INTERRUPTS ARE IMPORTANT ===",
+        "=== INTERRUPT HANDLING STRATEGY ===",
+        "Starting interrupt simulation...",
+        "INTERRUPT #1: Hardware event occurred!",
+        "Running in INTERRUPT CONTEXT",
+        "Total simulated interrupts:",
+        "Remember: Interrupt context is special!"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/timer.h",
+        "linux/jiffies.h",
+        "linux/interrupt.h"
+      ],
+      "mustContain": [
+        "timer_setup",
+        "mod_timer",
+        "del_timer_sync",
+        "jiffies",
+        "msleep"
+      ]
+    },
+    "testCases": [
+      {
+        "id": "timer_interrupt_simulation",
+        "name": "Timer Interrupt Simulation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "timer_setup(&interrupt_simulator, simulated_interrupt_handler, 0)",
+          "mod_timer(&interrupt_simulator",
+          "del_timer_sync(&interrupt_simulator)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "context_demonstration",
+        "name": "Context Demonstration",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "msleep(100)",
+          "printk(KERN_INFO \"This code runs in PROCESS CONTEXT",
+          "printk(KERN_INFO \"Running in INTERRUPT CONTEXT"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "interrupt_explanation",
+        "name": "Interrupt Concept Explanation",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {"pattern": "=== WHY INTERRUPTS ARE IMPORTANT ===", "exact": true},
+          {"pattern": "Hardware events need immediate attention", "exact": false},
+          {"pattern": "=== INTERRUPT HANDLING STRATEGY ===", "exact": true}
+        ]
+      },
+      {
+        "id": "context_restrictions",
+        "name": "Context Restrictions Explanation",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {"pattern": "=== INTERRUPT CONTEXT RESTRICTIONS ===", "exact": true},
+          {"pattern": "Interrupt handlers CANNOT:", "exact": true},
+          {"pattern": "Sleep (no msleep, no mutex_lock)", "exact": false}
+        ]
+      },
+      {
+        "id": "educational_comments",
+        "name": "Educational Comments Present",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "// CONCEPT: Hardware Interrupts",
+          "// Process Context vs Interrupt Context:",
+          "// WHY: Hardware events need immediate attention"
+        ],
+        "prohibitedSymbols": []
+      }
+    ]
+  }
+}
