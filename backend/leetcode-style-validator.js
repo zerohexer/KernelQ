@@ -873,8 +873,10 @@ class LeetCodeStyleValidator {
                 return results;
             }
 
-            // Step 3: Compilation
-            const compilation = await this.compileModule(code, moduleName, sessionId);
+            // Step 3: Compilation (with testScenario support for kernel_project_test)
+            const kernelProjectTest = testDef.testCases?.find(tc => tc.type === 'kernel_project_test');
+            const testScenario = kernelProjectTest?.testScenario || null;
+            const compilation = await this.compileModule(code, moduleName, sessionId, testScenario);
             results.compilationResult = compilation;
             
             if (!compilation.success) {
@@ -1089,6 +1091,9 @@ class LeetCodeStyleValidator {
                         break;
                     case 'variable_check':
                         testResult = this.analyzeVariableCheck(output, testCase);
+                        break;
+                    case 'kernel_project_test':
+                        testResult = await this.analyzeKernelProjectTest(directResults, testCase);
                         break;
                     default:
                         testResult.status = 'PASSED';
@@ -1531,10 +1536,10 @@ class LeetCodeStyleValidator {
         return issues;
     }
 
-    async compileModule(code, moduleName, sessionId) {
+    async compileModule(code, moduleName, sessionId, testScenario = null) {
         try {
             console.log(`🔨 Direct Compiling module: ${moduleName}`);
-            const result = await this.directCompiler.compileKernelModule(code, moduleName);
+            const result = await this.directCompiler.compileKernelModule(code, moduleName, testScenario);
             
             if (result.success) {
                 return {
@@ -1557,6 +1562,111 @@ class LeetCodeStyleValidator {
                 output: ''
             };
         }
+    }
+
+    // Analyze kernel_project_test results
+    async analyzeKernelProjectTest(directResults, testCase) {
+        const result = {
+            id: testCase.id,
+            name: testCase.name,
+            status: 'FAILED',
+            message: '',
+            details: []
+        };
+
+        try {
+            const testScenario = testCase.testScenario;
+            const expected = testScenario?.expected || {};
+            const qemuOutput = directResults.testing?.output || '';
+
+            console.log('🔍 Analyzing kernel_project_test results...');
+
+            // Check if QEMU test completed successfully
+            if (!qemuOutput.includes('QEMU_TEST_COMPLETE: SUCCESS')) {
+                if (qemuOutput.includes('QEMU_TEST_COMPLETE: LOAD_FAILED')) {
+                    result.message = 'Module failed to load in QEMU test environment';
+                    return result;
+                } else {
+                    result.message = 'QEMU test did not complete successfully';
+                    return result;
+                }
+            }
+
+            let allChecksPass = true;
+            const failedChecks = [];
+
+            // Check expected dmesg patterns
+            if (expected.dmesg && expected.dmesg.length > 0) {
+                for (const pattern of expected.dmesg) {
+                    const regex = new RegExp(pattern, 'i');
+                    if (!regex.test(qemuOutput)) {
+                        allChecksPass = false;
+                        failedChecks.push(`Missing dmesg pattern: "${pattern}"`);
+                    } else {
+                        result.details.push(`✅ Found dmesg pattern: "${pattern}"`);
+                    }
+                }
+            }
+
+            // Check expected stdout patterns
+            if (expected.stdout && expected.stdout.length > 0) {
+                for (const pattern of expected.stdout) {
+                    const regex = new RegExp(pattern, 'i');
+                    if (!regex.test(qemuOutput)) {
+                        allChecksPass = false;
+                        failedChecks.push(`Missing stdout pattern: "${pattern}"`);
+                    } else {
+                        result.details.push(`✅ Found stdout pattern: "${pattern}"`);
+                    }
+                }
+            }
+
+            // Check expected stderr patterns
+            if (expected.stderr && expected.stderr.length > 0) {
+                for (const pattern of expected.stderr) {
+                    const regex = new RegExp(pattern, 'i');
+                    if (!regex.test(qemuOutput)) {
+                        allChecksPass = false;
+                        failedChecks.push(`Missing stderr pattern: "${pattern}"`);
+                    } else {
+                        result.details.push(`✅ Found stderr pattern: "${pattern}"`);
+                    }
+                }
+            }
+
+            // Check file existence and content (simulated through QEMU output)
+            if (expected.files && expected.files.length > 0) {
+                for (const fileCheck of expected.files) {
+                    const filePath = fileCheck.path;
+                    const shouldExist = fileCheck.exists !== false;
+                    
+                    // Look for evidence in QEMU output that file was checked
+                    if (shouldExist) {
+                        // This would need to be implemented in the test commands
+                        // For now, we assume file checks are handled by test commands
+                        result.details.push(`ℹ️ File check for ${filePath} (implement in testCommands)`);
+                    }
+                }
+            }
+
+            // Determine final status
+            if (allChecksPass) {
+                result.status = 'PASSED';
+                result.message = 'All kernel project test expectations met';
+            } else {
+                result.status = 'FAILED';
+                result.message = `Test failed: ${failedChecks.join(', ')}`;
+            }
+
+            // Add summary details
+            result.details.push(`📊 QEMU test completed with ${failedChecks.length} failed checks`);
+
+        } catch (error) {
+            result.status = 'ERROR';
+            result.message = `Kernel project test analysis failed: ${error.message}`;
+        }
+
+        return result;
     }
 
     getGenericTestDef(problemId) {
