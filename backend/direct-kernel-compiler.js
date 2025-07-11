@@ -111,8 +111,8 @@ help:
         }
     }
 
-    // Create QEMU test environment
-    async createQEMUTestEnvironment(sessionDir, moduleName) {
+    // Create QEMU test environment with enhanced support for kernel_project_test
+    async createQEMUTestEnvironment(sessionDir, moduleName, testScenario = null) {
         const initramfsDir = path.join(sessionDir, 'initramfs');
         const dirs = ['bin', 'sbin', 'lib/modules', 'proc', 'sys'];
         
@@ -120,6 +120,10 @@ help:
         for (const dir of dirs) {
             await fs.mkdir(path.join(initramfsDir, dir), { recursive: true });
         }
+        
+        // Create additional directories for dynamic linking
+        await fs.mkdir(path.join(initramfsDir, 'lib64'), { recursive: true });
+        await fs.mkdir(path.join(initramfsDir, 'usr/lib64'), { recursive: true });
 
         // Copy busybox (if available)
         try {
@@ -134,7 +138,19 @@ help:
                 ['bin/dmesg', '/bin/busybox'],
                 ['bin/mount', '/bin/busybox'],
                 ['bin/sleep', '/bin/busybox'],
-                ['bin/tail', '/bin/busybox']
+                ['bin/tail', '/bin/busybox'],
+                ['bin/mkdir', '/bin/busybox'],
+                ['bin/ls', '/bin/busybox'],
+                ['bin/echo', '/bin/busybox'],
+                ['bin/cat', '/bin/busybox'],
+                ['bin/chmod', '/bin/busybox'],
+                ['bin/rm', '/bin/busybox'],
+                ['bin/head', '/bin/busybox'],
+                ['bin/grep', '/bin/busybox'],
+                ['usr/bin/head', '/bin/busybox'],
+                ['bin/mknod', '/bin/busybox'],
+                ['bin/awk', '/bin/busybox'],
+                ['bin/cut', '/bin/busybox']
             ];
 
             for (const [link, target] of symlinks) {
@@ -145,24 +161,100 @@ help:
             console.warn('Busybox not available, using basic shell setup');
         }
 
+        // Copy essential shared libraries for dynamic linking
+        const essentialLibs = [
+            '/lib64/ld-linux-x86-64.so.2',
+            '/lib64/libc.so.6',
+            '/lib64/libm.so.6'
+        ];
+        
+        for (const lib of essentialLibs) {
+            try {
+                const libName = path.basename(lib);
+                await this.copyFile(lib, path.join(initramfsDir, 'lib64', libName));
+            } catch (error) {
+                // Library not essential for basic operation
+                console.warn(`Could not copy ${lib}:`, error.message);
+            }
+        }
+
         // Copy kernel module
         await this.copyFile(
             path.join(sessionDir, `${moduleName}.ko`),
             path.join(initramfsDir, 'lib/modules', `${moduleName}.ko`)
         );
 
-        // Create comprehensive init script that outputs everything we need
-        const initScript = `#!/bin/sh
+        // NEW: Compile userspace applications if provided in testScenario
+        if (testScenario?.userspaceApps) {
+            console.log('📦 Compiling userspace test applications...');
+            for (const app of testScenario.userspaceApps) {
+                try {
+                    // Write source code to temporary file (convert escaped newlines)
+                    const appSrcPath = path.join(sessionDir, `${app.name}.c`);
+                    const sourceCode = app.source.replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\"/g, '"');
+                    await fs.writeFile(appSrcPath, sourceCode);
+                    
+                    // Compile with provided flags (default to basic compilation)
+                    const compileFlags = app.compileFlags || [];
+                    const compileCmd = [
+                        'gcc',
+                        ...compileFlags,
+                        '-o', path.join(initramfsDir, 'bin', app.name),
+                        appSrcPath
+                    ];
+                    
+                    console.log(`🔨 Compiling ${app.name}...`);
+                    await execAsync(compileCmd.join(' '));
+                    await fs.chmod(path.join(initramfsDir, 'bin', app.name), 0o755);
+                    console.log(`✅ Compiled ${app.name} successfully`);
+                } catch (error) {
+                    console.error(`❌ Failed to compile ${app.name}:`, error.message);
+                    throw new Error(`Userspace app compilation failed: ${app.name}`);
+                }
+            }
+        }
+
+        // Generate dynamic init script based on test scenario
+        const initScript = this.generateInitScript(moduleName, testScenario);
+        await fs.writeFile(path.join(initramfsDir, 'init'), initScript);
+        await fs.chmod(path.join(initramfsDir, 'init'), 0o755);
+
+        return initramfsDir;
+    }
+
+    // Generate dynamic init script for kernel_project_test scenarios
+    generateInitScript(moduleName, testScenario) {
+        let script = `#!/bin/sh
 set -e
+
+# Set PATH to include busybox commands
+export PATH="/bin:/sbin:/usr/bin:/usr/sbin"
 
 echo "=== QEMU Kernel Module Test Started ==="
 echo "Module: ${moduleName}"
-echo "Kernel: \$(uname -r)"
+echo "Kernel: \\$(uname -r)"
 
 # Mount essential filesystems
 /bin/mount -t proc proc /proc 2>/dev/null || echo "proc mount failed"
 /bin/mount -t sysfs sysfs /sys 2>/dev/null || echo "sysfs mount failed"
 
+`;
+
+        // Add setup commands if provided
+        if (testScenario?.setupCommands?.length) {
+            script += `
+echo ""
+echo "=== Running Setup Commands ==="
+`;
+            for (const cmd of testScenario.setupCommands) {
+                script += `echo "Executing: ${cmd}"
+${cmd}
+`;
+            }
+        }
+
+        // Module loading
+        script += `
 echo ""
 echo "=== Loading Module ==="
 if /sbin/insmod /lib/modules/${moduleName}.ko 2>&1; then
@@ -177,9 +269,57 @@ if /sbin/insmod /lib/modules/${moduleName}.ko 2>&1; then
     /bin/dmesg | tail -20 2>/dev/null || echo "dmesg not available"
     
     echo ""
+    echo "=== Creating Device Nodes ==="
+    # Show available devices first
+    echo "Checking /proc/devices for mychardev..."
+    grep mychardev /proc/devices || echo "mychardev not found in /proc/devices"
+    # Use a simple approach - try common major numbers
+    echo "Creating device node..."
+    major=\$(grep mychardev /proc/devices | head -1 | cut -d' ' -f1)
+    if [ ! -z "\$major" ]; then
+        /bin/mknod /dev/mychardev c \$major 0 && echo "Device created with major \$major" || echo "mknod failed"
+        /bin/chmod 666 /dev/mychardev || echo "chmod failed"
+    else
+        echo "Could not determine major number"
+    fi
+    
+`;
+
+        // Add test commands if provided
+        if (testScenario?.testCommands?.length) {
+            script += `
+    echo ""
+    echo "=== Running Test Commands ==="
+`;
+            for (const cmd of testScenario.testCommands) {
+                script += `    echo "Executing: ${cmd}"
+    ${cmd}
+`;
+            }
+        } else {
+            // Default wait period
+            script += `
+    echo ""
     echo "=== Waiting 2 seconds ==="
     sleep 2
-    
+`;
+        }
+
+        // Add cleanup commands if provided
+        if (testScenario?.cleanupCommands?.length) {
+            script += `
+    echo ""
+    echo "=== Running Cleanup Commands ==="
+`;
+            for (const cmd of testScenario.cleanupCommands) {
+                script += `    echo "Executing: ${cmd}"
+    ${cmd}
+`;
+            }
+        }
+
+        // Module unloading and completion
+        script += `
     echo ""
     echo "=== Unloading Module ==="
     if /sbin/rmmod ${moduleName} 2>&1; then
@@ -212,10 +352,7 @@ echo 1 > /proc/sys/kernel/sysrq
 echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
 `;
 
-        await fs.writeFile(path.join(initramfsDir, 'init'), initScript);
-        await fs.chmod(path.join(initramfsDir, 'init'), 0o755);
-
-        return initramfsDir;
+        return script;
     }
 
     async copyFile(src, dest) {
@@ -327,12 +464,12 @@ echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
         });
     }
 
-    // Test module in QEMU
-    async testModuleInQEMU(sessionDir, moduleName) {
+    // Test module in QEMU with enhanced kernel_project_test support
+    async testModuleInQEMU(sessionDir, moduleName, testScenario = null) {
         return new Promise(async (resolve) => {
             try {
-                // Create initramfs
-                const initramfsDir = await this.createQEMUTestEnvironment(sessionDir, moduleName);
+                // Create initramfs with testScenario support
+                const initramfsDir = await this.createQEMUTestEnvironment(sessionDir, moduleName, testScenario);
                 
                 // Create cpio archive
                 const createCpio = spawn('sh', ['-c', 
@@ -376,8 +513,8 @@ echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
                         const kernelVersion = stdout.trim();
                         const vmlinuzPath = `/boot/vmlinuz-${kernelVersion}`;
 
-                        // Run QEMU with timeout and aggressive killing
-                        const qemuArgs = [
+                        // Run QEMU with timeout and enhanced arguments support
+                        const baseQemuArgs = [
                             '-kernel', vmlinuzPath,
                             '-initrd', path.join(sessionDir, 'test.cpio.gz'),
                             '-m', '256',
@@ -385,15 +522,24 @@ echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
                             '-append', 'console=ttyS0 init=/init quiet'
                         ];
 
+                        // Add custom QEMU arguments from testScenario
+                        const customArgs = testScenario?.qemuArgs || [];
+                        const qemuArgs = [...baseQemuArgs, ...customArgs];
+
+                        if (customArgs.length > 0) {
+                            console.log('🖥️ Using custom QEMU arguments:', customArgs.join(' '));
+                        }
+
                         const qemu = spawn('qemu-system-x86_64', qemuArgs, {
                             stdio: ['pipe', 'pipe', 'pipe']
                         });
 
-                        // Set a hard timeout to kill QEMU if it hangs
+                        // Set a hard timeout to kill QEMU if it hangs (configurable via testScenario)
+                        const timeoutMs = (testScenario?.timeout || 30) * 1000; // Default 30 seconds
                         const killTimer = setTimeout(() => {
-                            console.log('🔪 Killing hanging QEMU process...');
+                            console.log(`🔪 Killing hanging QEMU process after ${timeoutMs/1000}s timeout...`);
                             qemu.kill('SIGKILL');
-                        }, 15000); // 15 second timeout
+                        }, timeoutMs);
 
                         let qemuOutput = '';
                         let dmesgOutput = '';
@@ -507,8 +653,8 @@ echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
         }
     }
 
-    // Main compilation method
-    async compileKernelModule(code, moduleName) {
+    // Main compilation method with kernel_project_test support
+    async compileKernelModule(code, moduleName, testScenario = null) {
         // Check prerequisites
         const headerCheck = await this.checkKernelHeaders();
         if (!headerCheck.available) {
@@ -547,8 +693,8 @@ echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
                 };
             }
 
-            // Test in QEMU
-            const testResult = await this.testModuleInQEMU(sessionDir, moduleName);
+            // Test in QEMU with testScenario support
+            const testResult = await this.testModuleInQEMU(sessionDir, moduleName, testScenario);
 
             // Clean up after delay
             setTimeout(async () => {

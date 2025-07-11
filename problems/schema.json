@@ -153,7 +153,7 @@
               "name": { "type": "string" },
               "type": {
                 "type": "string",
-                "enum": ["output_match", "symbol_check", "code_analysis", "structure_check", "variable_check"]
+                "enum": ["output_match", "symbol_check", "code_analysis", "structure_check", "variable_check", "kernel_project_test"]
               },
               "critical": { 
                 "type": "boolean",
@@ -171,6 +171,114 @@
               "prohibitedSymbols": {
                 "type": "array", 
                 "items": { "type": "string" }
+              },
+              "testScenario": {
+                "type": "object",
+                "description": "Test scenario configuration for kernel_project_test",
+                "properties": {
+                  "qemuArgs": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Additional QEMU command line arguments (e.g., PCI devices, network setup)"
+                  },
+                  "userspaceApps": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["name", "source"],
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "Name of the userspace application binary"
+                        },
+                        "source": {
+                          "type": "string",
+                          "description": "C source code for the userspace test application"
+                        },
+                        "compileFlags": {
+                          "type": "array",
+                          "items": { "type": "string" },
+                          "description": "Additional compilation flags",
+                          "default": ["-static"]
+                        }
+                      }
+                    },
+                    "description": "Userspace applications to compile and include in test environment"
+                  },
+                  "setupCommands": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Commands to run before loading the kernel module"
+                  },
+                  "testCommands": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Commands to run after loading the kernel module to test functionality"
+                  },
+                  "cleanupCommands": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Commands to run after testing for cleanup"
+                  },
+                  "expected": {
+                    "type": "object",
+                    "properties": {
+                      "exitCode": {
+                        "type": "integer",
+                        "description": "Expected exit code of the test sequence",
+                        "default": 0
+                      },
+                      "dmesg": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Expected patterns in kernel log (dmesg)"
+                      },
+                      "stdout": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Expected patterns in standard output"
+                      },
+                      "stderr": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Expected patterns in standard error"
+                      },
+                      "files": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["path"],
+                          "properties": {
+                            "path": {
+                              "type": "string",
+                              "description": "File path to check (e.g., /dev/mydevice, /proc/mymodule)"
+                            },
+                            "exists": {
+                              "type": "boolean",
+                              "description": "Whether the file should exist",
+                              "default": true
+                            },
+                            "content": {
+                              "type": "array",
+                              "items": { "type": "string" },
+                              "description": "Expected content patterns in the file"
+                            }
+                          }
+                        },
+                        "description": "Files to check for existence and content"
+                      }
+                    },
+                    "description": "Expected test results and validation criteria"
+                  },
+                  "timeout": {
+                    "type": "integer",
+                    "description": "Test timeout in seconds",
+                    "default": 30,
+                    "minimum": 5,
+                    "maximum": 300
+                  }
+                },
+                "description": "Configuration for comprehensive kernel project testing in QEMU environment"
               }
             }
           }
