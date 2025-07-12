@@ -296,6 +296,32 @@
         }
       },
       "description": "Frontend-only JavaScript tests"
+    },
+    "displayRequirements": {
+      "type": "object",
+      "description": "User-facing description of the test environment. Not used for backend validation.",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "A brief summary of the test setup."
+        },
+        "qemuArgs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "User-friendly description of key QEMU arguments."
+        },
+        "userspaceApps": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Description of userspace test applications."
+        },
+        "setup": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Key setup steps performed before the test."
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

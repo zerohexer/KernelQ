@@ -181,6 +181,30 @@ class ProblemCLI {
             console.log(`\n✅ Created ${testCases.length} test cases (${testCases.filter(tc => tc.critical).length} critical)`);
         }
 
+        // Add display requirements for frontend
+        console.log('\n📱 Frontend Display Requirements:');
+        const needsDisplayReqs = (await this.prompt('Add frontend display requirements for the test environment? (y/n): ')).toLowerCase() === 'y';
+
+        if (needsDisplayReqs) {
+            problem.displayRequirements = {};
+            problem.displayRequirements.summary = await this.prompt('Test environment summary: ');
+            
+            const qemuArgsStr = await this.prompt('QEMU arguments to display (comma-separated): ');
+            if (qemuArgsStr) {
+                problem.displayRequirements.qemuArgs = qemuArgsStr.split(',').map(s => s.trim());
+            }
+
+            const userspaceAppsStr = await this.prompt('Userspace app descriptions (comma-separated): ');
+            if (userspaceAppsStr) {
+                problem.displayRequirements.userspaceApps = userspaceAppsStr.split(',').map(s => s.trim());
+            }
+            
+            const setupStr = await this.prompt('Test setup steps to display (comma-separated): ');
+            if (setupStr) {
+                problem.displayRequirements.setup = setupStr.split(',').map(s => s.trim());
+            }
+        }
+
         // Validate the problem
         if (!this.validateProblem(problem)) {
             console.log('❌ Problem validation failed:', this.validateProblem.errors);
@@ -250,6 +274,36 @@ class ProblemCLI {
 
         const newDescription = await this.prompt(`Description [${problem.description.substring(0, 50)}...]: `);
         if (newDescription) problem.description = newDescription;
+
+        // Edit display requirements
+        console.log('\n📱 Frontend Display Requirements:');
+        const editDisplayReqs = (await this.prompt('Edit frontend display requirements? (y/n): ')).toLowerCase() === 'y';
+
+        if (editDisplayReqs) {
+            if (!problem.displayRequirements) problem.displayRequirements = {};
+            
+            const currentSummary = problem.displayRequirements.summary || '';
+            const newSummary = await this.prompt(`Test environment summary [${currentSummary}]: `);
+            if (newSummary) problem.displayRequirements.summary = newSummary;
+            
+            const currentQemu = problem.displayRequirements.qemuArgs?.join(', ') || '';
+            const newQemu = await this.prompt(`QEMU arguments [${currentQemu}]: `);
+            if (newQemu) {
+                problem.displayRequirements.qemuArgs = newQemu.split(',').map(s => s.trim());
+            }
+
+            const currentApps = problem.displayRequirements.userspaceApps?.join(', ') || '';
+            const newApps = await this.prompt(`Userspace app descriptions [${currentApps}]: `);
+            if (newApps) {
+                problem.displayRequirements.userspaceApps = newApps.split(',').map(s => s.trim());
+            }
+            
+            const currentSetup = problem.displayRequirements.setup?.join(', ') || '';
+            const newSetup = await this.prompt(`Test setup steps [${currentSetup}]: `);
+            if (newSetup) {
+                problem.displayRequirements.setup = newSetup.split(',').map(s => s.trim());
+            }
+        }
 
         // Save the updated problem
         if (!this.validateProblem(problem)) {

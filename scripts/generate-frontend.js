@@ -44,54 +44,65 @@ class FrontendGenerator {
     }
 
     generateInputOutput(problem) {
-        const validation = problem.validation;
-        if (!validation || !validation.exactRequirements) return null;
+        const requirements = [];
 
-        const { exactRequirements } = validation;
-        const inputOutput = {
-            expectedOutput: exactRequirements.outputMessages || [],
-            requirements: []
-        };
-
-        // Generate requirements from exactRequirements
-        if (exactRequirements.functionNames && exactRequirements.functionNames.length > 0) {
-            inputOutput.requirements.push(
-                `Use required function names: ${exactRequirements.functionNames.join(', ')}`
-            );
+        // Part 1: Process existing 'exactRequirements' for backward compatibility
+        const { exactRequirements } = problem.validation || {};
+        if (exactRequirements) {
+            if (exactRequirements.functionNames?.length > 0) {
+                requirements.push(`Use required function names: ${exactRequirements.functionNames.join(', ')}`);
+            }
+            if (exactRequirements.variables?.length > 0) {
+                const varNames = exactRequirements.variables.map(v => v.name);
+                requirements.push(`Use required variable names: ${varNames.join(', ')}`);
+            }
+            if (exactRequirements.outputMessages?.length > 0) {
+                requirements.push('Print exact message format for backend validation compatibility');
+            }
+            if (exactRequirements.requiredIncludes?.length > 0) {
+                requirements.push(`Must include: ${exactRequirements.requiredIncludes.join(', ')}`);
+            }
+            if (exactRequirements.mustContain?.length > 0) {
+                requirements.push(`Code must contain: ${exactRequirements.mustContain.join(', ')}`);
+            }
+            if (exactRequirements.moduleInfo?.license) {
+                requirements.push(`Must include MODULE_LICENSE("${exactRequirements.moduleInfo.license}")`);
+            }
         }
 
-        if (exactRequirements.variables && exactRequirements.variables.length > 0) {
-            const varNames = exactRequirements.variables.map(v => v.name);
-            inputOutput.requirements.push(
-                `Use required variable names: ${varNames.join(', ')}`
-            );
+        // Part 2: Process new 'displayRequirements' for advanced tests
+        const { displayRequirements } = problem;
+        if (displayRequirements) {
+            if (displayRequirements.summary) {
+                requirements.push(`Test Environment: ${displayRequirements.summary}`);
+            }
+            if (displayRequirements.qemuArgs?.length > 0) {
+                displayRequirements.qemuArgs.forEach(arg => {
+                    requirements.push(`QEMU Setup: ${arg}`);
+                });
+            }
+            if (displayRequirements.userspaceApps?.length > 0) {
+                displayRequirements.userspaceApps.forEach(app => {
+                    requirements.push(`Userspace Test: ${app}`);
+                });
+            }
+            if (displayRequirements.setup?.length > 0) {
+                displayRequirements.setup.forEach(step => {
+                    requirements.push(`Test Setup: ${step}`);
+                });
+            }
         }
-
-        if (exactRequirements.outputMessages && exactRequirements.outputMessages.length > 0) {
-            inputOutput.requirements.push(
-                'Print exact message format for backend validation compatibility'
-            );
+        
+        // Return a combined inputOutput object if there are any requirements or expected outputs
+        const expectedOutput = problem.validation?.exactRequirements?.outputMessages || problem.inputOutput?.expectedOutput || [];
+        if (requirements.length > 0 || expectedOutput.length > 0) {
+            return {
+                expectedOutput,
+                requirements
+            };
         }
-
-        if (exactRequirements.requiredIncludes && exactRequirements.requiredIncludes.length > 0) {
-            inputOutput.requirements.push(
-                `Must include: ${exactRequirements.requiredIncludes.join(', ')}`
-            );
-        }
-
-        if (exactRequirements.mustContain && exactRequirements.mustContain.length > 0) {
-            inputOutput.requirements.push(
-                `Code must contain: ${exactRequirements.mustContain.join(', ')}`
-            );
-        }
-
-        if (exactRequirements.moduleInfo && exactRequirements.moduleInfo.license) {
-            inputOutput.requirements.push(
-                `Must include MODULE_LICENSE("${exactRequirements.moduleInfo.license}")`
-            );
-        }
-
-        return inputOutput;
+        
+        return null;
     }
 
     generateFrontendTests(problem) {
