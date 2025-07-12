@@ -222,136 +222,85 @@ help:
         return initramfsDir;
     }
 
-    // Generate dynamic init script for kernel_project_test scenarios
+
+    // Generate truly generic init script for kernel_project_test scenarios
     generateInitScript(moduleName, testScenario) {
+        // Start with the boilerplate for any QEMU test
         let script = `#!/bin/sh
 set -e
-
-# Set PATH to include busybox commands
 export PATH="/bin:/sbin:/usr/bin:/usr/sbin"
 
 echo "=== QEMU Kernel Module Test Started ==="
 echo "Module: ${moduleName}"
-echo "Kernel: \\$(uname -r)"
-
-# Mount essential filesystems
 /bin/mount -t proc proc /proc 2>/dev/null || echo "proc mount failed"
 /bin/mount -t sysfs sysfs /sys 2>/dev/null || echo "sysfs mount failed"
-
+echo ""
 `;
 
-        // Add setup commands if provided
+        // **GENERIC PART 1: Run any setup commands defined in the problem**
         if (testScenario?.setupCommands?.length) {
-            script += `
-echo ""
-echo "=== Running Setup Commands ==="
+            script += `echo "=== Running Setup Commands ==="
 `;
             for (const cmd of testScenario.setupCommands) {
-                script += `echo "Executing: ${cmd}"
-${cmd}
+                script += `echo "-> Executing: ${cmd.replace(/"/g, '\\"')}"
+${cmd} || echo "Setup command failed: ${cmd.replace(/"/g, '\\"')}"
 `;
             }
         }
 
-        // Module loading
+        // **GENERIC PART 2: Load the module**
         script += `
 echo ""
-echo "=== Loading Module ==="
+echo "=== Loading Module: ${moduleName} ==="
 if /sbin/insmod /lib/modules/${moduleName}.ko 2>&1; then
     echo "✅ Module loaded successfully"
-    
-    echo ""
-    echo "=== Module Information ==="
-    /sbin/lsmod | head -10 2>/dev/null || echo "lsmod not available"
-    
-    echo ""
-    echo "=== Kernel Messages (Load) ==="
-    /bin/dmesg | tail -20 2>/dev/null || echo "dmesg not available"
-    
-    echo ""
-    echo "=== Creating Device Nodes ==="
-    # Show available devices first
-    echo "Checking /proc/devices for mychardev..."
-    grep mychardev /proc/devices || echo "mychardev not found in /proc/devices"
-    # Use a simple approach - try common major numbers
-    echo "Creating device node..."
-    major=\$(grep mychardev /proc/devices | head -1 | cut -d' ' -f1)
-    if [ ! -z "\$major" ]; then
-        /bin/mknod /dev/mychardev c \$major 0 && echo "Device created with major \$major" || echo "mknod failed"
-        /bin/chmod 666 /dev/mychardev || echo "chmod failed"
-    else
-        echo "Could not determine major number"
-    fi
-    
+    /bin/dmesg | tail -15 2>/dev/null || echo "dmesg not available"
 `;
 
-        // Add test commands if provided
+        // **GENERIC PART 3: Run any test commands defined in the problem**
         if (testScenario?.testCommands?.length) {
             script += `
     echo ""
     echo "=== Running Test Commands ==="
 `;
             for (const cmd of testScenario.testCommands) {
-                script += `    echo "Executing: ${cmd}"
+                script += `    echo "-> Executing: ${cmd.replace(/"/g, '\\"')}"
     ${cmd}
 `;
             }
-        } else {
-            // Default wait period
-            script += `
-    echo ""
-    echo "=== Waiting 2 seconds ==="
-    sleep 2
-`;
         }
 
-        // Add cleanup commands if provided
+        // **GENERIC PART 4: Run cleanup commands if defined**
         if (testScenario?.cleanupCommands?.length) {
             script += `
     echo ""
     echo "=== Running Cleanup Commands ==="
 `;
             for (const cmd of testScenario.cleanupCommands) {
-                script += `    echo "Executing: ${cmd}"
+                script += `    echo "-> Executing: ${cmd.replace(/"/g, '\\"')}"
     ${cmd}
 `;
             }
         }
 
-        // Module unloading and completion
+        // **GENERIC PART 5: Unload module and finish**
         script += `
     echo ""
     echo "=== Unloading Module ==="
-    if /sbin/rmmod ${moduleName} 2>&1; then
-        echo "✅ Module unloaded successfully"
-    else
-        echo "⚠️ Module unload failed"
-    fi
-    
-    echo ""
-    echo "=== Final Kernel Messages ==="
-    /bin/dmesg | tail -10 2>/dev/null || echo "dmesg not available"
-    
-    echo ""
+    /sbin/rmmod ${moduleName} 2>&1 && echo "✅ Module unloaded successfully" || echo "⚠️ Module unload failed"
+    /bin/dmesg | tail -20 2>/dev/null || echo "dmesg not available after unload"
     echo "✅ QEMU_TEST_COMPLETE: SUCCESS"
-    
 else
     echo "❌ Module loading failed"
-    echo ""
-    echo "=== Error Messages ==="
-    /bin/dmesg | tail -10 2>/dev/null || echo "dmesg not available"
+    /bin/dmesg | tail -15 2>/dev/null || echo "dmesg not available"
     echo "❌ QEMU_TEST_COMPLETE: LOAD_FAILED"
 fi
 
 echo ""
 echo "=== Test Completed - Shutting Down ==="
 sleep 1
-
-# Force shutdown
-echo 1 > /proc/sys/kernel/sysrq
-echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
+poweroff -f
 `;
-
         return script;
     }
 
@@ -519,7 +468,7 @@ echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
                             '-initrd', path.join(sessionDir, 'test.cpio.gz'),
                             '-m', '256',
                             '-nographic',
-                            '-append', 'console=ttyS0 init=/init quiet'
+                            '-append', 'console=ttyS0 init=/init loglevel=7 printk.console_loglevel=7'
                         ];
 
                         // Add custom QEMU arguments from testScenario
@@ -535,7 +484,7 @@ echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
                         });
 
                         // Set a hard timeout to kill QEMU if it hangs (configurable via testScenario)
-                        const timeoutMs = (testScenario?.timeout || 30) * 1000; // Default 30 seconds
+                        const timeoutMs = (testScenario?.timeout || 15) * 1000; // Default 15 seconds
                         const killTimer = setTimeout(() => {
                             console.log(`🔪 Killing hanging QEMU process after ${timeoutMs/1000}s timeout...`);
                             qemu.kill('SIGKILL');
@@ -693,7 +642,7 @@ echo o > /proc/sysrq-trigger 2>/dev/null || halt -f || poweroff -f
                 };
             }
 
-            // Test in QEMU with testScenario support
+            // TEMPORARY: Test KERN_INFO vs KERN_ERR theory - run QEMU for all problems
             const testResult = await this.testModuleInQEMU(sessionDir, moduleName, testScenario);
 
             // Clean up after delay
