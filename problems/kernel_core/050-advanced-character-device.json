@@ -9,6 +9,44 @@
   "concepts": ["character devices", "file operations", "device nodes", "hardware emulation", "userspace interface"],
   "skills": ["driver development", "QEMU testing", "device file operations", "kernel-userspace communication"],
   "validation": {
+    "exactRequirements": {
+      "functionNames": ["mydriver_init", "mydriver_exit"],
+      "variables": [
+        { "name": "device_number", "type": "dev_t" },
+        { "name": "device_class", "type": "struct class *" },
+        { "name": "device_struct", "type": "struct device *" },
+        { "name": "device_cdev", "type": "struct cdev" }
+      ],
+      "outputMessages": [
+        "mychardev: driver loaded",
+        "mychardev: driver unloaded",
+        "SUCCESS: Device opened successfully",
+        "SUCCESS: Written.*bytes to device",
+        "SUCCESS: Read.*bytes from device", 
+        "SUCCESS: Data integrity verified",
+        "All device tests passed"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h", 
+        "linux/init.h",
+        "linux/fs.h",
+        "linux/cdev.h",
+        "linux/device.h",
+        "linux/uaccess.h"
+      ],
+      "mustContain": [
+        "alloc_chrdev_region",
+        "class_create",
+        "device_create", 
+        "cdev_init",
+        "cdev_add",
+        "file_operations"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
     "testCases": [
       {
         "id": "advanced_chardev_test",
