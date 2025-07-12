@@ -1,0 +1,59 @@
+{
+  "id": 999,
+  "title": "Advanced Character Driver Testing",
+  "phase": "kernel_core",
+  "difficulty": 7,
+  "xp": 80,
+  "description": "Implement a complete character device driver that supports read, write, and basic ioctl operations. This problem demonstrates the new kernel_project_test framework with userspace testing and QEMU device emulation.",
+  "starter": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/fs.h>\n#include <linux/cdev.h>\n#include <linux/device.h>\n#include <linux/uaccess.h>\n\n/* Your character device implementation here */\n\nstatic int __init driver_init(void) {\n    /* Initialize your driver */\n    return 0;\n}\n\nstatic void __exit driver_exit(void) {\n    /* Cleanup your driver */\n}\n\nmodule_init(driver_init);\nmodule_exit(driver_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Advanced Character Driver Example\");",
+  "concepts": ["character devices", "file operations", "ioctl", "userspace interaction"],
+  "skills": ["device driver development", "kernel-userspace interface", "QEMU testing"],
+  "validation": {
+    "testCases": [
+      {
+        "id": "kernel_project_comprehensive",
+        "name": "Comprehensive Driver Testing",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "qemuArgs": [
+            "-device", "edu,id=test-device"
+          ],
+          "userspaceApps": [
+            {
+              "name": "test_driver",
+              "source": "#include <stdio.h>\n#include <stdlib.h>\n#include <fcntl.h>\n#include <unistd.h>\n#include <string.h>\n#include <sys/ioctl.h>\n\n#define DEVICE_PATH \"/dev/advanced_chardev\"\n#define TEST_MSG \"Hello from userspace!\"\n\nint main() {\n    int fd;\n    char read_buf[256] = {0};\n    int ret;\n    \n    printf(\"=== Userspace Driver Test Started ===\\n\");\n    \n    // Test device open\n    fd = open(DEVICE_PATH, O_RDWR);\n    if (fd < 0) {\n        printf(\"ERROR: Cannot open device %s\\n\", DEVICE_PATH);\n        return 1;\n    }\n    printf(\"SUCCESS: Device opened successfully\\n\");\n    \n    // Test write operation\n    ret = write(fd, TEST_MSG, strlen(TEST_MSG));\n    if (ret < 0) {\n        printf(\"ERROR: Write operation failed\\n\");\n        close(fd);\n        return 1;\n    }\n    printf(\"SUCCESS: Write operation completed (%d bytes)\\n\", ret);\n    \n    // Test read operation\n    lseek(fd, 0, SEEK_SET);\n    ret = read(fd, read_buf, sizeof(read_buf) - 1);\n    if (ret < 0) {\n        printf(\"ERROR: Read operation failed\\n\");\n        close(fd);\n        return 1;\n    }\n    printf(\"SUCCESS: Read operation completed (%d bytes): %s\\n\", ret, read_buf);\n    \n    // Test device close\n    close(fd);\n    printf(\"SUCCESS: Device closed successfully\\n\");\n    \n    printf(\"=== All userspace tests passed! ===\\n\");\n    return 0;\n}\n"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Setting up test environment'",
+            "mkdir -p /dev"
+          ],
+          "testCommands": [
+            "echo 'Running device node check'",
+            "ls -la /dev/ | grep advanced || echo 'Device node not found'",
+            "echo 'Running userspace test application'",
+            "/bin/test_driver"
+          ],
+          "cleanupCommands": [
+            "echo 'Cleaning up test environment'"
+          ],
+          "expected": {
+            "exitCode": 0,
+            "dmesg": [
+              "driver.*loaded",
+              "character device.*registered"
+            ],
+            "stdout": [
+              "SUCCESS: Device opened successfully",
+              "SUCCESS: Write operation completed",
+              "SUCCESS: Read operation completed",
+              "All userspace tests passed"
+            ]
+          },
+          "timeout": 45
+        }
+      }
+    ]
+  }
+}
