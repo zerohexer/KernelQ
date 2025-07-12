@@ -113,7 +113,8 @@ export const KERNEL_FUNCTIONS = [
     {
         name: 'printk',
         // Monaco snippet syntax. ${1:label} is a placeholder.
-        // eslint-disable-next-line no-template-curly-in-string\n        signature: 'printk(KERN_INFO "${1:Your message here}\\n");',
+        // eslint-disable-next-line no-template-curly-in-string
+        signature: 'printk(KERN_INFO "${1:Your message here}\\n");',
         description: 'Prints a message to the kernel log buffer. The kernel equivalent of printf.',
         category: 'logging',
         // Detailed parameters for signature help
@@ -651,7 +652,7 @@ export const CMAKE_KERNEL_DEFS = {
         'CONFIG_PROC_FS=1',
         'CONFIG_SYSFS=1'
     ],
-    
+
     // Compiler flags for accurate syntax
     cflags: [
         '-D__KERNEL__',
@@ -668,7 +669,7 @@ export const CMAKE_KERNEL_DEFS = {
         '-Wno-format-security',
         '-O2'
     ],
-    
+
     // Include paths that would be available
     includePaths: [
         '/lib/modules/$(KERNEL_VERSION)/build/include',
@@ -676,7 +677,7 @@ export const CMAKE_KERNEL_DEFS = {
         '/lib/modules/$(KERNEL_VERSION)/build/arch/x86/include/generated',
         '/lib/modules/$(KERNEL_VERSION)/source/include'
     ],
-    
+
     // Standard kernel types with size info
     standardTypes: [
         { name: 'u8', size: 1, description: 'Unsigned 8-bit integer' },
@@ -714,7 +715,7 @@ export const AUTOCOMPLETE_DATA = {
         'enum ${1:name} {',
         'typedef ${1:type} ${2:name};'
     ],
-    
+
     // Keywords with descriptions
     keywords: [
         { name: 'static', description: 'Static storage class' },
@@ -740,7 +741,7 @@ export const AUTOCOMPLETE_DATA = {
         { name: '__cold', description: 'Cold function' },
         { name: '__hot', description: 'Hot function' }
     ],
-    
+
     // Standard library replacements
     standardReplacements: [
         { from: 'printf', to: 'printk', reason: 'Kernel logging function' },
@@ -762,18 +763,18 @@ export const PLATFORM_INFO = {
     isLinux: typeof window !== 'undefined' && navigator.platform.toLowerCase().includes('linux'),
     isWindows: typeof window !== 'undefined' && navigator.platform.toLowerCase().includes('win'),
     isMacOS: typeof window !== 'undefined' && navigator.platform.toLowerCase().includes('mac'),
-    
+
     // All platforms support IntelliSense
     supportsIntelliSense: true,
-    
+
     // Optional: Real compilation support (requires backend)
     supportsCompilation: false, // This would be determined by backend availability
-    
+
     // Browser-based features always available
     supportsSemanticAnalysis: true,
     supportsCodeCompletion: true,
     supportsErrorDetection: true,
-    
+
     // CMake-based features
     supportsCMakeIntegration: true,
     supportsAdvancedSyntax: true
