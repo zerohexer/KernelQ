@@ -37,6 +37,12 @@
             "ls /sys/bus/pci/devices/ 2>/dev/null || echo 'PCI subsystem not ready'"
           ],
           "testCommands": [
+            "echo 'Creating device node for mychardev...'",
+            "major=$(grep mychardev /proc/devices | cut -d' ' -f1)",
+            "if [ -z \"$major\" ]; then echo 'ERROR: mychardev not found in /proc/devices'; exit 1; fi",
+            "mknod /dev/mychardev c $major 0",
+            "chmod 666 /dev/mychardev",
+            "echo 'Device node /dev/mychardev created'",
             "echo 'Checking device node creation'",
             "ls -la /dev/mychardev || echo 'Device node not found'",
             "echo 'Running comprehensive device test'",

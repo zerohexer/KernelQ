@@ -5639,7 +5639,7 @@ MODULE_LICENSE("GPL");`,
         });
 
         // Problem-specific validation
-        if (problemId.includes('device_driver')) {
+        if (String(problemId).includes('device_driver')) {
             const hasDeviceName = /device_name/.test(code);
             tests.push({
                 name: 'Uses Required Variable Names',

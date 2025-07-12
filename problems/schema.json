@@ -179,7 +179,8 @@
                   "qemuArgs": {
                     "type": "array",
                     "items": { "type": "string" },
-                    "description": "Additional QEMU command line arguments (e.g., PCI devices, network setup)"
+                    "description": "Additional QEMU command line arguments (e.g., PCI devices, network setup)",
+                    "default": []
                   },
                   "userspaceApps": {
                     "type": "array",
