@@ -37,7 +37,8 @@
       "Bash(tar:*)",
       "Bash(git config:*)",
       "Bash(git pull:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(python3:*)"
     ],
     "deny": []
   }

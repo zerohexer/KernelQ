@@ -127,6 +127,15 @@ class FrontendGenerator {
             skills: problem.skills || []
         };
 
+        // --- START OF THE FIX ---
+        // The original function was missing this block.
+        // This ensures the complete validation structure, including test scenarios and timeouts,
+        // is available to the frontend.
+        if (problem.validation) {
+            frontendProblem.validation = problem.validation;
+        }
+        // --- END OF THE FIX ---
+
         // Add problemId for multi-part problems
         if (problem.problemId) {
             frontendProblem.problemId = problem.problemId;

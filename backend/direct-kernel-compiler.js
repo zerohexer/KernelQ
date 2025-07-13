@@ -298,6 +298,7 @@ fi
 
 echo ""
 echo "=== Test Completed - Shutting Down ==="
+echo "FINAL_MARKER: SCRIPT_FINISHED_ATTEMPTING_SHUTDOWN"
 sleep 1
 poweroff -f
 `;
@@ -520,12 +521,17 @@ poweroff -f
                             
                             // Consider success if:
                             // - We see the SUCCESS completion marker
+                            // - Or script completed successfully (even if QEMU hung on exit)
                             // - Or normal exit with reasonable output
                             const hasSuccessMarker = qemuOutput.includes('QEMU_TEST_COMPLETE: SUCCESS');
                             const hasLoadSuccess = qemuOutput.includes('✅ Module loaded successfully');
                             const hasTestOutput = qemuOutput.includes('=== QEMU Kernel Module Test Started ===');
+                            const hasFinalMarker = qemuOutput.includes('FINAL_MARKER: SCRIPT_FINISHED_ATTEMPTING_SHUTDOWN');
                             
+                            // If we have final marker + success marker, it's definitely successful
+                            // even if QEMU hung during shutdown
                             const success = hasSuccessMarker || 
+                                           (hasFinalMarker && hasLoadSuccess && hasTestOutput) ||
                                            (hasTestOutput && hasLoadSuccess) ||
                                            (qemuCode === 0 && qemuOutput.length > 200);
 

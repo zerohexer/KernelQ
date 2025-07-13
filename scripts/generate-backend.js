@@ -34,7 +34,8 @@ class BackendGenerator {
                     }
                     
                     // Only include problems with validation for backend
-                    if (problemData.validation && problemData.validation.exactRequirements) {
+                    if (problemData.validation && 
+                        (problemData.validation.exactRequirements || problemData.validation.testCases)) {
                         problems.push(problemData);
                     }
                 } catch (error) {

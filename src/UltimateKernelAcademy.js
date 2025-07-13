@@ -5470,13 +5470,44 @@ MODULE_LICENSE("GPL");`,
     // LeetCode-style validation function
     const runLeetCodeStyleValidation = async (code, problemId) => {
         const moduleName = String(problemId).replace(/[^a-z0-9]/g, '_') + '_' + Date.now();
-        
+
         try {
             console.log('🚀 Making API call to:', `${BACKEND_URL}/validate-solution-comprehensive`);
-            // Call the backend comprehensive validation API with longer timeout
+
+            // --- START OF THE CORRECTED FIX ---
+
+            // Find the problem definition from the generated problem bank
+            const numericProblemId = typeof problemId === 'string' ? parseInt(problemId) : problemId;
+            const testDef = generatedProblems.find(p => p.id === numericProblemId || p.id === problemId);
+
+            // Default frontend timeout (e.g., 30 seconds)
+            let backendTimeout = 30000;
+            console.log(`🔍 Frontend timeout lookup for problem: ${problemId}`);
+
+            // If a test scenario with a specific timeout exists, use it
+            if (testDef && testDef.validation?.testCases) {
+                const projectTest = testDef.validation.testCases.find(tc => tc.type === 'kernel_project_test');
+                if (projectTest && projectTest.testScenario?.timeout) {
+                    const scenarioTimeout = projectTest.testScenario.timeout; // This will be 60 for Problem #50
+                    console.log(`📊 Problem ${problemId} backend requires ${scenarioTimeout}s. Setting frontend timeout with a buffer.`);
+
+                    // Set frontend timeout to be backend timeout + a 10-second buffer.
+                    // This is the key line that fixes the race condition.
+                    backendTimeout = (scenarioTimeout + 10) * 1000;
+                }
+            }
+
+            console.log(`⏱️ Final frontend timeout set to: ${backendTimeout / 1000}s`);
+
+            // Use AbortController for fetch timeout
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
-            
+            const timeoutId = setTimeout(() => {
+                console.error(`❌ Frontend fetch timed out after ${backendTimeout / 1000}s`);
+                controller.abort();
+            }, backendTimeout);
+
+            // --- END OF THE CORRECTED FIX ---
+
             const response = await fetch(`${BACKEND_URL}/validate-solution-comprehensive`, {
                 method: 'POST',
                 headers: {
@@ -5488,17 +5519,18 @@ MODULE_LICENSE("GPL");`,
                     problemId: problemId,
                     problemCategory: detectProblemCategory(code)
                 }),
+                // This connects the AbortController to the fetch request
                 signal: controller.signal
             });
-            
+
+            // This is also crucial: clear the timeout if the fetch completes in time
             clearTimeout(timeoutId);
-            
+
             if (response.ok || response.status === 400) {
                 const result = await response.json();
                 console.log('✅ Backend response received:', { success: result.success, overallResult: result.overallResult, score: result.score });
-                
+
                 // Transform new comprehensive validation result to LeetCode format
-                // Check if validation succeeded AND solution is correct
                 if (result.success && result.overallResult === 'ACCEPTED') {
                     return {
                         success: true,
@@ -5555,7 +5587,7 @@ MODULE_LICENSE("GPL");`,
             console.error('Error details:', error.message);
             console.error('BACKEND_URL was:', BACKEND_URL);
             console.warn('⚠️ Using fallback validation - results may be limited');
-            
+
             // Enhanced fallback with basic rule-based validation
             const fallbackValidation = runBasicRuleValidation(code, problemId);
             return {

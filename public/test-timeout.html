@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend Timeout Test</title>
+</head>
+<body>
+    <h1>Test Frontend Timeout Logic</h1>
+    <button onclick="testTimeout()">Test Problem 50 Timeout</button>
+    <pre id="result"></pre>
+
+    <script>
+        // Simulate the frontend timeout logic for Problem 50
+        function testTimeout() {
+            const problemId = 50;
+            let backendTimeout = 20000; // Default 20s
+            
+            // This simulates what should happen in the frontend
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `Testing timeout logic for Problem ${problemId}:\n\n`;
+            
+            // Simulate finding Problem 50 with qemuArgs
+            const mockProblem50 = {
+                id: 50,
+                validation: {
+                    testCases: [
+                        {
+                            type: 'kernel_project_test',
+                            testScenario: {
+                                timeout: 60,
+                                qemuArgs: ['-device', 'edu,id=test-edu-device']
+                            }
+                        }
+                    ]
+                }
+            };
+            
+            const testDef = mockProblem50;
+            resultDiv.innerHTML += `1. Found test definition: ${testDef ? 'YES' : 'NO'}\n`;
+            
+            if (testDef && testDef.validation?.testCases) {
+                const projectTest = testDef.validation.testCases.find(tc => tc.type === 'kernel_project_test');
+                resultDiv.innerHTML += `2. Found kernel_project_test: ${projectTest ? 'YES' : 'NO'}\n`;
+                
+                if (projectTest && projectTest.testScenario?.timeout) {
+                    backendTimeout = (projectTest.testScenario.timeout + 10) * 1000;
+                    resultDiv.innerHTML += `3. Backend timeout from testScenario: ${projectTest.testScenario.timeout}s\n`;
+                    resultDiv.innerHTML += `4. Frontend timeout (with buffer): ${backendTimeout/1000}s\n`;
+                } else {
+                    resultDiv.innerHTML += `3. No testScenario.timeout found\n`;
+                }
+            }
+            
+            resultDiv.innerHTML += `\nFinal Result:\n`;
+            resultDiv.innerHTML += `Frontend timeout: ${backendTimeout/1000} seconds\n`;
+            
+            if (backendTimeout === 70000) {
+                resultDiv.innerHTML += `\n✅ SUCCESS: Frontend will wait 70s for Problem 50\n`;
+                resultDiv.innerHTML += `✅ This should fix the "Backend Unavailable" issue\n`;
+            } else {
+                resultDiv.innerHTML += `\n❌ FAILED: Frontend still using ${backendTimeout/1000}s timeout\n`;
+                resultDiv.innerHTML += `❌ Will still show "Backend Unavailable" after ${backendTimeout/1000}s\n`;
+            }
+            
+            // Test a fetch with the calculated timeout
+            resultDiv.innerHTML += `\n--- Testing actual fetch with ${backendTimeout/1000}s timeout ---\n`;
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                controller.abort();
+                resultDiv.innerHTML += `❌ Frontend timeout triggered after ${backendTimeout/1000}s\n`;
+            }, backendTimeout);
+            
+            fetch('/api/health', { signal: controller.signal })
+                .then(response => response.json())
+                .then(data => {
+                    clearTimeout(timeoutId);
+                    resultDiv.innerHTML += `✅ Fetch completed successfully\n`;
+                    resultDiv.innerHTML += `✅ Backend is reachable\n`;
+                })
+                .catch(error => {
+                    clearTimeout(timeoutId);
+                    if (error.name === 'AbortError') {
+                        resultDiv.innerHTML += `⚠️ Fetch was aborted (timeout)\n`;
+                    } else {
+                        resultDiv.innerHTML += `❌ Fetch failed: ${error.message}\n`;
+                    }
+                });
+        }
+    </script>
+</body>
+</html>

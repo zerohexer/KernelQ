@@ -85,59 +85,38 @@ app.post('/api/compile-kernel-module', async (req, res) => {
     }
 
     try {
-        // ALWAYS use comprehensive validation (QEMU-based)
-        if (true) { // Always use QEMU validation instead of host compilation
-            console.log(`🔄 Redirecting to comprehensive validation for problem: ${problemId}`);
-            console.log(`📝 Code length: ${code.length} characters`);
-            console.log(`🏗️ Module name: ${moduleName}`);
-            
-            const validationResults = await leetcodeValidator.validateSolution(
-                code, 
-                problemId || 'generic', // Use generic if no problemId
-                moduleName
-            );
-            
-            console.log(`📊 Validation result: ${validationResults.overallResult}`);
-            console.log(`🔢 Score: ${validationResults.score}/${validationResults.maxScore}`);
-            if (validationResults.feedback && validationResults.feedback.length > 0) {
-                console.log(`💬 Feedback:`, validationResults.feedback.map(f => f.message));
-            }
-            
-            // Format response to match expected compile format
-            const response = {
-                success: validationResults.overallResult === 'ACCEPTED' || 
-                        validationResults.overallResult === 'PARTIAL_CREDIT',
-                output: validationResults.feedback.map(f => f.message).join('\n'),
-                stage: 'comprehensive_validation',
-                validationResults: validationResults,
-                score: validationResults.score,
-                maxScore: validationResults.maxScore
-            };
-            
-            if (response.success) {
-                res.json(response);
-            } else {
-                res.status(400).json(response);
-            }
-            return;
-        }
-
-        // Fallback to basic compilation for legacy support
-        const securityCheck = validateKernelCode(code);
-        if (!securityCheck.safe) {
-            return res.status(400).json({
-                success: false,
-                error: `Security violation: ${securityCheck.reason}`,
-                stage: 'security_check'
-            });
-        }
-
-        const result = await compiler.compileKernelModule(code, moduleName);
+        // Use comprehensive validation (QEMU-based) with proper testScenario handling
+        console.log(`🔄 Using comprehensive validation for problem: ${problemId}`);
+        console.log(`📝 Code length: ${code.length} characters`);
+        console.log(`🏗️ Module name: ${moduleName}`);
         
-        if (result.success) {
-            res.json(result);
+        const validationResults = await leetcodeValidator.validateSolution(
+            code, 
+            problemId || 'generic', // Use generic if no problemId
+            moduleName
+        );
+        
+        console.log(`📊 Validation result: ${validationResults.overallResult}`);
+        console.log(`🔢 Score: ${validationResults.score}/${validationResults.maxScore}`);
+        if (validationResults.feedback && validationResults.feedback.length > 0) {
+            console.log(`💬 Feedback:`, validationResults.feedback.map(f => f.message));
+        }
+        
+        // Format response to match expected compile format
+        const response = {
+            success: validationResults.overallResult === 'ACCEPTED' || 
+                    validationResults.overallResult === 'PARTIAL_CREDIT',
+            output: validationResults.feedback.map(f => f.message).join('\n'),
+            stage: 'comprehensive_validation',
+            validationResults: validationResults,
+            score: validationResults.score,
+            maxScore: validationResults.maxScore
+        };
+        
+        if (response.success) {
+            res.json(response);
         } else {
-            res.status(400).json(result);
+            res.status(400).json(response);
         }
 
     } catch (error) {
