@@ -1,5 +1,5 @@
 {
-  "id": 40,
+  "id": 38,
   "title": "Basic Mutex Usage for Synchronization",
   "phase": "kernel_core",
   "difficulty": 6,
