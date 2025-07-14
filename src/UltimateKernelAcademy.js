@@ -124,6 +124,8 @@ const ChallengeView = ({
     getConcept,
     setSelectedConcept
 }) => {
+    const [activeTab, setActiveTab] = useState('code');
+    
     if (!challenge) {
         return (
             <div style={{ ...premiumStyles.glassCard, textAlign: 'center', padding: '3rem 2rem' }}>
@@ -469,34 +471,114 @@ const ChallengeView = ({
 
                 {/* Right Panel: Editor & Output */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {/* Tab Navigation */}
                     <div style={{
                         background: 'rgba(255, 255, 255, 0.05)',
                         backdropFilter: 'blur(20px)',
                         borderRadius: '16px',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
-                        overflow: 'hidden',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+                        padding: '8px',
+                        display: 'flex',
+                        gap: '4px'
                     }}>
-                        <div style={{ padding: '24px' }}>
-                            <div style={{
-                                borderRadius: '16px',
-                                overflow: 'hidden',
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
-                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                                background: 'rgba(0, 0, 0, 0.3)'
-                            }}>
-                                <SemanticCodeEditor
-                                    key={challenge.id || challenge.title || 'editor'}
-                                    value={codeEditor.code || challenge.starter || ''}
-                                    onChange={onCodeChange}
-                                    height="500px"
-                                    theme="vs-dark"
-                                />
-                            </div>
-                        </div>
+                        <button
+                            onClick={() => setActiveTab('code')}
+                            style={{
+                                background: activeTab === 'code' ? 
+                                    'linear-gradient(135deg, #007aff 0%, #0056b3 100%)' : 
+                                    'transparent',
+                                color: activeTab === 'code' ? 'white' : 'rgba(245, 245, 247, 0.7)',
+                                border: 'none',
+                                borderRadius: '12px',
+                                padding: '12px 24px',
+                                fontSize: '1rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+                                flex: 1,
+                                justifyContent: 'center',
+                                boxShadow: activeTab === 'code' ? '0 4px 16px rgba(0, 122, 255, 0.3)' : 'none'
+                            }}
+                        >
+                            <Code size={18} />
+                            <span>Code</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('results')}
+                            style={{
+                                background: activeTab === 'results' ? 
+                                    'linear-gradient(135deg, #30d158 0%, #28a745 100%)' : 
+                                    'transparent',
+                                color: activeTab === 'results' ? 'white' : 'rgba(245, 245, 247, 0.7)',
+                                border: 'none',
+                                borderRadius: '12px',
+                                padding: '12px 24px',
+                                fontSize: '1rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+                                flex: 1,
+                                justifyContent: 'center',
+                                boxShadow: activeTab === 'results' ? '0 4px 16px rgba(48, 209, 88, 0.3)' : 'none',
+                                position: 'relative'
+                            }}
+                        >
+                            <Terminal size={18} />
+                            <span>Results</span>
+                            {codeEditor.output && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '6px',
+                                    right: '6px',
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    background: '#30d158',
+                                    boxShadow: '0 0 6px rgba(48, 209, 88, 0.6)'
+                                }} />
+                            )}
+                        </button>
                     </div>
                     
-                    <div style={{ display: 'flex', gap: '16px' }}>
+                    {/* Tab Content */}
+                    {activeTab === 'code' && (
+                        <>
+                            <div style={{
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                backdropFilter: 'blur(20px)',
+                                borderRadius: '16px',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                overflow: 'hidden',
+                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+                            }}>
+                                <div style={{ padding: '24px' }}>
+                                    <div style={{
+                                        borderRadius: '16px',
+                                        overflow: 'hidden',
+                                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                                        background: 'rgba(0, 0, 0, 0.3)'
+                                    }}>
+                                        <SemanticCodeEditor
+                                            key={challenge.id || challenge.title || 'editor'}
+                                            value={codeEditor.code || challenge.starter || ''}
+                                            onChange={onCodeChange}
+                                            height="500px"
+                                            theme="vs-dark"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '16px' }}>
                         <button 
                             style={{
                                 background: 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
@@ -568,41 +650,131 @@ const ChallengeView = ({
                             <Shuffle size={18} />
                             <span>Reset</span>
                         </button>
-                    </div>
+                            </div>
+                        </>
+                    )}
                     
-                    {codeEditor.output && (
+                    {activeTab === 'results' && (
                         <div style={{
-                            background: 'rgba(29, 29, 31, 0.9)',
+                            background: 'rgba(255, 255, 255, 0.05)',
                             backdropFilter: 'blur(20px)',
                             borderRadius: '16px',
                             border: '1px solid rgba(255, 255, 255, 0.1)',
-                            padding: '24px',
-                            flex: 1,
-                            overflow: 'auto',
-                            fontFamily: 'SF Mono, Monaco, Menlo, "Ubuntu Mono", monospace',
-                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+                            overflow: 'hidden',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                            height: '600px',
+                            display: 'flex',
+                            flexDirection: 'column'
                         }}>
-                            <h4 style={{
-                                fontSize: '1.125rem',
-                                fontWeight: 600,
-                                color: '#f5f5f7',
-                                margin: 0,
-                                marginBottom: '16px',
-                                letterSpacing: '-0.015em',
-                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
-                            }}>
-                                Test Results
-                            </h4>
-                            <pre style={{
-                                fontSize: '0.875rem',
-                                lineHeight: '1.5',
-                                whiteSpace: 'pre-wrap',
-                                margin: 0,
-                                color: 'rgba(245, 245, 247, 0.9)',
-                                fontFamily: 'SF Mono, Monaco, Menlo, "Ubuntu Mono", monospace'
-                            }}>
-                                {codeEditor.output}
-                            </pre>
+                            {codeEditor.output ? (
+                                <div style={{
+                                    background: 'rgba(29, 29, 31, 0.9)',
+                                    backdropFilter: 'blur(20px)',
+                                    borderRadius: '12px',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    padding: '0',
+                                    flex: 1,
+                                    overflow: 'hidden',
+                                    fontFamily: 'SF Mono, Monaco, Menlo, "Ubuntu Mono", monospace',
+                                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+                                    margin: '24px',
+                                    display: 'flex',
+                                    flexDirection: 'column'
+                                }}>
+                                    <div style={{
+                                        padding: '20px 24px 16px 24px',
+                                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                                        background: 'rgba(255, 255, 255, 0.02)'
+                                    }}>
+                                        <h4 style={{
+                                            fontSize: '1.125rem',
+                                            fontWeight: 600,
+                                            color: '#f5f5f7',
+                                            margin: 0,
+                                            letterSpacing: '-0.015em',
+                                            fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                                        }}>
+                                            Test Results
+                                        </h4>
+                                    </div>
+                                    <div style={{
+                                        flex: 1,
+                                        overflow: 'auto',
+                                        padding: '24px'
+                                    }}>
+                                        <pre style={{
+                                            fontSize: '0.875rem',
+                                            lineHeight: '1.5',
+                                            whiteSpace: 'pre-wrap',
+                                            margin: 0,
+                                            color: 'rgba(245, 245, 247, 0.9)',
+                                            fontFamily: 'SF Mono, Monaco, Menlo, "Ubuntu Mono", monospace'
+                                        }}>
+                                            {codeEditor.output}
+                                        </pre>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div style={{
+                                    padding: '48px 24px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    textAlign: 'center',
+                                    flex: 1
+                                }}>
+                                    <Terminal size={48} style={{ 
+                                        color: 'rgba(245, 245, 247, 0.3)', 
+                                        marginBottom: '16px' 
+                                    }} />
+                                    <h4 style={{
+                                        fontSize: '1.125rem',
+                                        fontWeight: 600,
+                                        color: 'rgba(245, 245, 247, 0.6)',
+                                        margin: 0,
+                                        marginBottom: '8px',
+                                        fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                                    }}>
+                                        No Test Results Yet
+                                    </h4>
+                                    <p style={{
+                                        color: 'rgba(245, 245, 247, 0.4)',
+                                        margin: 0,
+                                        marginBottom: '24px',
+                                        fontSize: '0.9rem'
+                                    }}>
+                                        Run your code to see the results here
+                                    </p>
+                                    <button 
+                                        style={{
+                                            background: 'linear-gradient(135deg, #30d158 0%, #28a745 100%)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '12px',
+                                            padding: '12px 24px',
+                                            fontSize: '1rem',
+                                            fontWeight: 600,
+                                            cursor: codeEditor.isRunning ? 'not-allowed' : 'pointer',
+                                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            boxShadow: '0 4px 16px rgba(48, 209, 88, 0.3)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+                                            opacity: codeEditor.isRunning ? 0.6 : 1
+                                        }}
+                                        onClick={() => {
+                                            onRun();
+                                            // Results will automatically appear in this tab after execution
+                                        }}
+                                        disabled={codeEditor.isRunning}
+                                    >
+                                        {codeEditor.isRunning ? <Timer size={18} /> : <Play size={18} />}
+                                        <span>{codeEditor.isRunning ? 'Testing...' : 'Run & Validate'}</span>
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
