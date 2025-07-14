@@ -1,8 +1,1045 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, ChevronDown, Play, CheckCircle, Clock, Code, Terminal, Book, Users, Award, Target, Zap, Brain, Shuffle, GitBranch, Cpu, Settings, Star, Trophy, Timer, Lightbulb, Infinity, TrendingUp, Lock, Unlock } from 'lucide-react';
+import { ChevronRight, ChevronDown, Play, CheckCircle, Clock, Code, Terminal, Book, Users, Award, Target, Zap, Shuffle, GitBranch, Cpu, Settings, Star, Trophy, Timer, Lightbulb, Infinity, TrendingUp, Lock, Unlock, Sparkles, Shield } from 'lucide-react';
 import PostCompilationTester from './post-compilation-testing.js';
 import generatedProblems from './generated-problems.js';
 import SemanticCodeEditor from './SemanticCodeEditor.js';
+import ReactMarkdown from 'react-markdown';
+
+// Premium Apple-inspired Design System
+const PremiumStyles = {
+  // Core Design System
+  colors: {
+    primary: 'rgba(255, 255, 255, 0.15)',
+    primaryDark: 'rgba(255, 255, 255, 0.1)',
+    background: '#000000',
+    backgroundSecondary: '#1d1d1f',
+    backgroundTertiary: '#2d2d2f',
+    surface: 'rgba(255, 255, 255, 0.05)',
+    surfaceHover: 'rgba(255, 255, 255, 0.08)',
+    text: '#f5f5f7',
+    textSecondary: 'rgba(245, 245, 247, 0.7)',
+    textTertiary: 'rgba(245, 245, 247, 0.5)',
+    border: 'rgba(255, 255, 255, 0.1)',
+    borderHover: 'rgba(255, 255, 255, 0.2)',
+    accent: '#30d158',
+    accentOrange: '#ff9f0a',
+    accentRed: '#ff453a',
+    accentPurple: '#bf5af2',
+    success: '#30d158',
+    warning: '#ff9f0a',
+    error: '#ff453a'
+  },
+  
+  // Typography System
+  typography: {
+    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif',
+    fontSmoothing: '-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;',
+    weights: {
+      light: 300,
+      regular: 400,
+      medium: 500,
+      semibold: 600,
+      bold: 700
+    },
+    sizes: {
+      xs: 'clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem)',
+      sm: 'clamp(0.875rem, 0.8rem + 0.375vw, 1rem)',
+      base: 'clamp(1rem, 0.9rem + 0.5vw, 1.125rem)',
+      lg: 'clamp(1.125rem, 1rem + 0.625vw, 1.25rem)',
+      xl: 'clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem)',
+      '2xl': 'clamp(1.5rem, 1.3rem + 1vw, 2rem)',
+      '3xl': 'clamp(1.875rem, 1.6rem + 1.375vw, 2.5rem)',
+      '4xl': 'clamp(2.25rem, 1.9rem + 1.75vw, 3rem)',
+      '5xl': 'clamp(3rem, 2.5rem + 2.5vw, 4rem)'
+    }
+  },
+  
+  // Spacing System
+  spacing: {
+    xs: '0.25rem',
+    sm: '0.5rem',
+    base: '1rem',
+    lg: '1.5rem',
+    xl: '2rem',
+    '2xl': '3rem',
+    '3xl': '4rem',
+    '4xl': '6rem',
+    '5xl': '8rem'
+  },
+  
+  // Glassmorphism Effects
+  glass: {
+    light: {
+      background: 'rgba(255, 255, 255, 0.05)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      border: '1px solid rgba(255, 255, 255, 0.1)'
+    },
+    medium: {
+      background: 'rgba(255, 255, 255, 0.08)',
+      backdropFilter: 'blur(30px)',
+      WebkitBackdropFilter: 'blur(30px)',
+      border: '1px solid rgba(255, 255, 255, 0.15)'
+    },
+    heavy: {
+      background: 'rgba(255, 255, 255, 0.12)',
+      backdropFilter: 'blur(40px)',
+      WebkitBackdropFilter: 'blur(40px)',
+      border: '1px solid rgba(255, 255, 255, 0.2)'
+    }
+  },
+  
+  // Shadow System
+  shadows: {
+    sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    base: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+    md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+    xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+    glow: '0 0 20px rgba(0, 122, 255, 0.3)',
+    glowHover: '0 0 30px rgba(0, 122, 255, 0.5)'
+  },
+  
+  // Animation System
+  animations: {
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    transitionFast: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+    transitionSlow: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    hover: 'transform 0.2s ease-out, box-shadow 0.2s ease-out',
+    spring: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+  }
+};
+
+// Unified Challenge View Component
+const ChallengeView = ({
+    challenge,
+    codeEditor,
+    onCodeChange,
+    onRun,
+    onReset,
+    onShowHints,
+    onShowConcepts,
+    detectUnfamiliarConcepts,
+    getConcept,
+    setSelectedConcept
+}) => {
+    if (!challenge) {
+        return (
+            <div style={{ ...premiumStyles.glassCard, textAlign: 'center', padding: '3rem 2rem' }}>
+                <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+                    <Target size={48} style={{ color: PremiumStyles.colors.primary, margin: '0 auto 1.5rem auto' }} />
+                    <h2 style={premiumStyles.headingLG}>No Active Challenge</h2>
+                    <p style={premiumStyles.textSecondary}>
+                        Select a problem from the "Problem Bank" to get started.
+                    </p>
+                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
+                        <a
+                            href="#problemBank"
+                            style={{ ...premiumStyles.buttonPrimary, textDecoration: 'none' }}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                // This will be handled by the parent component's state
+                            }}
+                        >
+                            <Book size={18} />
+                            <span>Browse Problem Bank</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    const { title, description, difficulty, xp, phase, starter, validation, inputOutput } = challenge;
+    
+    return (
+        <div style={{ 
+            background: 'rgba(29, 29, 31, 0.8)', 
+            backdropFilter: 'blur(40px)',
+            WebkitBackdropFilter: 'blur(40px)',
+            borderRadius: '24px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+            padding: '40px',
+            position: 'relative',
+            overflow: 'hidden'
+        }}>
+            {/* Subtle background glow effect */}
+            <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '1px',
+                background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)'
+            }} />
+            
+            {/* Challenge Header */}
+            <div style={{ marginBottom: '32px' }}>
+                <h2 style={{ 
+                    fontSize: 'clamp(1.875rem, 1.6rem + 1.375vw, 2.5rem)',
+                    fontWeight: 700,
+                    color: '#f5f5f7',
+                    margin: 0,
+                    marginBottom: '16px',
+                    letterSpacing: '-0.025em',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                }}>
+                    {challenge.id ? `#${challenge.id}: ${title}` : title}
+                </h2>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <span style={{
+                        background: difficulty <= 3 ? 
+                            'linear-gradient(135deg, #30d158 0%, #bf5af2 100%)' :
+                            difficulty <= 6 ?
+                            'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)' :
+                            'linear-gradient(135deg, #ff453a 0%, #bf5af2 100%)',
+                        color: 'white',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                    }}>
+                        <Star size={14} />
+                        <span>Level {difficulty}</span>
+                    </span>
+                    <span style={{
+                        background: 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
+                        color: 'white',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                    }}>
+                        <Zap size={14} />
+                        <span>{xp} XP</span>
+                    </span>
+                    <span style={{
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(20px)',
+                        color: '#f5f5f7',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        border: '1px solid rgba(255, 255, 255, 0.15)'
+                    }}>
+                        {phase}
+                    </span>
+                    {challenge.id && (
+                        <span style={{
+                            background: 'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)',
+                            color: 'white',
+                            padding: '8px 16px',
+                            borderRadius: '20px',
+                            fontSize: '0.875rem',
+                            fontWeight: 600,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            border: 'none',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                        }}>
+                            <Book size={14} />
+                            <span>From Problem Bank</span>
+                        </span>
+                    )}
+                </div>
+            </div>
+
+            {/* Main Grid: Description + Editor */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '40px', minHeight: '60vh', alignItems: 'start' }}>
+                {/* Left Panel: Description & Requirements */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <div style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        backdropFilter: 'blur(20px)',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        padding: '24px',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+                    }}>
+                        <h3 style={{ 
+                            fontSize: '1.25rem',
+                            fontWeight: 600,
+                            color: '#f5f5f7',
+                            margin: 0,
+                            marginBottom: '16px',
+                            letterSpacing: '-0.02em',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                        }}>
+                            Problem Description
+                        </h3>
+                        <p style={{ 
+                            fontSize: '1rem',
+                            lineHeight: '1.6',
+                            color: 'rgba(245, 245, 247, 0.8)',
+                            margin: 0,
+                            fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif'
+                        }}>
+                            {description}
+                        </p>
+                    </div>
+                    
+                    {(validation?.exactRequirements) && (
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            backdropFilter: 'blur(20px)',
+                            borderRadius: '16px',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            padding: '24px',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+                        }}>
+                            <h4 style={{ 
+                                fontSize: '1.125rem',
+                                fontWeight: 600,
+                                color: '#f5f5f7',
+                                margin: 0,
+                                marginBottom: '16px',
+                                letterSpacing: '-0.015em',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                            }}>
+                                Requirements
+                            </h4>
+                            <ul style={{ 
+                                fontSize: '0.95rem',
+                                lineHeight: '1.6',
+                                color: 'rgba(245, 245, 247, 0.7)',
+                                paddingLeft: '20px',
+                                margin: 0,
+                                listStyleType: 'none'
+                            }}>
+                                {validation.exactRequirements.functionNames?.map((fn, idx) => (
+                                    <li key={idx} style={{ 
+                                        marginBottom: '12px',
+                                        position: 'relative',
+                                        paddingLeft: '20px'
+                                    }}>
+                                        <span style={{
+                                            position: 'absolute',
+                                            left: 0,
+                                            top: '8px',
+                                            width: '6px',
+                                            height: '6px',
+                                            borderRadius: '50%',
+                                            background: '#007aff'
+                                        }} />
+                                        Implement function: <code style={{ 
+                                            background: 'rgba(0, 122, 255, 0.15)',
+                                            border: '1px solid rgba(0, 122, 255, 0.3)',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                            color: '#007aff',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500
+                                        }}>{fn}</code>
+                                    </li>
+                                ))}
+                                {validation.exactRequirements.outputMessages?.map((msg, idx) => (
+                                    <li key={idx} style={{ 
+                                        marginBottom: '12px',
+                                        position: 'relative',
+                                        paddingLeft: '20px'
+                                    }}>
+                                        <span style={{
+                                            position: 'absolute',
+                                            left: 0,
+                                            top: '8px',
+                                            width: '6px',
+                                            height: '6px',
+                                            borderRadius: '50%',
+                                            background: '#30d158'
+                                        }} />
+                                        Output: <code style={{ 
+                                            background: 'rgba(48, 209, 88, 0.15)',
+                                            border: '1px solid rgba(48, 209, 88, 0.3)',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                            color: '#30d158',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500
+                                        }}>"{msg}"</code>
+                                    </li>
+                                ))}
+                                {validation.exactRequirements.requiredIncludes?.map((inc, idx) => (
+                                    <li key={idx} style={{ 
+                                        marginBottom: '12px',
+                                        position: 'relative',
+                                        paddingLeft: '20px'
+                                    }}>
+                                        <span style={{
+                                            position: 'absolute',
+                                            left: 0,
+                                            top: '8px',
+                                            width: '6px',
+                                            height: '6px',
+                                            borderRadius: '50%',
+                                            background: '#bf5af2'
+                                        }} />
+                                        Include: <code style={{ 
+                                            background: 'rgba(191, 90, 242, 0.15)',
+                                            border: '1px solid rgba(191, 90, 242, 0.3)',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                            color: '#bf5af2',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500
+                                        }}>&lt;{inc}&gt;</code>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {challenge.skills && (
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            backdropFilter: 'blur(20px)',
+                            borderRadius: '16px',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            padding: '24px',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+                        }}>
+                            <h4 style={{ 
+                                fontSize: '1.125rem',
+                                fontWeight: 600,
+                                color: '#f5f5f7',
+                                margin: 0,
+                                marginBottom: '16px',
+                                letterSpacing: '-0.015em',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                            }}>
+                                Skills You'll Learn
+                            </h4>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {challenge.skills.map((skill, idx) => (
+                                    <span key={idx} style={{
+                                        background: 'rgba(255, 255, 255, 0.1)',
+                                        backdropFilter: 'blur(20px)',
+                                        color: 'rgba(245, 245, 247, 0.8)',
+                                        padding: '6px 12px',
+                                        borderRadius: '12px',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 500,
+                                        border: '1px solid rgba(255, 255, 255, 0.15)'
+                                    }}>
+                                        {skill}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Right Panel: Editor & Output */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        backdropFilter: 'blur(20px)',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        overflow: 'hidden',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+                    }}>
+                        <div style={{ padding: '24px' }}>
+                            <div style={{
+                                borderRadius: '16px',
+                                overflow: 'hidden',
+                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                                background: 'rgba(0, 0, 0, 0.3)'
+                            }}>
+                                <SemanticCodeEditor
+                                    key={challenge.id || challenge.title || 'editor'}
+                                    value={codeEditor.code || challenge.starter || ''}
+                                    onChange={onCodeChange}
+                                    height="500px"
+                                    theme="vs-dark"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: '16px' }}>
+                        <button 
+                            style={{
+                                background: 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '12px',
+                                padding: '12px 24px',
+                                fontSize: '1rem',
+                                fontWeight: 600,
+                                cursor: codeEditor.isRunning ? 'not-allowed' : 'pointer',
+                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                boxShadow: '0 4px 16px rgba(0, 122, 255, 0.3)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+                                opacity: codeEditor.isRunning ? 0.6 : 1,
+                                transform: 'translateY(0)',
+                                ...(codeEditor.isRunning ? {} : {
+                                    ':hover': {
+                                        transform: 'translateY(-1px) scale(1.02)',
+                                        boxShadow: '0 8px 24px rgba(0, 122, 255, 0.4)'
+                                    }
+                                })
+                            }}
+                            onClick={onRun} 
+                            disabled={codeEditor.isRunning}
+                            onMouseEnter={(e) => {
+                                if (!codeEditor.isRunning) {
+                                    e.target.style.transform = 'translateY(-1px) scale(1.02)';
+                                    e.target.style.boxShadow = '0 8px 24px rgba(0, 122, 255, 0.4)';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.transform = 'translateY(0) scale(1)';
+                                e.target.style.boxShadow = '0 4px 16px rgba(0, 122, 255, 0.3)';
+                            }}
+                        >
+                            {codeEditor.isRunning ? <Timer size={18} /> : <Play size={18} />}
+                            <span>{codeEditor.isRunning ? 'Testing...' : 'Run & Validate'}</span>
+                        </button>
+                        <button 
+                            style={{
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                backdropFilter: 'blur(20px)',
+                                color: '#f5f5f7',
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                borderRadius: '12px',
+                                padding: '12px 24px',
+                                fontSize: '1rem',
+                                fontWeight: 500,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif'
+                            }}
+                            onClick={onReset}
+                            onMouseEnter={(e) => {
+                                e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+                                e.target.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                                e.target.style.transform = 'translateY(0)';
+                            }}
+                        >
+                            <Shuffle size={18} />
+                            <span>Reset</span>
+                        </button>
+                    </div>
+                    
+                    {codeEditor.output && (
+                        <div style={{
+                            background: 'rgba(29, 29, 31, 0.9)',
+                            backdropFilter: 'blur(20px)',
+                            borderRadius: '16px',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            padding: '24px',
+                            flex: 1,
+                            overflow: 'auto',
+                            fontFamily: 'SF Mono, Monaco, Menlo, "Ubuntu Mono", monospace',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+                        }}>
+                            <h4 style={{
+                                fontSize: '1.125rem',
+                                fontWeight: 600,
+                                color: '#f5f5f7',
+                                margin: 0,
+                                marginBottom: '16px',
+                                letterSpacing: '-0.015em',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                            }}>
+                                Test Results
+                            </h4>
+                            <pre style={{
+                                fontSize: '0.875rem',
+                                lineHeight: '1.5',
+                                whiteSpace: 'pre-wrap',
+                                margin: 0,
+                                color: 'rgba(245, 245, 247, 0.9)',
+                                fontFamily: 'SF Mono, Monaco, Menlo, "Ubuntu Mono", monospace'
+                            }}>
+                                {codeEditor.output}
+                            </pre>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Problem Bank Tab Component
+const ProblemBankTab = ({ problems, filters, onFilterChange, onSelectProblem, completedChallenges, phaseSystem, getProblemStats }) => {
+    const stats = getProblemStats ? getProblemStats() : { total: problems.length, completed: 0 };
+    
+    return (
+        <div style={premiumStyles.glassCard}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={premiumStyles.headingLG}>Problem Bank</h2>
+                <span style={premiumStyles.textSecondary}>
+                    {stats.completed}/{stats.total} completed ({problems.length} filtered)
+                </span>
+            </div>
+
+            {/* Filter Controls */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                {/* Phase Filter */}
+                <select
+                    value={filters.phase}
+                    onChange={(e) => onFilterChange('phase', e.target.value)}
+                    style={{
+                        ...premiumStyles.buttonSecondary,
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        fontSize: PremiumStyles.typography.sizes.sm
+                    }}
+                >
+                    <option value="all">All Phases</option>
+                    {phaseSystem && Object.entries(phaseSystem).map(([key, phase]) => (
+                        <option key={key} value={key}>{phase.name}</option>
+                    ))}
+                </select>
+                
+                {/* Difficulty Filter */}
+                <select
+                    value={filters.difficulty}
+                    onChange={(e) => onFilterChange('difficulty', e.target.value)}
+                    style={{
+                        ...premiumStyles.buttonSecondary,
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        fontSize: PremiumStyles.typography.sizes.sm
+                    }}
+                >
+                    <option value="all">All Difficulties</option>
+                    {[...Array(10).keys()].map(i => (
+                        <option key={i+1} value={i+1}>Level {i+1}</option>
+                    ))}
+                </select>
+                
+                {/* Status Filter */}
+                <select
+                    value={filters.completed}
+                    onChange={(e) => onFilterChange('completed', e.target.value)}
+                    style={{
+                        ...premiumStyles.buttonSecondary,
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        fontSize: PremiumStyles.typography.sizes.sm
+                    }}
+                >
+                    <option value="all">All Statuses</option>
+                    <option value="completed">Completed</option>
+                    <option value="incomplete">Incomplete</option>
+                </select>
+            </div>
+
+            {/* Problems List */}
+            <div style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '1rem' }}>
+                <div style={{ display: 'grid', gap: '1rem' }}>
+                    {problems.map(problem => {
+                        const isCompleted = completedChallenges.has(problem.id);
+                        return (
+                            <div 
+                                key={problem.id}
+                                style={{
+                                    ...premiumStyles.problemCard,
+                                    borderLeft: `4px solid ${isCompleted ? PremiumStyles.colors.accent : PremiumStyles.colors.primary}`,
+                                    cursor: 'pointer',
+                                    transition: PremiumStyles.animations.transition
+                                }}
+                                onClick={() => onSelectProblem(problem)}
+                                onMouseEnter={(e) => {
+                                    Object.assign(e.currentTarget.style, premiumStyles.glassCardHover);
+                                }}
+                                onMouseLeave={(e) => {
+                                    Object.assign(e.currentTarget.style, premiumStyles.glassCard);
+                                    e.currentTarget.style.borderLeft = `4px solid ${isCompleted ? PremiumStyles.colors.accent : PremiumStyles.colors.primary}`;
+                                }}
+                            >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <h4 style={{ 
+                                            ...premiumStyles.headingMD, 
+                                            fontSize: '1.1rem', 
+                                            margin: '0 0 0.5rem 0' 
+                                        }}>
+                                            #{problem.id}: {problem.title}
+                                        </h4>
+                                        <p style={{ 
+                                            ...premiumStyles.textSecondary, 
+                                            marginBottom: '1rem',
+                                            lineHeight: '1.5'
+                                        }}>
+                                            {problem.description}
+                                        </p>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                            <span style={{
+                                                ...premiumStyles.statusBadge,
+                                                background: problem.difficulty <= 3 ? 
+                                                    `linear-gradient(135deg, ${PremiumStyles.colors.accent} 0%, ${PremiumStyles.colors.accentPurple} 100%)` :
+                                                    problem.difficulty <= 6 ?
+                                                    `linear-gradient(135deg, ${PremiumStyles.colors.accentOrange} 0%, ${PremiumStyles.colors.accentRed} 100%)` :
+                                                    `linear-gradient(135deg, ${PremiumStyles.colors.accentRed} 0%, ${PremiumStyles.colors.accentPurple} 100%)`,
+                                                color: 'white',
+                                                border: 'none'
+                                            }}>
+                                                <Star size={12} />
+                                                <span>Level {problem.difficulty}</span>
+                                            </span>
+                                            <span style={{
+                                                ...premiumStyles.statusBadge,
+                                                background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
+                                                color: 'white',
+                                                border: 'none'
+                                            }}>
+                                                <Zap size={12} />
+                                                <span>{problem.xp} XP</span>
+                                            </span>
+                                            <span style={{
+                                                ...premiumStyles.statusBadge,
+                                                background: PremiumStyles.colors.surface,
+                                                color: PremiumStyles.colors.text
+                                            }}>
+                                                {problem.phase}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div style={{ flexShrink: 0, marginLeft: '1rem' }}>
+                                        {isCompleted ? (
+                                            <CheckCircle size={24} color={PremiumStyles.colors.accent} />
+                                        ) : (
+                                            <Clock size={24} color={PremiumStyles.colors.textSecondary} />
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {problems.length === 0 && (
+                        <div style={{ 
+                            ...premiumStyles.glassCard,
+                            textAlign: 'center', 
+                            padding: '3rem 2rem',
+                            background: PremiumStyles.colors.backgroundSecondary
+                        }}>
+                            <div style={{ ...premiumStyles.textSecondary, marginBottom: '1rem' }}>
+                                No problems match your filters
+                            </div>
+                            <button
+                                style={premiumStyles.buttonSecondary}
+                                onClick={() => onFilterChange('reset', 'all')}
+                            >
+                                <Shuffle size={16} />
+                                <span>Reset Filters</span>
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Premium Component Styles
+const premiumStyles = {
+  // Main Container
+  container: {
+    minHeight: '100vh',
+    background: `linear-gradient(135deg, ${PremiumStyles.colors.background} 0%, ${PremiumStyles.colors.backgroundSecondary} 100%)`,
+    color: PremiumStyles.colors.text,
+    fontFamily: PremiumStyles.typography.fontFamily,
+    WebkitFontSmoothing: 'antialiased',
+    MozOsxFontSmoothing: 'grayscale',
+    overflow: 'hidden'
+  },
+  
+  // Navigation Bar
+  navbar: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    height: '60px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '0 2rem',
+    ...PremiumStyles.glass.medium,
+    borderBottom: `1px solid ${PremiumStyles.colors.border}`,
+    transition: PremiumStyles.animations.transition
+  },
+  
+  // Main Content Area
+  mainContent: {
+    paddingTop: '60px',
+    height: '100vh',
+    display: 'flex',
+    overflow: 'hidden'
+  },
+  
+  // Sidebar
+  sidebar: {
+    width: '320px',
+    height: '100%',
+    ...PremiumStyles.glass.light,
+    borderRight: `1px solid ${PremiumStyles.colors.border}`,
+    overflow: 'auto',
+    padding: '1.5rem',
+    transition: PremiumStyles.animations.transition
+  },
+  
+  // Content Area
+  contentArea: {
+    flex: 1,
+    height: '100%',
+    overflow: 'auto',
+    padding: '2rem',
+    position: 'relative'
+  },
+  
+  // Glass Card
+  glassCard: {
+    ...PremiumStyles.glass.light,
+    borderRadius: '16px',
+    padding: '1.5rem',
+    transition: PremiumStyles.animations.transition,
+    boxShadow: PremiumStyles.shadows.md,
+    position: 'relative',
+    overflow: 'hidden'
+  },
+  
+  // Glass Card Hover
+  glassCardHover: {
+    ...PremiumStyles.glass.medium,
+    transform: 'translateY(-2px)',
+    boxShadow: `${PremiumStyles.shadows.lg}, ${PremiumStyles.shadows.glow}`,
+    borderColor: PremiumStyles.colors.borderHover
+  },
+  
+  // Button Primary
+  buttonPrimary: {
+    background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
+    color: 'white',
+    border: 'none',
+    borderRadius: '12px',
+    padding: '0.75rem 1.5rem',
+    fontSize: PremiumStyles.typography.sizes.base,
+    fontWeight: PremiumStyles.typography.weights.semibold,
+    cursor: 'pointer',
+    transition: PremiumStyles.animations.transition,
+    boxShadow: PremiumStyles.shadows.md,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    textDecoration: 'none'
+  },
+  
+  // Button Primary Hover
+  buttonPrimaryHover: {
+    transform: 'translateY(-1px) scale(1.02)',
+    boxShadow: `${PremiumStyles.shadows.lg}, ${PremiumStyles.shadows.glow}`
+  },
+  
+  // Button Secondary
+  buttonSecondary: {
+    ...PremiumStyles.glass.light,
+    color: PremiumStyles.colors.text,
+    border: `1px solid ${PremiumStyles.colors.border}`,
+    borderRadius: '12px',
+    padding: '0.75rem 1.5rem',
+    fontSize: PremiumStyles.typography.sizes.base,
+    fontWeight: PremiumStyles.typography.weights.medium,
+    cursor: 'pointer',
+    transition: PremiumStyles.animations.transition,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    textDecoration: 'none'
+  },
+  
+  // Tab Navigation
+  tabNav: {
+    display: 'flex',
+    ...PremiumStyles.glass.light,
+    borderRadius: '16px',
+    padding: '0.5rem',
+    marginBottom: '1.5rem',
+    gap: '0.25rem'
+  },
+  
+  // Tab Item
+  tabItem: {
+    flex: 1,
+    padding: '0.75rem 1rem',
+    borderRadius: '12px',
+    textAlign: 'center',
+    cursor: 'pointer',
+    transition: PremiumStyles.animations.transition,
+    fontSize: PremiumStyles.typography.sizes.sm,
+    fontWeight: PremiumStyles.typography.weights.medium,
+    color: PremiumStyles.colors.textSecondary
+  },
+  
+  // Tab Item Active
+  tabItemActive: {
+    background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
+    color: 'white',
+    boxShadow: PremiumStyles.shadows.md
+  },
+  
+  // Typography
+  headingXL: {
+    fontSize: PremiumStyles.typography.sizes['3xl'],
+    fontWeight: PremiumStyles.typography.weights.bold,
+    color: PremiumStyles.colors.text,
+    marginBottom: '0.5rem',
+    letterSpacing: '-0.025em'
+  },
+  
+  headingLG: {
+    fontSize: PremiumStyles.typography.sizes['2xl'],
+    fontWeight: PremiumStyles.typography.weights.semibold,
+    color: PremiumStyles.colors.text,
+    marginBottom: '1rem',
+    letterSpacing: '-0.02em'
+  },
+  
+  headingMD: {
+    fontSize: PremiumStyles.typography.sizes.xl,
+    fontWeight: PremiumStyles.typography.weights.semibold,
+    color: PremiumStyles.colors.text,
+    marginBottom: '0.75rem',
+    letterSpacing: '-0.015em'
+  },
+  
+  textBase: {
+    fontSize: PremiumStyles.typography.sizes.base,
+    color: PremiumStyles.colors.text,
+    lineHeight: '1.6'
+  },
+  
+  textSecondary: {
+    fontSize: PremiumStyles.typography.sizes.sm,
+    color: PremiumStyles.colors.textSecondary,
+    lineHeight: '1.5'
+  },
+  
+  // Status indicators
+  statusBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.25rem',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '20px',
+    fontSize: PremiumStyles.typography.sizes.xs,
+    fontWeight: PremiumStyles.typography.weights.medium,
+    ...PremiumStyles.glass.light,
+    border: `1px solid ${PremiumStyles.colors.border}`
+  },
+  
+  // Problem card
+  problemCard: {
+    ...PremiumStyles.glass.light,
+    borderRadius: '16px',
+    padding: '1.5rem',
+    marginBottom: '1rem',
+    cursor: 'pointer',
+    transition: PremiumStyles.animations.transition,
+    border: `1px solid ${PremiumStyles.colors.border}`,
+    position: 'relative',
+    overflow: 'hidden'
+  },
+  
+  // Code editor container
+  codeEditorContainer: {
+    ...PremiumStyles.glass.medium,
+    borderRadius: '16px',
+    overflow: 'hidden',
+    border: `1px solid ${PremiumStyles.colors.border}`,
+    boxShadow: PremiumStyles.shadows.lg
+  },
+  
+  // Stats card
+  statsCard: {
+    ...PremiumStyles.glass.light,
+    borderRadius: '16px',
+    padding: '1.5rem',
+    textAlign: 'center',
+    border: `1px solid ${PremiumStyles.colors.border}`,
+    transition: PremiumStyles.animations.transition
+  },
+  
+  // Progress bar
+  progressBar: {
+    width: '100%',
+    height: '8px',
+    backgroundColor: PremiumStyles.colors.backgroundTertiary,
+    borderRadius: '4px',
+    overflow: 'hidden',
+    position: 'relative'
+  },
+  
+  progressFill: {
+    height: '100%',
+    background: `linear-gradient(90deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.accent} 100%)`,
+    borderRadius: '4px',
+    transition: PremiumStyles.animations.transition
+  },
+  
+  // Floating Action Button
+  fab: {
+    position: 'fixed',
+    bottom: '2rem',
+    right: '2rem',
+    width: '56px',
+    height: '56px',
+    borderRadius: '50%',
+    background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
+    border: 'none',
+    color: 'white',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: PremiumStyles.shadows.xl,
+    transition: PremiumStyles.animations.transition,
+    zIndex: 1000
+  },
+  
+  // Tooltip
+  tooltip: {
+    ...PremiumStyles.glass.heavy,
+    borderRadius: '8px',
+    padding: '0.5rem 0.75rem',
+    fontSize: PremiumStyles.typography.sizes.xs,
+    color: PremiumStyles.colors.text,
+    boxShadow: PremiumStyles.shadows.lg,
+    zIndex: 1001
+  }
+};
 
 const UnlimitedKernelAcademy = () => {
     // Backend API configuration - supports both localhost and cloudflared
@@ -61,8 +1098,7 @@ const UnlimitedKernelAcademy = () => {
     });
 
     const [completedChallenges, setCompletedChallenges] = useState(new Set());
-    const [activeTab, setActiveTab] = useState('learning');
-    const [selectedProblem, setSelectedProblem] = useState(null);
+    const [activeTab, setActiveTab] = useState('problemBank');
     const [problemFilters, setProblemFilters] = useState({
         phase: 'all',
         difficulty: 'all',
@@ -82,6 +1118,21 @@ const UnlimitedKernelAcademy = () => {
     const [selectedConcept, setSelectedConcept] = useState(null);
     const [generationSeed, setGenerationSeed] = useState(Date.now());
     const [showPhaseSelector, setShowPhaseSelector] = useState(false);
+    
+    // Sync code editor with current challenge
+    useEffect(() => {
+        if (currentChallenge) {
+            console.log('Setting code editor with starter:', currentChallenge.starter);
+            setCodeEditor(prev => ({
+                ...prev,
+                code: currentChallenge.starter || '',
+                output: '',
+                isRunning: false,
+                testResults: []
+            }));
+            setShowHints(false);
+        }
+    }, [currentChallenge]);
     
     // Playground state
     const [playground, setPlayground] = useState({
@@ -6364,58 +7415,30 @@ MODULE_LICENSE("GPL");`,
 
     // Problems section functions
     const getFilteredProblems = () => {
-        let filtered = [...problemBank];
-        
-        // Filter by phase
-        if (problemFilters.phase !== 'all') {
-            filtered = filtered.filter(p => p.phase === problemFilters.phase);
-        }
-        
-        // Filter by difficulty
-        if (problemFilters.difficulty !== 'all') {
-            const difficultyNum = parseInt(problemFilters.difficulty);
-            filtered = filtered.filter(p => p.difficulty === difficultyNum);
-        }
-        
-        // Filter by completion status
-        if (problemFilters.completed === 'completed') {
-            filtered = filtered.filter(p => completedChallenges.has(p.id));
-        } else if (problemFilters.completed === 'incomplete') {
-            filtered = filtered.filter(p => !completedChallenges.has(p.id));
-        }
-        
-        // Sort by difficulty first, then by id
-        return filtered.sort((a, b) => {
-            if (a.difficulty !== b.difficulty) {
-                return a.difficulty - b.difficulty;
+        return generatedProblems.filter(problem => {
+            // Phase filter
+            if (problemFilters.phase !== 'all' && problem.phase !== problemFilters.phase) {
+                return false;
             }
-            return a.id - b.id;
-        });
+            
+            // Difficulty filter
+            if (problemFilters.difficulty !== 'all' && problem.difficulty !== parseInt(problemFilters.difficulty)) {
+                return false;
+            }
+            
+            // Completion status filter
+            const isCompleted = completedChallenges.has(problem.id);
+            if (problemFilters.completed === 'completed' && !isCompleted) {
+                return false;
+            }
+            if (problemFilters.completed === 'incomplete' && isCompleted) {
+                return false;
+            }
+            
+            return true;
+        }).sort((a, b) => a.id - b.id); // Sort by ID for consistent ordering
     };
 
-    const selectProblemFromBank = (problem) => {
-        // Check if this is part of a multi-part sequence with prerequisites
-        if (problem.multiPart?.previousProblemId) {
-            const previousCompleted = completedChallenges.has(problem.multiPart.previousProblemId);
-            if (!previousCompleted) {
-                // Find the previous problem
-                const previousProblem = problemBank.find(p => p.id === problem.multiPart.previousProblemId);
-                alert(`You must complete "${previousProblem?.title}" first before attempting this part.`);
-                return;
-            }
-        }
-        
-        setSelectedProblem(problem);
-        setCurrentChallenge(problem);
-        setCodeEditor({
-            code: problem.starter || '',
-            output: '',
-            isRunning: false,
-            testResults: []
-        });
-        setActiveTab('learning'); // Switch to learning tab to work on the problem
-        setShowHints(false);
-    };
 
     const getProblemStats = () => {
         const total = problemBank.length;
@@ -6440,9 +7463,6 @@ MODULE_LICENSE("GPL");`,
 
     // Generate new challenge - now supports problemBank
     const generateNewChallenge = () => {
-        // Clear selected problem to go back to unlimited learning
-        setSelectedProblem(null);
-        
         const challenge = getNextAdaptiveChallenge();
         setCurrentChallenge(challenge);
         setCodeEditor({
@@ -6684,6 +7704,32 @@ MODULE_LICENSE("GPL");`,
         return totalProgress / skills.length;
     };
 
+    // Function to get visible problems based on current phase
+    const getVisibleProblems = () => {
+        const currentPhase = getCurrentPhase();
+        const phaseProblems = phaseSystem[currentPhase]?.problems || [];
+        
+        return generatedProblems.filter(problem => 
+            phaseProblems.includes(problem.id)
+        );
+    };
+
+
+    // Function to select problem from bank and switch to current challenge tab
+    const selectProblemFromBank = (problem) => {
+        // Set the current challenge (useEffect will handle code editor sync)
+        setCurrentChallenge(problem);
+        
+        // Switch to the Current Challenge tab
+        setActiveTab('learning');
+        
+        // Reset hints and lessons
+        setShowHints(false);
+        setShowLessons(false);
+    };
+
+
+
     // Enhanced skill meter component
     const SkillMeter = ({ phase, skill, level, name }) => (
         <div className="mb-3">
@@ -6704,1077 +7750,433 @@ MODULE_LICENSE("GPL");`,
     );
 
     return (
-        <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6 bg-gray-100 min-h-screen">
-            {/* Clean Professional Header */}
-            <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8 shadow-sm">
-                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
-                    <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                                <Cpu className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">KernelOne Academy</h1>
-                                <p className="text-sm sm:text-base text-gray-600">Professional Kernel Development Training</p>
-                            </div>
-                        </div>
-                        
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm text-gray-600">
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <span>Current Phase: <strong className="text-gray-900">{phaseSystem[getCurrentPhase()].name}</strong></span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Settings className="w-4 h-4" />
-                                <button
-                                    onClick={() => setShowPhaseSelector(true)}
-                                    className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
-                                >
-                                    Change Phase
-                                </button>
-                            </div>
-                        </div>
+        <div style={premiumStyles.container}>
+            {/* Premium Navigation Bar */}
+            <nav style={premiumStyles.navbar}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '12px',
+                        background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: PremiumStyles.shadows.md
+                    }}>
+                        <Cpu size={20} color="white" />
                     </div>
-                    
-                    <div className="flex flex-row sm:flex-row gap-2 sm:gap-4 overflow-x-auto">
-                        <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center min-w-[100px] sm:min-w-[120px] flex-shrink-0">
-                            <div className="text-lg sm:text-2xl font-bold text-gray-900 mb-1">{userProfile.xp.toLocaleString()}</div>
-                            <div className="text-xs text-gray-600 font-medium">Total XP</div>
-                        </div>
-                        <div className="bg-blue-50 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center min-w-[100px] sm:min-w-[120px] flex-shrink-0">
-                            <div className="text-lg sm:text-2xl font-bold text-blue-600 mb-1">{userProfile.uniqueChallengesCompleted}</div>
-                            <div className="text-xs text-gray-600 font-medium">Completed</div>
-                        </div>
-                        <div className="bg-purple-50 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center min-w-[100px] sm:min-w-[120px] flex-shrink-0">
-                            <div className="text-lg sm:text-2xl font-bold text-purple-600 mb-1">{userProfile.masteryPoints}</div>
-                            <div className="text-xs text-gray-600 font-medium">Mastery Points</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Clean Navigation Tabs */}
-            <div className="bg-white border border-gray-200 rounded-xl p-2 mb-4 sm:mb-6 lg:mb-8 shadow-sm">
-                <div className="flex gap-1 sm:gap-2">
-                    <button
-                        onClick={() => setActiveTab('learning')}
-                        className={`px-3 sm:px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 ${
-                            activeTab === 'learning' 
-                                ? 'bg-blue-600 text-white shadow-sm' 
-                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                        }`}
-                    >
-                        <Brain size={16} className="sm:w-[18px] sm:h-[18px]" />
-                        <span className="font-semibold text-sm sm:text-base hidden sm:inline">Learning</span>
-                        <span className="font-semibold text-xs sm:hidden">Learn</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('problems')}
-                        className={`px-3 sm:px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 ${
-                            activeTab === 'problems' 
-                                ? 'bg-blue-600 text-white shadow-sm' 
-                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                        }`}
-                    >
-                        <Trophy size={16} className="sm:w-[18px] sm:h-[18px]" />
-                        <span className="font-semibold text-sm sm:text-base hidden sm:inline">Problems</span>
-                        <span className="font-semibold text-xs sm:hidden">Problems</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('phases')}
-                        className={`px-3 sm:px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 ${
-                            activeTab === 'phases' 
-                                ? 'bg-blue-600 text-white shadow-sm' 
-                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                        }`}
-                    >
-                        <GitBranch size={16} className="sm:w-[18px] sm:h-[18px]" />
-                        <span className="font-semibold text-sm sm:text-base hidden sm:inline">Phases</span>
-                        <span className="font-semibold text-xs sm:hidden">Phases</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('concepts')}
-                        className={`px-3 sm:px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 ${
-                            activeTab === 'concepts' 
-                                ? 'bg-blue-600 text-white shadow-sm' 
-                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                        }`}
-                    >
-                        <Book size={16} className="sm:w-[18px] sm:h-[18px]" />
-                        <span className="font-semibold text-sm sm:text-base hidden sm:inline">Concepts</span>
-                        <span className="font-semibold text-xs sm:hidden">Theory</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('playground')}
-                        className={`px-3 sm:px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 ${
-                            activeTab === 'playground' 
-                                ? 'bg-blue-600 text-white shadow-sm' 
-                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                        }`}
-                    >
-                        <Terminal size={16} className="sm:w-[18px] sm:h-[18px]" />
-                        <span className="font-semibold text-sm sm:text-base hidden sm:inline">Playground</span>
-                        <span className="font-semibold text-xs sm:hidden">Code</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('analytics')}
-                        className={`px-3 sm:px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-1 sm:gap-2 flex-1 justify-center min-w-0 ${
-                            activeTab === 'analytics' 
-                                ? 'bg-blue-600 text-white shadow-sm' 
-                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                        }`}
-                    >
-                        <TrendingUp size={16} className="sm:w-[18px] sm:h-[18px]" />
-                        <span className="font-semibold text-sm sm:text-base hidden sm:inline">Analytics</span>
-                        <span className="font-semibold text-xs sm:hidden">Stats</span>
-                    </button>
-                </div>
-            </div>
-
-            {/* Learning Tab - Unlimited Challenge Interface */}
-            {activeTab === 'learning' && (
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
-                    {/* Challenge Control Panel */}
-                    <div className="lg:col-span-1 space-y-4 order-1 lg:order-1">
-                        {/* Current Challenge Info */}
-                        {currentChallenge && (
-                            <div className="bg-white rounded-lg p-4 shadow-md border">
-                                <div className="flex items-center gap-2 mb-3">
-                                    {selectedProblem ? (
-                                        <>
-                                            <Trophy className="w-5 h-5 text-yellow-600" />
-                                            <h3 className="font-semibold">Problem #{selectedProblem.id} from Bank</h3>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Infinity className="w-5 h-5 text-purple-600" />
-                                            <h3 className="font-semibold">Dynamic Challenge #{userProfile.challengesGenerated}</h3>
-                                        </>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-2 mb-2">
-                                    <h4 className="font-medium">{currentChallenge.title}</h4>
-                                    {currentChallenge.multiPart && (
-                                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
-                                            Part {currentChallenge.multiPart.part}/{currentChallenge.multiPart.totalParts}
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="text-sm text-gray-600 mb-3">{currentChallenge.description}</p>
-                                
-                                {/* Input/Output Specifications for Progressive Challenges */}
-                                {currentChallenge.inputOutput && (
-                                    <div className="bg-green-50 border-l-4 border-green-400 p-3 mb-3">
-                                        <h5 className="text-sm font-medium text-green-700 mb-2">📋 Expected Output:</h5>
-                                        <ul className="text-xs text-green-600 space-y-1">
-                                            {currentChallenge.inputOutput.expectedOutput.map((output, idx) => (
-                                                <li key={idx} className="font-mono bg-green-100 px-2 py-1 rounded">
-                                                    {output}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                        {currentChallenge.inputOutput.requirements && (
-                                            <div className="mt-3">
-                                                <h5 className="text-sm font-medium text-green-700 mb-1">⚠️ Requirements:</h5>
-                                                <ul className="text-xs text-green-600 space-y-1">
-                                                    {currentChallenge.inputOutput.requirements.map((req, idx) => (
-                                                        <li key={idx}>• {req}</li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                                
-                                {currentChallenge.multiPart?.requirements && (
-                                    <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-3">
-                                        <p className="text-sm text-blue-700">📋 {currentChallenge.multiPart.requirements}</p>
-                                    </div>
-                                )}
-                                <div className="flex gap-2 mb-3 flex-wrap">
-                  <span className={`px-2 py-1 rounded text-xs font-medium border ${getDifficultyColor(currentChallenge.difficulty)}`}>
-                    Level {currentChallenge.difficulty}
-                  </span>
-                                    <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-600 border border-purple-300">
-                    +{currentChallenge.xp} XP
-                  </span>
-                                    <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-600 border border-blue-300">
-                    {currentChallenge.phase}
-                  </span>
-                                </div>
-                                <div className="space-y-2">
-                                    <button
-                                        onClick={generateNewChallenge}
-                                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <Shuffle size={16} />
-                                        {selectedProblem ? 'Back to Unlimited Learning' : 'Generate New Challenge'}
-                                    </button>
-                                    <div className="text-xs text-gray-500 text-center">
-                                        Difficulty adapts to your progress
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Current Phase Skills */}
-                        <div className="bg-white rounded-lg p-4 shadow-md">
-                            <h3 className="font-semibold mb-3 flex items-center gap-2">
-                                <Star className="text-yellow-500" size={18} />
-                                {phaseSystem[getCurrentPhase()].name} Skills
-                            </h3>
-                            {phaseSystem[getCurrentPhase()].skills.map(skill => (
-                                <SkillMeter
-                                    key={skill}
-                                    phase={getCurrentPhase()}
-                                    skill={skill}
-                                    level={userSkills[getCurrentPhase()]?.[skill] || 0}
-                                    name={skill.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                                />
-                            ))}
-                        </div>
-
-                        {/* Quick Stats */}
-                        <div className="bg-white rounded-lg p-4 shadow-md">
-                            <h3 className="font-semibold mb-3 text-sm">Session Stats</h3>
-                            <div className="space-y-2 text-sm">
-                                <div className="flex justify-between">
-                                    <span>Streak:</span>
-                                    <span className="font-medium">{userProfile.streak}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Generated:</span>
-                                    <span className="font-medium">{userProfile.challengesGenerated}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Completed:</span>
-                                    <span className="font-medium">{userProfile.uniqueChallengesCompleted}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Success Rate:</span>
-                                    <span className="font-medium">
-                    {userProfile.challengesGenerated > 0
-                        ? Math.round((userProfile.uniqueChallengesCompleted / userProfile.challengesGenerated) * 100)
-                        : 0}%
-                  </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Professional Code Editor - Full Height */}
-                    <div className="lg:col-span-3 order-2 lg:order-2">
-                        <div className="bg-white rounded-lg shadow-md overflow-hidden border">
-                            <div className="bg-gray-800 text-white p-2 sm:p-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                                <div className="flex items-center gap-2">
-                                    <Code size={16} className="sm:w-[18px] sm:h-[18px]" />
-                                    <span className="font-medium text-sm sm:text-base">Professional Kernel IDE</span>
-                                    {currentChallenge && (
-                                        <span className="text-xs bg-white/20 px-2 py-1 rounded hidden sm:inline">
-                      {currentChallenge.templateUsed}
-                    </span>
-                                    )}
-                                </div>
-                                <div className="flex flex-wrap gap-1 sm:gap-2">
-                  <span className="text-xs bg-white/10 px-2 py-1 rounded hidden sm:inline">
-                    Auto-saves
-                  </span>
-                                    <button
-                                        onClick={() => setShowHints(!showHints)}
-                                        className="bg-yellow-600 hover:bg-yellow-700 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm flex items-center gap-1 transition-colors"
-                                    >
-                                        <Lightbulb size={12} className="sm:w-[14px] sm:h-[14px]" />
-                                        <span className="hidden sm:inline">Smart Hints</span>
-                                        <span className="sm:hidden">Hints</span>
-                                    </button>
-                                    <button
-                                        onClick={() => setShowLessons(!showLessons)}
-                                        className="bg-blue-600 hover:bg-blue-700 px-2 sm:px-3 py-1 rounded text-xs sm:text-sm flex items-center gap-1 transition-colors"
-                                    >
-                                        <Book size={12} className="sm:w-[14px] sm:h-[14px]" />
-                                        <span className="hidden sm:inline">Learn Concepts</span>
-                                        <span className="sm:hidden">Learn</span>
-                                    </button>
-                                    <button
-                                        onClick={runCode}
-                                        disabled={codeEditor.isRunning}
-                                        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 px-2 sm:px-4 py-1 rounded text-xs sm:text-sm flex items-center gap-1 transition-colors"
-                                    >
-                                        {codeEditor.isRunning ? (
-                                            <>
-                                                <Timer size={12} className="animate-spin sm:w-[14px] sm:h-[14px]" />
-                                                <span className="hidden sm:inline">Testing...</span>
-                                                <span className="sm:hidden">Test</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Play size={12} className="sm:w-[14px] sm:h-[14px]" />
-                                                <span className="hidden sm:inline">Run & Validate</span>
-                                                <span className="sm:hidden">Run</span>
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Large Resizable Editor Interface */}
-                            <div className="flex flex-col lg:grid lg:grid-cols-2 resize-y overflow-auto border-t border-gray-200" style={{ minHeight: '1000px', height: '80vh' }}>
-                                {/* Code Input Panel */}
-                                <div className="lg:border-r border-gray-200 flex flex-col min-h-[500px] h-full">
-                                    <div className="bg-gray-100 px-2 sm:px-3 py-1 sm:py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
-                                        <span className="text-xs sm:text-sm">📝 Semantic Kernel Code Editor</span>
-                                        <span className="text-gray-500 hidden sm:inline text-xs">Real-time error detection</span>
-                                    </div>
-                                    <div className="flex-1 relative">
-                                        <SemanticCodeEditor
-                                            value={codeEditor.code}
-                                            onChange={(value) => setCodeEditor(prev => ({ ...prev, code: value }))}
-                                            height="100%"
-                                            placeholder="Your dynamically generated kernel challenge appears here..."
-                                            className="h-full"
-                                        />
-                                    </div>
-                                    <div className="bg-gray-100 px-2 sm:px-3 py-1 text-xs text-gray-600 border-t border-gray-200">
-                                        <span className="hidden sm:inline">Lines: {codeEditor.code.split('\n').length} | Characters: {codeEditor.code.length} | Semantic Analysis: Active</span>
-                                        <span className="sm:hidden">Lines: {codeEditor.code.split('\n').length} | Chars: {codeEditor.code.length}</span>
-                                    </div>
-                                </div>
-
-                                {/* Output and Testing Panel */}
-                                <div className="bg-gray-50 border border-gray-200 flex flex-col min-h-[500px] h-full border-t lg:border-t-0 lg:border-l">
-                                    <div className="bg-gray-100 px-2 sm:px-3 py-1 sm:py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
-                                        <span className="text-xs sm:text-sm">🔍 Dynamic Analysis & Output</span>
-                                        <button
-                                            onClick={() => setDebugMode(!debugMode)}
-                                            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                                                debugMode 
-                                                    ? 'bg-green-600 text-white' 
-                                                    : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                                            }`}
-                                        >
-                                            {debugMode ? '🐛 Debug ON' : '🔧 Debug OFF'}
-                                        </button>
-                                    </div>
-                                    <div className="flex-1 p-2 sm:p-4 overflow-y-auto bg-white">
-                    <pre className="text-xs sm:text-sm whitespace-pre-wrap font-mono leading-tight sm:leading-relaxed text-gray-700">
-                      {codeEditor.output || "🚀 Professional testing environment ready...\n\nYour code will be dynamically analyzed for:\n• Syntax correctness\n• Logic implementation  \n• Best practices\n• Performance metrics\n• Memory safety\n• Kernel coding standards\n\nThis large editor provides:\n• Ample space for complex kernel modules\n• Real-time error detection\n• Code complexity analysis\n• Security vulnerability scanning\n• Performance optimization hints\n\n✨ RESIZE TIP: Drag the bottom edge of this panel to make it even larger!\n\nClick 'Run & Validate' to begin comprehensive testing!"}
-                    </pre>
-                                    </div>
-                                    {codeEditor.testResults.length > 0 && (
-                                        <div className="border-t border-gray-200 p-3 bg-gray-50">
-                                            <div className="text-xs text-gray-600 mb-2 font-medium">Test Results:</div>
-                                            <div className="space-y-1">
-                                                {codeEditor.testResults.map((result, index) => (
-                                                    <div key={index} className={`text-xs flex items-center gap-2 ${
-                                                        result.passed ? 'text-green-600' : 'text-red-600'
-                                                    }`}>
-                                                        <span>{result.passed ? '✓' : '✗'}</span>
-                                                        <span>{result.name}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Smart Concept Detection Panel */}
-                        {showLessons && currentChallenge && (
-                            <div className="mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg shadow-sm">
-                                <div className="p-4">
-                                    <h4 className="font-medium text-blue-800 mb-3 flex items-center gap-2">
-                                        <Book size={16} />
-                                        Concepts in Your Code
-                                    </h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {detectUnfamiliarConcepts(codeEditor.code || currentChallenge.starter).map((conceptName) => {
-                                            const concept = getConcept(conceptName);
-                                            if (!concept) return null;
-
-                                            return (
-                                                <div key={conceptName} className="p-3 bg-white rounded border border-blue-200 cursor-pointer hover:shadow-md transition-shadow"
-                                                     onClick={() => setSelectedConcept(concept)}>
-                                                    <div className="font-medium text-blue-800">{concept.title}</div>
-                                                    <div className="text-sm text-blue-600 mb-2">{concept.description}</div>
-                                                    <div className="text-xs text-blue-500">Click to learn more →</div>
-                                                </div>
-                                            );
-                                        })}
-                                        {detectUnfamiliarConcepts(codeEditor.code || currentChallenge.starter).length === 0 && (
-                                            <div className="text-blue-600 col-span-2 text-center py-4">
-                                                No unfamiliar concepts detected in your current code. Great job! 🎉
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Hints Panel - Positioned Below Editor */}
-                        {showHints && currentChallenge && currentChallenge.hints && (
-                            <div className="mt-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg shadow-sm">
-                                <div className="p-4">
-                                    <h4 className="font-medium text-orange-800 mb-3 flex items-center gap-2">
-                                        <Lightbulb size={16} />
-                                        Context-Aware Learning Hints
-                                    </h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {currentChallenge.hints.map((hint, index) => (
-                                            <div key={index} className="flex items-start gap-3 p-3 bg-white rounded border border-orange-200">
-                                                <div className="flex-shrink-0 w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                                                    {index + 1}
-                                                </div>
-                                                <span className="text-orange-800 text-sm leading-relaxed">{hint}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="mt-4 text-xs text-orange-600 bg-orange-100 p-3 rounded border border-orange-200">
-                                        💡 These hints are dynamically generated based on your specific challenge pattern, current skill level, and common pitfalls in kernel programming. They adapt as you progress through different phases of learning.
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {/* Problems Bank Tab - Structured Problems List */}
-            {activeTab === 'problems' && (
-                <div className="space-y-4 sm:space-y-6">
-                    {/* Problems Overview */}
-                    <div className="bg-white rounded-lg p-4 sm:p-6 shadow-md">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
-                            <h2 className="text-lg sm:text-2xl font-semibold flex items-center gap-2">
-                                <Trophy className="text-yellow-500 w-5 h-5 sm:w-6 sm:h-6" />
-                                <span className="hidden sm:inline">Kernel Development Problems Bank</span>
-                                <span className="sm:hidden">Problems Bank</span>
-                            </h2>
-                            <div className="text-sm text-gray-600">
-                                {getProblemStats().completed} / {getProblemStats().total} completed
-                            </div>
-                        </div>
-                        
-                        <p className="text-gray-600 mb-6">
-                            Complete structured problems from zero programming knowledge to professional kernel development.
-                            Progress through 400+ carefully designed problems covering all aspects of Linux kernel development.
+                    <div>
+                        <h1 style={{ ...premiumStyles.headingMD, fontSize: '1.5rem', margin: 0 }}>
+                            KernelOne Academy
+                        </h1>
+                        <p style={{ ...premiumStyles.textSecondary, margin: 0, fontSize: '0.8rem' }}>
+                            Professional Kernel Development Platform
                         </p>
-                        
-                        {/* Progress Statistics */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                        <CheckCircle className="w-5 h-5 text-green-600" />
-                                    </div>
-                                    <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                                        {((getProblemStats().completed / getProblemStats().total) * 100).toFixed(1)}%
-                                    </span>
+                    </div>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{
+                        ...premiumStyles.statusBadge,
+                        background: `linear-gradient(135deg, ${PremiumStyles.colors.accent} 0%, ${PremiumStyles.colors.accentPurple} 100%)`,
+                        color: 'white',
+                        border: 'none'
+                    }}>
+                        <Shield size={14} />
+                        <span>{phaseSystem[getCurrentPhase()].name}</span>
+                    </div>
+                    <button
+                        onClick={() => setShowPhaseSelector(true)}
+                        style={{
+                            ...premiumStyles.buttonSecondary,
+                            padding: '0.5rem 1rem',
+                            fontSize: '0.875rem'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.background = PremiumStyles.colors.surfaceHover;
+                            e.target.style.transform = 'translateY(-1px)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.background = PremiumStyles.colors.surface;
+                            e.target.style.transform = 'translateY(0)';
+                        }}
+                    >
+                        <Settings size={16} />
+                        <span>Change Phase</span>
+                    </button>
+                </div>
+            </nav>
+
+            {/* Main Content Area */}
+            <div style={premiumStyles.mainContent}>
+                {/* Elegant Sidebar */}
+                <div style={premiumStyles.sidebar}>
+                    {/* User Stats Cards */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h2 style={{ ...premiumStyles.headingMD, marginBottom: '1rem' }}>
+                            Progress Overview
+                        </h2>
+                        <div style={{ display: 'grid', gap: '1rem' }}>
+                            {/* XP Card */}
+                            <div style={{
+                                ...premiumStyles.statsCard,
+                                background: `linear-gradient(135deg, ${PremiumStyles.colors.primary}20 0%, ${PremiumStyles.colors.primaryDark}10 100%)`
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.5rem' }}>
+                                    <Sparkles size={24} color="rgba(255, 255, 255, 0.8)" />
                                 </div>
-                                <div className="text-2xl font-bold text-gray-900 mb-1">{getProblemStats().completed}</div>
-                                <div className="text-sm text-gray-600">Problems Completed</div>
-                                <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
-                                    <div 
-                                        className="bg-green-500 h-2 rounded-full transition-all duration-500"
-                                        style={{ width: `${(getProblemStats().completed / getProblemStats().total) * 100}%` }}
-                                    ></div>
+                                <div style={{ fontSize: '2rem', fontWeight: 700, color: 'rgba(255, 255, 255, 0.9)', marginBottom: '0.25rem' }}>
+                                    {userProfile.xp.toLocaleString()}
+                                </div>
+                                <div style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.7)' }}>
+                                    Total Experience
                                 </div>
                             </div>
                             
-                            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                        <Clock className="w-5 h-5 text-blue-600" />
-                                    </div>
-                                    <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-                                        Remaining
-                                    </span>
+                            {/* Completed Challenges */}
+                            <div style={{
+                                ...premiumStyles.statsCard,
+                                background: `linear-gradient(135deg, ${PremiumStyles.colors.accent}20 0%, ${PremiumStyles.colors.accentPurple}10 100%)`
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.5rem' }}>
+                                    <CheckCircle size={24} color={PremiumStyles.colors.accent} />
                                 </div>
-                                <div className="text-2xl font-bold text-gray-900 mb-1">{getProblemStats().total - getProblemStats().completed}</div>
-                                <div className="text-sm text-gray-600">Problems Available</div>
-                                <div className="mt-3 text-xs text-gray-500">Continue your learning journey!</div>
+                                <div style={{ fontSize: '2rem', fontWeight: 700, color: PremiumStyles.colors.accent, marginBottom: '0.25rem' }}>
+                                    {userProfile.uniqueChallengesCompleted}
+                                </div>
+                                <div style={{ fontSize: '0.875rem', color: PremiumStyles.colors.textSecondary }}>
+                                    Problems Solved
+                                </div>
                             </div>
                             
-                            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                        <Target className="w-5 h-5 text-purple-600" />
-                                    </div>
-                                    <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
-                                        Active
-                                    </span>
+                            {/* Mastery Points */}
+                            <div style={{
+                                ...premiumStyles.statsCard,
+                                background: `linear-gradient(135deg, ${PremiumStyles.colors.accentOrange}20 0%, ${PremiumStyles.colors.accentRed}10 100%)`
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.5rem' }}>
+                                    <Trophy size={24} color={PremiumStyles.colors.accentOrange} />
                                 </div>
-                                <div className="text-2xl font-bold text-gray-900 mb-1">
-                                    {Object.keys(getProblemStats().byPhase).filter(phase => 
-                                        getProblemStats().byPhase[phase].completed > 0
-                                    ).length}
+                                <div style={{ fontSize: '2rem', fontWeight: 700, color: PremiumStyles.colors.accentOrange, marginBottom: '0.25rem' }}>
+                                    {userProfile.masteryPoints}
                                 </div>
-                                <div className="text-sm text-gray-600">Phases Started</div>
-                                <div className="mt-3 text-xs text-gray-500">Multi-area learning progress</div>
-                            </div>
-                        </div>
-                        
-                        {/* Filter Controls */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
-                            <div>
-                                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Phase</label>
-                                <select 
-                                    value={problemFilters.phase}
-                                    onChange={(e) => setProblemFilters(prev => ({...prev, phase: e.target.value}))}
-                                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                >
-                                    <option value="all">All Phases</option>
-                                    <option value="foundations">Foundations</option>
-                                    <option value="kernel_core">Kernel Core</option>
-                                    <option value="memory_mgmt">Memory Management</option>
-                                    <option value="drivers">Device Drivers</option>
-                                    <option value="synchronization">Synchronization</option>
-                                    <option value="networking">Networking</option>
-                                    <option value="filesystems">Filesystems</option>
-                                    <option value="security">Security</option>
-                                    <option value="performance">Performance</option>
-                                    <option value="professional">Professional</option>
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Difficulty</label>
-                                <select 
-                                    value={problemFilters.difficulty}
-                                    onChange={(e) => setProblemFilters(prev => ({...prev, difficulty: e.target.value}))}
-                                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                >
-                                    <option value="all">All Levels</option>
-                                    <option value="1">Level 1 (Beginner)</option>
-                                    <option value="2">Level 2 (Basic)</option>
-                                    <option value="3">Level 3 (Intermediate)</option>
-                                    <option value="4">Level 4 (Advanced)</option>
-                                    <option value="5">Level 5 (Expert)</option>
-                                    <option value="6">Level 6 (Master)</option>
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Status</label>
-                                <select 
-                                    value={problemFilters.completed}
-                                    onChange={(e) => setProblemFilters(prev => ({...prev, completed: e.target.value}))}
-                                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                >
-                                    <option value="all">All Problems</option>
-                                    <option value="incomplete">Not Completed</option>
-                                    <option value="completed">Completed</option>
-                                </select>
+                                <div style={{ fontSize: '0.875rem', color: PremiumStyles.colors.textSecondary }}>
+                                    Mastery Points
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
-                    {/* Problems List */}
-                    <div className="bg-white rounded-lg p-4 sm:p-6 shadow-md">
-                        <h3 className="text-lg font-semibold mb-4">
-                            Problems ({getFilteredProblems().length} found)
+
+                    {/* Phase Progress */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h3 style={{ ...premiumStyles.headingMD, marginBottom: '1rem' }}>
+                            Phase Progress
                         </h3>
-                        
-                        <div className="space-y-3 max-h-96 overflow-y-auto">
-                            {getFilteredProblems().map((problem) => {
-                                const isCompleted = completedChallenges.has(problem.id);
-                                const isLocked = problem.multiPart?.previousProblemId && 
-                                                !completedChallenges.has(problem.multiPart.previousProblemId);
+                        <div style={premiumStyles.glassCard}>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <span style={premiumStyles.textBase}>Current Phase</span>
+                                    <span style={{ ...premiumStyles.textBase, fontWeight: 600 }}>
+                                        {Math.round(getPhaseProgress(getCurrentPhase()) * 100)}%
+                                    </span>
+                                </div>
+                                <div style={premiumStyles.progressBar}>
+                                    <div style={{
+                                        ...premiumStyles.progressFill,
+                                        width: `${getPhaseProgress(getCurrentPhase()) * 100}%`
+                                    }} />
+                                </div>
+                            </div>
+                            <p style={premiumStyles.textSecondary}>
+                                {phaseSystem[getCurrentPhase()].description}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div>
+                        <h3 style={{ ...premiumStyles.headingMD, marginBottom: '1rem' }}>
+                            Quick Actions
+                        </h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <button
+                                style={{
+                                    ...(activeTab === 'problemBank' ? premiumStyles.buttonPrimary : premiumStyles.buttonSecondary),
+                                    ...(activeTab === 'problemBank' ? {
+                                        background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
+                                        backdropFilter: 'blur(20px)',
+                                        WebkitBackdropFilter: 'blur(20px)',
+                                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                                        color: '#f5f5f7',
+                                        boxShadow: '0 8px 32px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                                    } : {})
+                                }}
+                                onClick={() => setActiveTab('problemBank')}
+                                onMouseEnter={(e) => {
+                                    if (activeTab === 'problemBank') {
+                                        e.target.style.transform = 'translateY(-1px) scale(1.02)';
+                                        e.target.style.boxShadow = PremiumStyles.shadows.lg;
+                                    } else {
+                                        e.target.style.background = PremiumStyles.colors.surfaceHover;
+                                        e.target.style.transform = 'translateY(-1px)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (activeTab === 'problemBank') {
+                                        e.target.style.transform = 'translateY(0) scale(1)';
+                                        e.target.style.boxShadow = PremiumStyles.shadows.md;
+                                    } else {
+                                        e.target.style.background = PremiumStyles.colors.surface;
+                                        e.target.style.transform = 'translateY(0)';
+                                    }
+                                }}
+                            >
+                                <Book size={18} />
+                                <span>Browse Problem Bank</span>
+                            </button>
+                            <button
+                                style={{
+                                    ...(activeTab === 'learning' ? premiumStyles.buttonPrimary : premiumStyles.buttonSecondary),
+                                    ...(activeTab === 'learning' ? {
+                                        background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
+                                        backdropFilter: 'blur(20px)',
+                                        WebkitBackdropFilter: 'blur(20px)',
+                                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                                        color: '#f5f5f7',
+                                        boxShadow: '0 8px 32px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                                    } : {})
+                                }}
+                                onClick={() => setActiveTab('learning')}
+                                onMouseEnter={(e) => {
+                                    if (activeTab === 'learning') {
+                                        e.target.style.transform = 'translateY(-1px) scale(1.02)';
+                                        e.target.style.boxShadow = PremiumStyles.shadows.lg;
+                                    } else {
+                                        e.target.style.background = PremiumStyles.colors.surfaceHover;
+                                        e.target.style.transform = 'translateY(-1px)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (activeTab === 'learning') {
+                                        e.target.style.transform = 'translateY(0) scale(1)';
+                                        e.target.style.boxShadow = PremiumStyles.shadows.md;
+                                    } else {
+                                        e.target.style.background = PremiumStyles.colors.surface;
+                                        e.target.style.transform = 'translateY(0)';
+                                    }
+                                }}
+                            >
+                                <Target size={18} />
+                                <span>Current Challenge</span>
+                            </button>
+                            <button
+                                style={{
+                                    ...(activeTab === 'playground' ? premiumStyles.buttonPrimary : premiumStyles.buttonSecondary),
+                                    ...(activeTab === 'playground' ? {
+                                        background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
+                                        backdropFilter: 'blur(20px)',
+                                        WebkitBackdropFilter: 'blur(20px)',
+                                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                                        color: '#f5f5f7',
+                                        boxShadow: '0 8px 32px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                                    } : {})
+                                }}
+                                onClick={() => setActiveTab('playground')}
+                                onMouseEnter={(e) => {
+                                    if (activeTab === 'playground') {
+                                        e.target.style.transform = 'translateY(-1px) scale(1.02)';
+                                        e.target.style.boxShadow = PremiumStyles.shadows.lg;
+                                    } else {
+                                        e.target.style.background = PremiumStyles.colors.surfaceHover;
+                                        e.target.style.transform = 'translateY(-1px)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (activeTab === 'playground') {
+                                        e.target.style.transform = 'translateY(0) scale(1)';
+                                        e.target.style.boxShadow = PremiumStyles.shadows.md;
+                                    } else {
+                                        e.target.style.background = PremiumStyles.colors.surface;
+                                        e.target.style.transform = 'translateY(0)';
+                                    }
+                                }}
+                            >
+                                <Code size={18} />
+                                <span>Code Playground</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div style={premiumStyles.contentArea}>
+                    {/* Premium Tab Navigation */}
+                    <div style={premiumStyles.tabNav}>
+                        {[
+                            { id: 'learning', label: 'Current Challenge', icon: Target },
+                            { id: 'problemBank', label: 'Problem Bank', icon: Book },
+                            { id: 'playground', label: 'Code Playground', icon: Code },
+                            { id: 'concepts', label: 'Concepts', icon: Lightbulb }
+                        ].map(tab => (
+                            <button
+                                key={tab.id}
+                                style={{
+                                    ...premiumStyles.tabItem,
+                                    ...(activeTab === tab.id ? premiumStyles.tabItemActive : {}),
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    justifyContent: 'center'
+                                }}
+                                onClick={() => setActiveTab(tab.id)}
+                            >
+                                <tab.icon size={16} />
+                                <span>{tab.label}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Premium Tab Content */}
+                    {activeTab === 'learning' && (
+                        <ChallengeView
+                            challenge={currentChallenge}
+                            codeEditor={codeEditor}
+                            onCodeChange={(code) => setCodeEditor(prev => ({ ...prev, code }))}
+                            onRun={runCode}
+                            onReset={() => setCodeEditor(prev => ({ ...prev, code: currentChallenge?.starter || '' }))}
+                            onShowHints={() => setShowHints(!showHints)}
+                            onShowConcepts={() => setShowLessons(!showLessons)}
+                            detectUnfamiliarConcepts={detectUnfamiliarConcepts}
+                            getConcept={(concept) => conceptDatabase[concept]}
+                            setSelectedConcept={setSelectedConcept}
+                        />
+                    )}
+
+                    {/* Problem Bank Tab */}
+                    {activeTab === 'problemBank' && (
+                        <ProblemBankTab
+                            problems={getFilteredProblems()}
+                            filters={problemFilters}
+                            onFilterChange={(key, value) => {
+                                if (key === 'reset') {
+                                    setProblemFilters({ phase: 'all', difficulty: 'all', completed: 'all' });
+                                } else {
+                                    setProblemFilters(prev => ({ ...prev, [key]: value }));
+                                }
+                            }}
+                            onSelectProblem={selectProblemFromBank}
+                            completedChallenges={completedChallenges}
+                            phaseSystem={phaseSystem}
+                            getProblemStats={getProblemStats}
+                        />
+                    )}
+
+
+                    {/* Code Playground Tab */}
+                    {activeTab === 'playground' && (
+                        <div style={premiumStyles.glassCard}>
+                            <h2 style={premiumStyles.headingLG}>Kernel Code Playground</h2>
+                            <p style={premiumStyles.textSecondary}>
+                                Experiment with kernel code in a safe environment. Test your ideas and explore kernel concepts.
+                            </p>
+                            
+                            <div style={{ marginTop: '2rem' }}>
+                                <div style={premiumStyles.codeEditorContainer}>
+                                    <SemanticCodeEditor
+                                        value={playground.code}
+                                        onChange={(newCode) => setPlayground({...playground, code: newCode})}
+                                        height="400px"
+                                        theme="vs-dark"
+                                    />
+                                </div>
                                 
-                                return (
-                                    <div 
-                                        key={problem.id}
-                                        className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
-                                            isCompleted ? 'bg-green-50 border-green-200' : 
-                                            isLocked ? 'bg-gray-50 border-gray-200 opacity-60' :
-                                            'bg-white border-gray-200 hover:border-blue-300'
-                                        }`}
-                                        onClick={() => !isLocked && selectProblemFromBank(problem)}
+                                <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+                                    <button
+                                        style={premiumStyles.buttonPrimary}
+                                        onClick={() => runPlaygroundCode()}
+                                        disabled={playground.isRunning}
                                     >
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-sm font-medium text-gray-500">#{problem.id}</span>
-                                                    <h4 className="font-medium text-gray-900">{problem.title}</h4>
-                                                    {problem.multiPart && (
-                                                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
-                                                            Part {problem.multiPart.part}/{problem.multiPart.totalParts}
-                                                        </span>
-                                                    )}
-                                                    {isCompleted && (
-                                                        <span className="text-green-600">
-                                                            <CheckCircle size={16} />
-                                                        </span>
-                                                    )}
-                                                    {isLocked && (
-                                                        <span className="text-gray-400">
-                                                            <Lock size={16} />
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="text-sm text-gray-600 mb-2">{problem.description}</p>
-                                                <div className="flex gap-2 flex-wrap">
-                                                    <span className={`px-2 py-1 rounded text-xs font-medium border ${getDifficultyColor(problem.difficulty)}`}>
-                                                        Level {problem.difficulty}
-                                                    </span>
-                                                    <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-600 border border-purple-300">
-                                                        +{problem.xp} XP
-                                                    </span>
-                                                    <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-600 border border-blue-300">
-                                                        {problem.phase}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                {isLocked ? (
-                                                    <div className="text-xs text-gray-500">
-                                                        Complete previous part first
-                                                    </div>
-                                                ) : (
-                                                    <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                                        {isCompleted ? 'Solve Again' : 'Start Problem'}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
+                                        <Play size={18} />
+                                        <span>Compile & Test</span>
+                                    </button>
+                                    <button
+                                        style={premiumStyles.buttonSecondary}
+                                        onClick={() => setPlayground({...playground, code: ''})}
+                                    >
+                                        <Shuffle size={18} />
+                                        <span>Clear</span>
+                                    </button>
+                                </div>
+                                
+                                {playground.output && (
+                                    <div style={{
+                                        ...premiumStyles.glassCard,
+                                        marginTop: '1rem',
+                                        backgroundColor: PremiumStyles.colors.backgroundTertiary,
+                                        fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace'
+                                    }}>
+                                        <h4 style={premiumStyles.headingMD}>Output</h4>
+                                        <pre style={{
+                                            ...premiumStyles.textBase,
+                                            fontSize: '0.875rem',
+                                            whiteSpace: 'pre-wrap',
+                                            margin: 0
+                                        }}>
+                                            {playground.output}
+                                        </pre>
                                     </div>
-                                );
-                            })}
-                        </div>
-                        
-                        {getFilteredProblems().length === 0 && (
-                            <div className="text-center py-8 text-gray-500">
-                                <Trophy size={48} className="mx-auto mb-4 opacity-50" />
-                                <p>No problems match your current filters.</p>
-                                <p className="text-sm">Try adjusting the filters above.</p>
+                                )}
                             </div>
-                        )}
-                    </div>
-                </div>
-            )}
+                        </div>
+                    )}
 
-            {/* Phase Progression Tab - Free Choice */}
-            {activeTab === 'phases' && (
-                <div className="space-y-6">
-                    <div className="bg-white rounded-lg p-6 shadow-md">
-                        <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                            <GitBranch className="text-blue-500" />
-                            Professional Kernel Development Track
-                        </h2>
-                        <p className="text-gray-600 mb-6">
-                            Complete all 10 phases to become a professional kernel developer ready for 
-                            <strong> NVIDIA, Intel, Canonical, SUSE</strong> and other major tech companies.
-                            Each phase builds on the previous, from C basics to enterprise kernel contribution.
-                        </p>
-                        
-                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border mb-6">
-                            <h3 className="font-semibold text-blue-800 mb-2">🎯 Career Preparation Track</h3>
-                            <p className="text-sm text-blue-700">
-                                This curriculum is designed based on real job requirements from kernel teams at major technology companies.
-                                Upon completion, you'll have the skills needed for:
+                    {/* Concepts Tab */}
+                    {activeTab === 'concepts' && (
+                        <div style={premiumStyles.glassCard}>
+                            <h2 style={premiumStyles.headingLG}>Kernel Concepts</h2>
+                            <p style={premiumStyles.textSecondary}>
+                                Explore fundamental kernel programming concepts with interactive examples and explanations.
                             </p>
-                            <ul className="text-sm text-blue-700 mt-2 space-y-1">
-                                <li>• <strong>GPU Driver Engineer</strong> at NVIDIA/AMD</li>
-                                <li>• <strong>Kernel Developer</strong> at Intel/Canonical</li>
-                                <li>• <strong>Systems Engineer</strong> at SUSE/Red Hat</li>
-                                <li>• <strong>Linux Kernel Contributor</strong> to upstream</li>
-                            </ul>
-                        </div>
-
-                        <div className="space-y-6">
-                            {Object.entries(phaseSystem).map(([phaseKey, phase]) => {
-                                const progress = getPhaseProgress(phaseKey);
-                                const isCurrentPhase = userProfile.currentPhase === phaseKey;
-                                const completedConcepts = phase.concepts.filter(concept => 
-                                    userSkills[phaseKey]?.[concept.name.toLowerCase().replace(/[^a-z0-9]/g, '')] > 0.7
-                                ).length;
-
-                                return (
-                                    <div key={phaseKey} className={`border-2 rounded-xl p-6 transition-all cursor-pointer ${
-                                        isCurrentPhase
-                                            ? 'border-blue-500 bg-blue-50 shadow-xl'
-                                            : 'border-gray-300 bg-white hover:border-blue-300 hover:shadow-lg'
-                                    }`}
-                                         onClick={() => setUserProfile(prev => ({ ...prev, currentPhase: phaseKey }))}>
-                                        
-                                        {/* Phase Header */}
-                                        <div className="flex items-start gap-4 mb-6">
-                                            <div className="text-4xl">{phase.icon}</div>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <h3 className="text-xl font-bold">{phase.name}</h3>
-                                                    <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">
-                                                        Level {phase.level}
-                                                    </span>
-                                                    {isCurrentPhase && (
-                                                        <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                                                            ACTIVE
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="text-gray-600 mb-3">{phase.description}</p>
-                                                <div className="text-sm text-blue-700 bg-blue-100 px-3 py-2 rounded-lg">
-                                                    <strong>Industry Focus:</strong> {phase.industryRelevance}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Progress */}
-                                        <div className="mb-6">
-                                            <div className="flex justify-between items-center mb-2">
-                                                <span className="font-medium">Overall Progress</span>
-                                                <span className="text-sm text-gray-600">
-                                                    {completedConcepts}/{phase.concepts.length} concepts mastered
-                                                </span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 rounded-full h-3">
-                                                <div
-                                                    className={`h-3 rounded-full transition-all duration-700 ${
-                                                        progress < 0.3 ? 'bg-red-400' : 
-                                                        progress < 0.7 ? 'bg-yellow-400' : 'bg-green-500'
-                                                    }`}
-                                                    style={{ width: `${progress * 100}%` }}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Prerequisites */}
-                                        {phase.prerequisites.length > 0 && (
-                                            <div className="mb-4">
-                                                <div className="text-sm font-medium text-gray-700 mb-2">Prerequisites:</div>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {phase.prerequisites.map(prereq => (
-                                                        <span key={prereq} className="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded">
-                                                            {phaseSystem[prereq]?.name.replace(/^Phase \d+: /, '') || prereq}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Core Concepts */}
-                                        <div className="mb-4">
-                                            <div className="text-sm font-medium text-gray-700 mb-3">Key Concepts:</div>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                {phase.concepts.slice(0, 6).map(concept => {
-                                                    const skillKey = concept.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-                                                    const skillLevel = userSkills[phaseKey]?.[skillKey] || 0;
-                                                    const isCompleted = skillLevel > 0.7;
-                                                    
-                                                    return (
-                                                        <div key={concept.name} className="text-xs flex items-center gap-2">
-                                                            <div className={`w-3 h-3 rounded-full ${
-                                                                isCompleted ? 'bg-green-500' : 
-                                                                skillLevel > 0.3 ? 'bg-yellow-400' : 'bg-gray-300'
-                                                            }`} />
-                                                            <span className={concept.essential ? 'font-medium' : ''}>
-                                                                {concept.name}
-                                                                {concept.essential && <span className="text-red-500 ml-1">*</span>}
-                                                            </span>
-                                                            <span className="text-gray-500">({concept.difficulty}/10)</span>
-                                                        </div>
-                                                    );
-                                                })}
-                                                {phase.concepts.length > 6 && (
-                                                    <div className="text-xs text-gray-500 italic">
-                                                        +{phase.concepts.length - 6} more concepts...
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Learning Objectives */}
-                                        <div className="mb-4">
-                                            <div className="text-sm font-medium text-gray-700 mb-2">Learning Objectives:</div>
-                                            <p className="text-sm text-gray-600 italic">{phase.objectives}</p>
-                                        </div>
-
-                                        {/* Skills */}
-                                        <div>
-                                            <div className="text-sm font-medium text-gray-700 mb-2">Professional Skills:</div>
-                                            <div className="flex flex-wrap gap-2">
-                                                {phase.skills.map(skill => (
-                                                    <span key={skill} className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded">
-                                                        {skill}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        
-                        {/* Career Progression Summary */}
-                        <div className="bg-white rounded-lg p-6 shadow-md mt-8">
-                            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                                🎯 Your Professional Journey
-                            </h3>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                                <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border">
-                                    <h4 className="font-semibold text-green-800">Phases 1-2</h4>
-                                    <p className="text-sm text-green-700 mt-1">Foundation Builder</p>
-                                    <p className="text-xs text-green-600 mt-2">Ready for entry-level kernel tasks</p>
-                                </div>
-                                
-                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border">
-                                    <h4 className="font-semibold text-blue-800">Phases 3-4</h4>
-                                    <p className="text-sm text-blue-700 mt-1">Driver Developer</p>
-                                    <p className="text-xs text-blue-600 mt-2">Can write device drivers</p>
-                                </div>
-                                
-                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border">
-                                    <h4 className="font-semibold text-purple-800">Phases 5-6</h4>
-                                    <p className="text-sm text-purple-700 mt-1">Systems Engineer</p>
-                                    <p className="text-xs text-purple-600 mt-2">Multi-core & networking expert</p>
-                                </div>
-                                
-                                <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border">
-                                    <h4 className="font-semibold text-orange-800">Phases 7-8</h4>
-                                    <p className="text-sm text-orange-700 mt-1">Senior Developer</p>
-                                    <p className="text-xs text-orange-600 mt-2">Storage & security specialist</p>
-                                </div>
-                                
-                                <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg border">
-                                    <h4 className="font-semibold text-red-800">Phases 9-10</h4>
-                                    <p className="text-sm text-red-700 mt-1">Kernel Expert</p>
-                                    <p className="text-xs text-red-600 mt-2">Ready for NVIDIA/Intel roles</p>
-                                </div>
-                            </div>
-                            
-                            <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border">
-                                <h4 className="font-semibold text-orange-800 mb-2">🏆 Career Outcome</h4>
-                                <p className="text-sm text-orange-700">
-                                    Upon completing all phases, you'll have the knowledge and skills to:
-                                </p>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                                    <ul className="text-sm text-orange-700 space-y-1">
-                                        <li>✅ Contribute to the Linux kernel mainline</li>
-                                        <li>✅ Work as a GPU driver engineer at NVIDIA</li>
-                                        <li>✅ Join Intel's kernel development team</li>
-                                        <li>✅ Develop enterprise solutions at Red Hat/SUSE</li>
-                                    </ul>
-                                    <ul className="text-sm text-orange-700 space-y-1">
-                                        <li>✅ Lead kernel projects at Canonical</li>
-                                        <li>✅ Optimize high-performance systems</li>
-                                        <li>✅ Design security-critical kernel components</li>
-                                        <li>✅ Mentor other kernel developers</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Concept Learning Tab */}
-            {activeTab === 'concepts' && (
-                <div className="space-y-6">
-                    <div className="bg-white rounded-lg p-6 shadow-md">
-                        <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                            <Book className="text-blue-500" />
-                            Interactive Concept Learning
-                        </h2>
-                        <p className="text-gray-600 mb-6">
-                            Don't understand a programming term? Click on any concept below to get detailed explanations,
-                            code examples, and practice exercises. All concepts are explained in simple terms.
-                        </p>
-
-                        {/* Concept Categories */}
-                        <div className="space-y-6">
-                            {Object.entries(
-                                Object.values(conceptDatabase).reduce((acc, concept) => {
-                                    if (!acc[concept.category]) acc[concept.category] = [];
-                                    acc[concept.category].push(concept);
-                                    return acc;
-                                }, {})
-                            ).map(([category, concepts]) => (
-                                <div key={category}>
-                                    <h3 className="text-lg font-semibold mb-3 text-gray-800">{category}</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {concepts.map(concept => (
-                                            <div
-                                                key={concept.title}
-                                                onClick={() => setSelectedConcept(concept)}
-                                                className="p-4 border border-gray-200 rounded-lg cursor-pointer hover:shadow-md hover:border-blue-300 transition-all"
-                                            >
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h4 className="font-medium text-gray-800">{concept.title}</h4>
-                                                    <span className={`text-xs px-2 py-1 rounded ${
-                                                        concept.difficulty === 'Beginner' ? 'bg-green-100 text-green-700' :
-                                                            concept.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-700' :
-                                                                'bg-red-100 text-red-700'
-                                                    }`}>
-                            {concept.difficulty}
-                          </span>
-                                                </div>
-                                                <p className="text-sm text-gray-600 mb-3">{concept.description}</p>
-                                                <div className="text-xs text-blue-600 hover:text-blue-800">
-                                                    Click to learn more →
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Quick Search */}
-                        <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <h3 className="font-semibold text-blue-800 mb-2">💡 Quick Tip</h3>
-                            <p className="text-blue-700 text-sm">
-                                When working on challenges, click the "Learn Concepts" button in the editor to see
-                                explanations for any unfamiliar terms in your current code!
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Advanced Analytics Tab */}
-            {activeTab === 'analytics' && (
-                <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-white border border-gray-200 rounded-xl p-6 text-center shadow-sm">
-                            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                <Trophy className="w-6 h-6 text-blue-600" />
-                            </div>
-                            <div className="text-3xl font-bold text-gray-900 mb-2">{Math.floor(userProfile.xp / 100)}</div>
-                            <div className="text-sm font-medium text-gray-600">Skill Rank</div>
-                            <div className="text-xs text-gray-500 mt-2">
-                                Based on XP earned
-                            </div>
-                        </div>
-                        
-                        <div className="bg-white border border-gray-200 rounded-xl p-6 text-center shadow-sm">
-                            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                <Star className="w-6 h-6 text-green-600" />
-                            </div>
-                            <div className="text-3xl font-bold text-gray-900 mb-2">{userProfile.xp.toLocaleString()}</div>
-                            <div className="text-sm font-medium text-gray-600">Total XP</div>
-                            <div className="text-xs text-gray-500 mt-2">
-                                Avg: {userProfile.totalChallenges > 0 ? Math.round(userProfile.xp / userProfile.totalChallenges) : 0} per challenge
-                            </div>
-                        </div>
-                        
-                        <div className="bg-white border border-gray-200 rounded-xl p-6 text-center shadow-sm">
-                            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                <Zap className="w-6 h-6 text-purple-600" />
-                            </div>
-                            <div className="text-3xl font-bold text-gray-900 mb-2">{userProfile.challengesGenerated.toLocaleString()}</div>
-                            <div className="text-sm font-medium text-gray-600">Challenges Generated</div>
-                            <div className="text-xs text-gray-500 mt-2">
-                                {userProfile.uniqueChallengesCompleted} completed
-                            </div>
-                        </div>
-                        
-                        <div className="bg-white border border-gray-200 rounded-xl p-6 text-center shadow-sm">
-                            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                <Target className="w-6 h-6 text-orange-600" />
-                            </div>
-                            <div className="text-3xl font-bold text-gray-900 mb-2">{userProfile.masteryPoints.toLocaleString()}</div>
-                            <div className="text-sm font-medium text-gray-600">Mastery Points</div>
-                            <div className="text-xs text-gray-500 mt-2">
-                                Skill improvements tracked
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg p-6 shadow-md">
-                        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                            <TrendingUp className="text-green-500" />
-                            Unlimited Progression Analytics
-                        </h2>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div>
-                                <h3 className="font-medium mb-3">Cross-Phase Skill Distribution</h3>
-                                <div className="space-y-3">
-                                    {Object.entries(phaseSystem).map(([phaseKey, phase]) => {
-                                        const progress = getPhaseProgress(phaseKey);
-                                        const isUnlocked = true; // All phases are now unlocked
-
-                                        return (
-                                            <div key={phaseKey}>
-                                                <div className="flex justify-between items-center mb-1">
-                          <span className="text-sm font-medium flex items-center gap-2">
-                            <span className="text-lg">{phase.icon}</span>
-                              {phase.name}
-                              {!isUnlocked && <Lock className="w-3 h-3 text-gray-400" />}
-                          </span>
-                                                    <span className="text-sm text-gray-600">{Math.round(progress * 100)}%</span>
-                                                </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                                    <div
-                                                        className={`h-2 rounded-full transition-all duration-700 ${
-                                                            isUnlocked
-                                                                ? progress < 0.3 ? 'bg-red-400' : progress < 0.7 ? 'bg-yellow-400' : 'bg-green-400'
-                                                                : 'bg-gray-400'
-                                                        }`}
-                                                        style={{ width: `${progress * 100}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            <div>
-                                <h3 className="font-medium mb-3">Dynamic Learning Insights</h3>
-                                <div className="space-y-4">
-                                    <div className="bg-blue-50 p-3 rounded border">
-                                        <div className="font-medium text-blue-800">Adaptive Difficulty</div>
-                                        <div className="text-sm text-blue-600">
-                                            System generates challenges at optimal difficulty based on your current skill levels
-                                        </div>
-                                    </div>
-                                    <div className="bg-green-50 p-3 rounded border">
-                                        <div className="font-medium text-green-800">Unlimited Content</div>
-                                        <div className="text-sm text-green-600">
-                                            {userProfile.challengesGenerated.toLocaleString()} unique challenges generated so far,
-                                            with infinite variations possible
-                                        </div>
-                                    </div>
-                                    <div className="bg-purple-50 p-3 rounded border">
-                                        <div className="font-medium text-purple-800">Mastery Tracking</div>
-                                        <div className="text-sm text-purple-600">
-                                            {userProfile.masteryPoints} mastery points earned through skill improvements
-                                            across all phases
-                                        </div>
-                                    </div>
-                                    <div className="bg-orange-50 p-3 rounded border">
-                                        <div className="font-medium text-orange-800">Success Prediction</div>
-                                        <div className="text-sm text-orange-600">
-                                            {userProfile.challengesGenerated > 0
-                                                ? `${Math.round((userProfile.uniqueChallengesCompleted / userProfile.challengesGenerated) * 100)}% success rate`
-                                                : 'Start solving challenges to see your success rate'
-                                            } - system adapts to maintain optimal challenge level
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {challengeHistory.length > 0 && (
-                        <div className="bg-white rounded-lg p-6 shadow-md">
-                            <h2 className="text-xl font-semibold mb-4">Recent Challenge History</h2>
-                            <div className="space-y-2 max-h-64 overflow-y-auto">
-                                {challengeHistory.slice(-10).reverse().map((challenge, index) => (
-                                    <div key={challenge.id} className="flex items-center justify-between p-3 bg-gray-50 rounded border">
-                                        <div className="flex-1">
-                                            <div className="font-medium text-sm">{challenge.title}</div>
-                                            <div className="text-xs text-gray-600">
-                                                {challenge.phase} • Level {challenge.difficulty} • {challenge.templateUsed}
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-sm font-medium text-green-600">+{challenge.xpEarned} XP</div>
-                                            <div className="text-xs text-gray-500">
-                                                {new Date(challenge.completedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                            </div>
+                            <div style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+                                gap: '1.5rem', 
+                                marginTop: '2rem' 
+                            }}>
+                                {Object.entries(conceptDatabase).map(([key, concept]) => (
+                                    <div
+                                        key={key}
+                                        style={{
+                                            ...premiumStyles.glassCard,
+                                            cursor: 'pointer',
+                                            transition: PremiumStyles.animations.transition
+                                        }}
+                                        onClick={() => setSelectedConcept(concept)}
+                                        onMouseEnter={(e) => {
+                                            Object.assign(e.currentTarget.style, premiumStyles.glassCardHover);
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            Object.assign(e.currentTarget.style, premiumStyles.glassCard);
+                                        }}
+                                    >
+                                        <h3 style={premiumStyles.headingMD}>{concept.title}</h3>
+                                        <p style={premiumStyles.textSecondary}>{concept.description}</p>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+                                            <span style={{
+                                                ...premiumStyles.statusBadge,
+                                                background: concept.difficulty === 'Beginner' ? 
+                                                    `linear-gradient(135deg, ${PremiumStyles.colors.accent} 0%, ${PremiumStyles.colors.accentPurple} 100%)` :
+                                                    concept.difficulty === 'Intermediate' ?
+                                                    `linear-gradient(135deg, ${PremiumStyles.colors.accentOrange} 0%, ${PremiumStyles.colors.accentRed} 100%)` :
+                                                    `linear-gradient(135deg, ${PremiumStyles.colors.accentRed} 0%, ${PremiumStyles.colors.accentPurple} 100%)`,
+                                                color: 'white',
+                                                border: 'none'
+                                            }}>
+                                                {concept.difficulty}
+                                            </span>
+                                            <ChevronRight size={16} color={PremiumStyles.colors.textSecondary} />
                                         </div>
                                     </div>
                                 ))}
@@ -7782,336 +8184,92 @@ MODULE_LICENSE("GPL");`,
                         </div>
                     )}
                 </div>
-            )}
+            </div>
 
-            {/* Playground Tab - Kernel C Code Editor and Runner */}
-            {activeTab === 'playground' && (
-                <div className="space-y-6">
-                    <div className="bg-white rounded-lg p-6 shadow-md">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-2xl font-bold flex items-center gap-2">
-                                <Terminal className="text-blue-500" />
-                                Kernel C Playground
-                            </h2>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-600">Module Name:</span>
-                                <input
-                                    type="text"
-                                    value={playground.moduleName}
-                                    onChange={(e) => setPlayground(prev => ({ ...prev, moduleName: e.target.value }))}
-                                    className="px-2 py-1 border rounded text-sm"
-                                    placeholder="module_name"
-                                />
-                            </div>
-                        </div>
-                        
-                        <p className="text-gray-600 mb-6">
-                            Write and test kernel C code with real compilation and QEMU testing. 
-                            Your code will be compiled with GCC and tested in a real Linux virtual machine!
-                        </p>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* Code Editor */}
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                                        <Code className="text-green-500" />
-                                        Kernel C Code Editor
-                                    </h3>
-                                    <button
-                                        onClick={runPlaygroundCode}
-                                        disabled={playground.isRunning}
-                                        className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                                            playground.isRunning
-                                                ? 'bg-gray-400 text-white cursor-not-allowed'
-                                                : 'bg-green-600 text-white hover:bg-green-700'
-                                        }`}
-                                    >
-                                        {playground.isRunning ? (
-                                            <>
-                                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                                                Compiling...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Play size={16} />
-                                                Compile & Test
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-
-                                <div className="border rounded-lg overflow-hidden">
-                                    <div className="bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 border-b border-gray-200 flex justify-between items-center">
-                                        <span>📝 Semantic Playground Editor</span>
-                                        <span className="text-gray-500">Real-time kernel API validation</span>
-                                    </div>
-                                    <SemanticCodeEditor
-                                        value={playground.code}
-                                        onChange={(value) => setPlayground(prev => ({ ...prev, code: value }))}
-                                        height="400px"
-                                        placeholder="Write your kernel C code here..."
-                                        className="rounded-b-lg"
-                                    />
-                                </div>
-
-                                <div className="bg-blue-50 p-4 rounded-lg border">
-                                    <h4 className="font-medium text-blue-800 mb-2">💡 Semantic Analysis Features:</h4>
-                                    <ul className="text-sm text-blue-700 space-y-1">
-                                        <li>• <strong>Real-time error detection:</strong> Red squiggles for kernel violations</li>
-                                        <li>• <strong>Cross-platform:</strong> Works on Windows, macOS, and Linux</li>
-                                        <li>• <strong>Kernel API validation:</strong> Detects printf/malloc usage errors</li>
-                                        <li>• <strong>Smart completions:</strong> Kernel-specific autocomplete suggestions</li>
-                                        <li>• <strong>Header validation:</strong> Warns about userspace includes</li>
-                                        <li>• <strong>Best practices:</strong> Suggests proper error handling</li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            {/* Output Panel */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold flex items-center gap-2">
-                                    <Terminal className="text-orange-500" />
-                                    Compilation & Testing Output
-                                </h3>
-
-                                <div className="bg-black text-green-400 p-4 rounded-lg h-96 overflow-y-auto font-mono text-sm">
-                                    {playground.output ? (
-                                        <pre className="whitespace-pre-wrap">{playground.output}</pre>
-                                    ) : (
-                                        <div className="text-gray-500">
-                                            Click "Compile & Test" to see real kernel compilation output...
-                                        </div>
-                                    )}
-                                </div>
-
-                                {playground.compilationResult && (
-                                    <div className="bg-green-50 p-4 rounded-lg border">
-                                        <h4 className="font-medium text-green-800 mb-2">✅ Compilation Status:</h4>
-                                        <p className="text-sm text-green-700">
-                                            {playground.compilationResult.message}
-                                        </p>
-                                    </div>
-                                )}
-
-                                {playground.testingResult && (
-                                    <div className="bg-purple-50 p-4 rounded-lg border">
-                                        <h4 className="font-medium text-purple-800 mb-2">🖥️ QEMU Testing:</h4>
-                                        <p className="text-sm text-purple-700">
-                                            {playground.testingResult.message}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Example Templates */}
-                    <div className="bg-white rounded-lg p-6 shadow-md">
-                        <h3 className="text-lg font-semibold mb-4">🔬 Example Templates</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <button
-                                onClick={() => setPlayground(prev => ({
-                                    ...prev,
-                                    code: `#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/init.h>
-
-static int __init hello_init(void) {
-    printk(KERN_INFO "Hello from Kernel Academy!\\n");
-    return 0;
-}
-
-static void __exit hello_exit(void) {
-    printk(KERN_INFO "Goodbye from Kernel Academy!\\n");
-}
-
-module_init(hello_init);
-module_exit(hello_exit);
-
-MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("Simple hello world kernel module");
-MODULE_AUTHOR("Kernel Academy Student");`,
-                                    moduleName: 'hello_world'
-                                }))}
-                                className="bg-blue-50 p-4 rounded-lg border hover:bg-blue-100 transition-colors text-left"
-                            >
-                                <h4 className="font-medium text-blue-800">Hello World Module</h4>
-                                <p className="text-sm text-blue-600 mt-1">Basic kernel module template</p>
-                            </button>
-
-                            <button
-                                onClick={() => setPlayground(prev => ({
-                                    ...prev,
-                                    code: `#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/init.h>
-#include <linux/proc_fs.h>
-#include <linux/uaccess.h>
-
-#define PROC_NAME "kernel_academy"
-
-static struct proc_dir_entry *proc_entry;
-
-static ssize_t proc_write(struct file *file, const char __user *buffer, size_t count, loff_t *pos) {
-    printk(KERN_INFO "Received %zu bytes from user space\\n", count);
-    return count;
-}
-
-static ssize_t proc_read(struct file *file, char __user *buffer, size_t count, loff_t *pos) {
-    char *msg = "Hello from kernel space!\\n";
-    int len = strlen(msg);
-    
-    if (*pos >= len) return 0;
-    if (copy_to_user(buffer, msg, len)) return -EFAULT;
-    *pos += len;
-    return len;
-}
-
-static const struct proc_ops proc_fops = {
-    .proc_read = proc_read,
-    .proc_write = proc_write,
-};
-
-static int __init proc_init(void) {
-    proc_entry = proc_create(PROC_NAME, 0666, NULL, &proc_fops);
-    if (!proc_entry) {
-        printk(KERN_ERR "Failed to create /proc/%s\\n", PROC_NAME);
-        return -ENOMEM;
-    }
-    printk(KERN_INFO "Created /proc/%s\\n", PROC_NAME);
-    return 0;
-}
-
-static void __exit proc_exit(void) {
-    proc_remove(proc_entry);
-    printk(KERN_INFO "Removed /proc/%s\\n", PROC_NAME);
-}
-
-module_init(proc_init);
-module_exit(proc_exit);
-
-MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("Proc filesystem example");
-MODULE_AUTHOR("Kernel Academy Student");`,
-                                    moduleName: 'proc_example'
-                                }))}
-                                className="bg-green-50 p-4 rounded-lg border hover:bg-green-100 transition-colors text-left"
-                            >
-                                <h4 className="font-medium text-green-800">Proc Filesystem</h4>
-                                <p className="text-sm text-green-600 mt-1">User-kernel communication via /proc</p>
-                            </button>
-
-                            <button
-                                onClick={() => setPlayground(prev => ({
-                                    ...prev,
-                                    code: `#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/init.h>
-#include <linux/slab.h>
-
-static char *buffer;
-static size_t buffer_size = 1024;
-
-static int __init memory_init(void) {
-    buffer = kmalloc(buffer_size, GFP_KERNEL);
-    if (!buffer) {
-        printk(KERN_ERR "Failed to allocate memory\\n");
-        return -ENOMEM;
-    }
-    
-    strcpy(buffer, "Hello from kernel memory!");
-    printk(KERN_INFO "Allocated %zu bytes: %s\\n", buffer_size, buffer);
-    return 0;
-}
-
-static void __exit memory_exit(void) {
-    if (buffer) {
-        printk(KERN_INFO "Freeing buffer: %s\\n", buffer);
-        kfree(buffer);
-    }
-    printk(KERN_INFO "Memory management example exited\\n");
-}
-
-module_init(memory_init);
-module_exit(memory_exit);
-
-MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("Kernel memory management example");
-MODULE_AUTHOR("Kernel Academy Student");`,
-                                    moduleName: 'memory_example'
-                                }))}
-                                className="bg-purple-50 p-4 rounded-lg border hover:bg-purple-100 transition-colors text-left"
-                            >
-                                <h4 className="font-medium text-purple-800">Memory Management</h4>
-                                <p className="text-sm text-purple-600 mt-1">kmalloc() and kfree() example</p>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Phase Selector Modal */}
             {showPhaseSelector && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-screen overflow-y-auto">
-                        <div className="p-6">
-                            <h2 className="text-2xl font-bold mb-4 text-center">Choose Your Learning Phase</h2>
-                            <p className="text-gray-600 text-center mb-6">
-                                Select any phase to start learning. All phases are unlocked - learn at your own pace!
-                            </p>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {Object.entries(phaseSystem).map(([phaseKey, phase]) => {
-                                    const progress = getPhaseProgress(phaseKey);
-                                    
-                                    return (
-                                        <div
-                                            key={phaseKey}
-                                            onClick={() => selectPhase(phaseKey)}
-                                            className="border-2 border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-500 hover:shadow-lg transition-all"
-                                        >
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <div className="text-3xl">{phase.icon}</div>
-                                                <div>
-                                                    <h3 className="font-semibold text-lg">{phase.name}</h3>
-                                                    <p className="text-sm text-gray-600">{phase.description}</p>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="mb-3">
-                                                <div className="flex justify-between items-center mb-1">
-                                                    <span className="text-sm font-medium">Your Progress</span>
-                                                    <span className="text-sm text-gray-600">{Math.round(progress * 100)}%</span>
-                                                </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                                    <div
-                                                        className="h-2 rounded-full bg-blue-500 transition-all duration-500"
-                                                        style={{ width: `${progress * 100}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="text-center">
-                                                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                                                    Start Learning
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            
-                            {userProfile.currentPhase && (
-                                <div className="mt-6 text-center">
-                                    <button
-                                        onClick={() => setShowPhaseSelector(false)}
-                                        className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    padding: '2rem'
+                }}>
+                    <div style={{
+                        ...premiumStyles.glassCard,
+                        width: '100%',
+                        maxWidth: '800px',
+                        maxHeight: '80vh',
+                        overflow: 'auto'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                            <h2 style={premiumStyles.headingLG}>Select Learning Phase</h2>
+                            <button
+                                style={{
+                                    ...premiumStyles.buttonSecondary,
+                                    padding: '0.5rem'
+                                }}
+                                onClick={() => setShowPhaseSelector(false)}
+                            >
+                                <span>✕</span>
+                            </button>
+                        </div>
+                        
+                        <div style={{ display: 'grid', gap: '1rem' }}>
+                            {Object.entries(phaseSystem).map(([phase, info]) => (
+                                <div
+                                    key={phase}
+                                    style={{
+                                        ...premiumStyles.glassCard,
+                                        cursor: 'pointer',
+                                        padding: '1.5rem',
+                                        border: userProfile.currentPhase === phase ? 
+                                            `2px solid ${PremiumStyles.colors.primary}` : 
+                                            `1px solid ${PremiumStyles.colors.border}`
+                                    }}
+                                    onClick={() => {
+                                        setUserProfile({...userProfile, currentPhase: phase});
+                                        setShowPhaseSelector(false);
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        Object.assign(e.currentTarget.style, premiumStyles.glassCardHover);
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        Object.assign(e.currentTarget.style, premiumStyles.glassCard);
+                                    }}
+                                >
+                                    <h3 style={premiumStyles.headingMD}>{info.name}</h3>
+                                    <p style={premiumStyles.textSecondary}>{info.description}</p>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+                                        <span style={{
+                                            ...premiumStyles.statusBadge,
+                                            background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
+                                            color: 'white',
+                                            border: 'none'
+                                        }}>
+                                            {info.problems?.length || 0} Problems
+                                        </span>
+                                        {userProfile.currentPhase === phase && (
+                                            <span style={{
+                                                ...premiumStyles.statusBadge,
+                                                background: `linear-gradient(135deg, ${PremiumStyles.colors.accent} 0%, ${PremiumStyles.colors.accentPurple} 100%)`,
+                                                color: 'white',
+                                                border: 'none'
+                                            }}>
+                                                <CheckCircle size={14} />
+                                                <span>Current</span>
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                            )}
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -8119,9 +8277,276 @@ MODULE_AUTHOR("Kernel Academy Student");`,
 
             {/* Concept Learning Modal */}
             {selectedConcept && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 overflow-y-auto">
-                    <div className="w-full max-w-6xl my-8">
-                        <ConceptLearner concept={selectedConcept} />
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                    backdropFilter: 'blur(8px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    padding: '2rem'
+                }}>
+                    <div style={{
+                        background: 'rgba(29, 29, 31, 0.95)',
+                        backdropFilter: 'blur(40px)',
+                        WebkitBackdropFilter: 'blur(40px)',
+                        borderRadius: '24px',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+                        padding: '2.5rem',
+                        width: '100%',
+                        maxWidth: '1000px',
+                        maxHeight: '90vh',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
+                        {/* Header */}
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'flex-start', 
+                            marginBottom: '2rem',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                            paddingBottom: '1.5rem'
+                        }}>
+                            <h2 style={{
+                                fontSize: 'clamp(1.5rem, 1.3rem + 1vw, 2rem)',
+                                fontWeight: 700,
+                                color: '#f5f5f7',
+                                margin: 0,
+                                letterSpacing: '-0.025em',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                            }}>
+                                {selectedConcept.title}
+                            </h2>
+                            <button
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                                    borderRadius: '12px',
+                                    padding: '0.75rem',
+                                    color: '#f5f5f7',
+                                    cursor: 'pointer',
+                                    fontSize: '1rem',
+                                    fontWeight: 500,
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    minWidth: '44px',
+                                    height: '44px'
+                                }}
+                                onClick={() => setSelectedConcept(null)}
+                                onMouseEnter={(e) => {
+                                    e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        
+                        {/* Scrollable Content */}
+                        <div style={{ 
+                            flex: 1, 
+                            overflow: 'auto',
+                            paddingRight: '1rem',
+                            marginRight: '-1rem'
+                        }}>
+                            {/* Description Section */}
+                            <div style={{ marginBottom: '2.5rem' }}>
+                                <h3 style={{
+                                    fontSize: '1.25rem',
+                                    fontWeight: 600,
+                                    color: '#f5f5f7',
+                                    margin: '0 0 1rem 0',
+                                    letterSpacing: '-0.02em',
+                                    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                                }}>
+                                    Description
+                                </h3>
+                                <p style={{
+                                    fontSize: '1rem',
+                                    lineHeight: '1.6',
+                                    color: 'rgba(245, 245, 247, 0.8)',
+                                    margin: 0,
+                                    fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif'
+                                }}>
+                                    {selectedConcept.description}
+                                </p>
+                            </div>
+                            
+                            {/* Explanation Section */}
+                            <div style={{ marginBottom: '2.5rem' }}>
+                                <h3 style={{
+                                    fontSize: '1.25rem',
+                                    fontWeight: 600,
+                                    color: '#f5f5f7',
+                                    margin: '0 0 1rem 0',
+                                    letterSpacing: '-0.02em',
+                                    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                                }}>
+                                    Explanation
+                                </h3>
+                                <div style={{
+                                    fontSize: '1rem',
+                                    lineHeight: '1.7',
+                                    color: 'rgba(245, 245, 247, 0.8)',
+                                    fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif'
+                                }}>
+                                    <ReactMarkdown
+                                        components={{
+                                            p: ({node, ...props}) => <p style={{ 
+                                                margin: '0 0 1.5rem 0',
+                                                lineHeight: '1.7'
+                                            }} {...props} />,
+                                            ul: ({node, ...props}) => <ul style={{ 
+                                                margin: '1rem 0 1.5rem 0', 
+                                                paddingLeft: '1.5rem',
+                                                listStyleType: 'disc'
+                                            }} {...props} />,
+                                            ol: ({node, ...props}) => <ol style={{ 
+                                                margin: '1rem 0 1.5rem 0', 
+                                                paddingLeft: '1.5rem'
+                                            }} {...props} />,
+                                            li: ({node, ...props}) => <li style={{ 
+                                                margin: '0 0 0.75rem 0',
+                                                lineHeight: '1.7',
+                                                listStyleType: 'inherit'
+                                            }} {...props} />,
+                                            strong: ({node, ...props}) => <strong style={{ 
+                                                color: '#f5f5f7', 
+                                                fontWeight: 600,
+                                                display: 'block',
+                                                marginBottom: '0.5rem',
+                                                marginTop: '1rem'
+                                            }} {...props} />,
+                                            em: ({node, ...props}) => <em style={{ 
+                                                color: '#f5f5f7', 
+                                                fontStyle: 'italic' 
+                                            }} {...props} />,
+                                            code: ({node, ...props}) => <code style={{ 
+                                                background: 'rgba(255, 255, 255, 0.1)', 
+                                                padding: '0.2rem 0.4rem', 
+                                                borderRadius: '4px', 
+                                                fontFamily: 'SF Mono, Monaco, monospace',
+                                                fontSize: '0.9em',
+                                                color: '#f5f5f7'
+                                            }} {...props} />,
+                                            h1: ({node, ...props}) => <h1 style={{ 
+                                                color: '#f5f5f7', 
+                                                fontWeight: 600,
+                                                fontSize: '1.2rem',
+                                                margin: '1.5rem 0 1rem 0'
+                                            }} {...props} />,
+                                            h2: ({node, ...props}) => <h2 style={{ 
+                                                color: '#f5f5f7', 
+                                                fontWeight: 600,
+                                                fontSize: '1.1rem',
+                                                margin: '1.5rem 0 1rem 0'
+                                            }} {...props} />,
+                                            h3: ({node, ...props}) => <h3 style={{ 
+                                                color: '#f5f5f7', 
+                                                fontWeight: 600,
+                                                fontSize: '1rem',
+                                                margin: '1.5rem 0 1rem 0'
+                                            }} {...props} />,
+                                            blockquote: ({node, ...props}) => <blockquote style={{
+                                                borderLeft: '3px solid rgba(255, 255, 255, 0.3)',
+                                                paddingLeft: '1rem',
+                                                margin: '1rem 0',
+                                                fontStyle: 'italic',
+                                                color: 'rgba(245, 245, 247, 0.7)'
+                                            }} {...props} />,
+                                            br: ({node, ...props}) => <br style={{ marginBottom: '0.5rem' }} {...props} />
+                                        }}
+                                    >
+                                        {selectedConcept.explanation}
+                                    </ReactMarkdown>
+                                </div>
+                            </div>
+                            
+                            {/* Code Example Section */}
+                            {selectedConcept.codeExample && (
+                                <div style={{ marginBottom: '2.5rem' }}>
+                                    <h3 style={{
+                                        fontSize: '1.25rem',
+                                        fontWeight: 600,
+                                        color: '#f5f5f7',
+                                        margin: '0 0 1rem 0',
+                                        letterSpacing: '-0.02em',
+                                        fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                                    }}>
+                                        Code Example
+                                    </h3>
+                                    <div style={{
+                                        background: 'rgba(0, 0, 0, 0.4)',
+                                        backdropFilter: 'blur(10px)',
+                                        borderRadius: '16px',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        padding: '1.5rem',
+                                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                                        fontFamily: 'SF Mono, Monaco, Menlo, "Ubuntu Mono", monospace',
+                                        overflow: 'auto'
+                                    }}>
+                                        <pre style={{
+                                            fontSize: '0.875rem',
+                                            lineHeight: '1.5',
+                                            color: '#f5f5f7',
+                                            margin: 0,
+                                            whiteSpace: 'pre-wrap',
+                                            wordBreak: 'break-word',
+                                            fontFamily: 'inherit'
+                                        }}>
+                                            {selectedConcept.codeExample}
+                                        </pre>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {/* Practice Exercises Section */}
+                            {selectedConcept.exercises && (
+                                <div>
+                                    <h3 style={{
+                                        fontSize: '1.25rem',
+                                        fontWeight: 600,
+                                        color: '#f5f5f7',
+                                        margin: '0 0 1rem 0',
+                                        letterSpacing: '-0.02em',
+                                        fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                                    }}>
+                                        Practice Exercises
+                                    </h3>
+                                    <ul style={{ 
+                                        fontSize: '1rem',
+                                        lineHeight: '1.6',
+                                        color: 'rgba(245, 245, 247, 0.8)',
+                                        fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+                                        paddingLeft: '1.5rem',
+                                        margin: 0
+                                    }}>
+                                        {selectedConcept.exercises.map((exercise, index) => (
+                                            <li key={index} style={{ 
+                                                marginBottom: '0.75rem',
+                                                listStyleType: 'disc'
+                                            }}>
+                                                {exercise}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
