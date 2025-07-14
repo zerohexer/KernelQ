@@ -320,9 +320,9 @@ const ChallengeView = ({
                                 margin: 0,
                                 listStyleType: 'none'
                             }}>
-                                {/* Legacy exactRequirements support */}
+                                {/* Show validation.exactRequirements if available */}
                                 {validation?.exactRequirements?.functionNames?.map((fn, idx) => (
-                                    <li key={`fn-${idx}`} style={{ 
+                                    <li key={idx} style={{ 
                                         marginBottom: '12px',
                                         position: 'relative',
                                         paddingLeft: '20px'
@@ -334,22 +334,22 @@ const ChallengeView = ({
                                             width: '6px',
                                             height: '6px',
                                             borderRadius: '50%',
-                                            background: 'rgba(255, 255, 255, 0.15)'
+                                            background: '#007aff'
                                         }} />
                                         Implement function: <code style={{ 
-                                            background: 'rgba(255, 255, 255, 0.1)',
-                                            border: '1px solid rgba(255, 255, 255, 0.2)',
+                                            background: 'rgba(0, 122, 255, 0.15)',
+                                            border: '1px solid rgba(0, 122, 255, 0.3)',
                                             padding: '4px 8px',
                                             borderRadius: '6px',
                                             fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: 'rgba(255, 255, 255, 0.9)',
+                                            color: '#007aff',
                                             fontSize: '0.875rem',
                                             fontWeight: 500
                                         }}>{fn}</code>
                                     </li>
                                 ))}
                                 {validation?.exactRequirements?.outputMessages?.map((msg, idx) => (
-                                    <li key={`msg-${idx}`} style={{ 
+                                    <li key={idx} style={{ 
                                         marginBottom: '12px',
                                         position: 'relative',
                                         paddingLeft: '20px'
@@ -376,7 +376,7 @@ const ChallengeView = ({
                                     </li>
                                 ))}
                                 {validation?.exactRequirements?.requiredIncludes?.map((inc, idx) => (
-                                    <li key={`inc-${idx}`} style={{ 
+                                    <li key={idx} style={{ 
                                         marginBottom: '12px',
                                         position: 'relative',
                                         paddingLeft: '20px'
@@ -403,12 +403,13 @@ const ChallengeView = ({
                                     </li>
                                 ))}
                                 
-                                {/* New inputOutput.requirements support (from displayRequirements) */}
-                                {inputOutput?.requirements?.map((req, idx) => (
-                                    <li key={`req-${idx}`} style={{ 
+                                {/* Show inputOutput.requirements only if exactRequirements doesn't exist */}
+                                {!validation?.exactRequirements && inputOutput?.requirements?.map((req, idx) => (
+                                    <li key={idx} style={{ 
                                         marginBottom: '12px',
                                         position: 'relative',
-                                        paddingLeft: '20px'
+                                        paddingLeft: '20px',
+                                        color: 'rgba(245, 245, 247, 0.8)'
                                     }}>
                                         <span style={{
                                             position: 'absolute',
@@ -417,14 +418,9 @@ const ChallengeView = ({
                                             width: '6px',
                                             height: '6px',
                                             borderRadius: '50%',
-                                            background: 'rgba(255, 255, 255, 0.15)'
+                                            background: '#30d158'
                                         }} />
-                                        <span style={{ 
-                                            color: 'rgba(245, 245, 247, 0.8)',
-                                            fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif'
-                                        }}>
-                                            {req}
-                                        </span>
+                                        {req}
                                     </li>
                                 ))}
                             </ul>
