@@ -36,23 +36,6 @@ const SemanticCodeEditor = ({
         };
     }, []);
 
-    // Suppress ResizeObserver errors during zoom/resize
-    useEffect(() => {
-        const resizeObserverErrorHandler = (e) => {
-            if (e.message === 'ResizeObserver loop completed with undelivered notifications.' || 
-                e.message === 'ResizeObserver loop limit exceeded') {
-                e.stopImmediatePropagation();
-                return false;
-            }
-        };
-
-        window.addEventListener('error', resizeObserverErrorHandler);
-        
-        return () => {
-            window.removeEventListener('error', resizeObserverErrorHandler);
-        };
-    }, []);
-
     const handleEditorDidMount = (editor, monaco) => {
         editorRef.current = editor;
 
@@ -353,31 +336,31 @@ const SemanticCodeEditor = ({
             parameterHints: { enabled: true }
         });
 
-        // Auto-resize functionality with debouncing
-        let resizeTimeout;
+        // Auto-resize functionality with safety checks
         const resizeEditor = () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                try {
-                    if (editor && !editor.isDisposed()) {
-                        editor.layout();
-                    }
-                } catch (error) {
-                    // Silently handle layout errors during rapid resize/zoom
-                    console.debug('Editor layout error (expected during zoom):', error);
+            try {
+                if (editor && editorRef.current === editor) {
+                    editor.layout();
                 }
-            }, 100);
+            } catch (error) {
+                // Silently handle layout errors
+                console.debug('Editor layout error:', error);
+            }
         };
 
         // Add resize listener
         resizeListenerRef.current = resizeEditor;
         window.addEventListener('resize', resizeEditor);
 
-        // Initial focus and validation
+        // Initial focus and validation with safety checks
         setTimeout(() => {
-            if (editor && !editor.isDisposed()) {
-                editor.focus();
-                updateMarkers();
+            try {
+                if (editor && editorRef.current === editor) {
+                    editor.focus();
+                    updateMarkers();
+                }
+            } catch (error) {
+                console.debug('Editor initialization error:', error);
             }
         }, 1000);
     };
