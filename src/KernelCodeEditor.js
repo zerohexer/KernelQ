@@ -367,7 +367,7 @@ const KernelCodeEditor = ({
             fontFamily: 'Monaco, Consolas, "Ubuntu Mono", monospace',
             tabSize: 4,
             insertSpaces: false,
-            automaticLayout: true,
+            automaticLayout: false, // FIXED: Disable automatic layout
             minimap: { enabled: true },
             wordWrap: 'on',
             lineNumbers: 'on',

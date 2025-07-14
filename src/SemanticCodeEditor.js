@@ -15,15 +15,15 @@ import {
     AUTOCOMPLETE_DATA
 } from './kernel-api-definitions.js';
 
-const SemanticCodeEditor = ({ 
-    value, 
-    onChange, 
-    height = '500px', 
-    theme = 'vs-dark',
-    readOnly = false,
-    placeholder = '',
-    className = ''
-}) => {
+const SemanticCodeEditor = ({
+                                value,
+                                onChange,
+                                height = '500px',
+                                theme = 'vs-dark',
+                                readOnly = false,
+                                placeholder = '',
+                                className = ''
+                            }) => {
     const editorRef = useRef(null);
     const resizeListenerRef = useRef(null);
 
@@ -33,6 +33,23 @@ const SemanticCodeEditor = ({
             if (resizeListenerRef.current) {
                 window.removeEventListener('resize', resizeListenerRef.current);
             }
+        };
+    }, []);
+
+    // Suppress ResizeObserver errors during zoom/resize
+    useEffect(() => {
+        const resizeObserverErrorHandler = (e) => {
+            if (e.message === 'ResizeObserver loop completed with undelivered notifications.' || 
+                e.message === 'ResizeObserver loop limit exceeded') {
+                e.stopImmediatePropagation();
+                return false;
+            }
+        };
+
+        window.addEventListener('error', resizeObserverErrorHandler);
+        
+        return () => {
+            window.removeEventListener('error', resizeObserverErrorHandler);
         };
     }, []);
 
@@ -177,9 +194,9 @@ const SemanticCodeEditor = ({
                 if (!word) return;
 
                 const allItems = [
-                    ...KERNEL_FUNCTIONS, 
-                    ...KERNEL_TYPES, 
-                    ...KERNEL_CONSTANTS, 
+                    ...KERNEL_FUNCTIONS,
+                    ...KERNEL_TYPES,
+                    ...KERNEL_CONSTANTS,
                     ...MODULE_MACROS,
                     ...FUNCTION_SIGNATURES,
                     ...CMAKE_KERNEL_DEFS.standardTypes,
@@ -293,7 +310,7 @@ const SemanticCodeEditor = ({
                     if (!requirementMet) {
                         const matchIndex = content.indexOf(practice.pattern);
                         const startPos = model.getPositionAt(matchIndex);
-                         diagnostics.push({
+                        diagnostics.push({
                             severity: monaco.MarkerSeverity.Warning,
                             startLineNumber: startPos.lineNumber,
                             startColumn: startPos.column,
@@ -336,9 +353,20 @@ const SemanticCodeEditor = ({
             parameterHints: { enabled: true }
         });
 
-        // Auto-resize functionality
+        // Auto-resize functionality with debouncing
+        let resizeTimeout;
         const resizeEditor = () => {
-            editor.layout();
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                try {
+                    if (editor && !editor.isDisposed()) {
+                        editor.layout();
+                    }
+                } catch (error) {
+                    // Silently handle layout errors during rapid resize/zoom
+                    console.debug('Editor layout error (expected during zoom):', error);
+                }
+            }, 100);
         };
 
         // Add resize listener
@@ -347,49 +375,17 @@ const SemanticCodeEditor = ({
 
         // Initial focus and validation
         setTimeout(() => {
-            editor.focus();
-            updateMarkers();
+            if (editor && !editor.isDisposed()) {
+                editor.focus();
+                updateMarkers();
+            }
         }, 1000);
     };
 
-    // Handle editor change with validation
+    // Handle editor change
     const handleEditorChange = (newValue, event) => {
         if (onChange) {
             onChange(newValue);
-        }
-
-        // Trigger validation on change
-        if (editorRef.current) {
-            const editor = editorRef.current;
-            clearTimeout(editor.validationTimeout);
-            editor.validationTimeout = setTimeout(() => {
-                const model = editor.getModel();
-                if (model && window.monaco) {
-                    // Re-run validation
-                    const diagnostics = [];
-                    const content = model.getValue();
-
-                    // Quick validation for common issues
-                    KERNEL_VIOLATIONS.forEach(violation => {
-                        if (typeof violation.pattern === 'string' && content.includes(violation.pattern)) {
-                            const index = content.indexOf(violation.pattern);
-                            const startPos = model.getPositionAt(index);
-                            const endPos = model.getPositionAt(index + violation.pattern.length);
-                            diagnostics.push({
-                                severity: violation.severity === 'error' ? 
-                                    window.monaco.MarkerSeverity.Error : window.monaco.MarkerSeverity.Warning,
-                                startLineNumber: startPos.lineNumber,
-                                startColumn: startPos.column,
-                                endLineNumber: endPos.lineNumber,
-                                endColumn: endPos.column,
-                                message: violation.message
-                            });
-                        }
-                    });
-
-                    window.monaco.editor.setModelMarkers(model, 'semantic-validator', diagnostics);
-                }
-            }, 300);
         }
     };
 
@@ -427,7 +423,7 @@ const SemanticCodeEditor = ({
                         comments: false,
                         strings: false
                     },
-                    parameterHints: { 
+                    parameterHints: {
                         enabled: true,
                         cycle: true
                     },
