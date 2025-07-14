@@ -292,7 +292,7 @@ const ChallengeView = ({
                         </p>
                     </div>
                     
-                    {(validation?.exactRequirements) && (
+                    {(validation?.exactRequirements || inputOutput?.requirements) && (
                         <div style={{
                             background: 'rgba(255, 255, 255, 0.05)',
                             backdropFilter: 'blur(20px)',
@@ -320,8 +320,9 @@ const ChallengeView = ({
                                 margin: 0,
                                 listStyleType: 'none'
                             }}>
-                                {validation.exactRequirements.functionNames?.map((fn, idx) => (
-                                    <li key={idx} style={{ 
+                                {/* Legacy exactRequirements support */}
+                                {validation?.exactRequirements?.functionNames?.map((fn, idx) => (
+                                    <li key={`fn-${idx}`} style={{ 
                                         marginBottom: '12px',
                                         position: 'relative',
                                         paddingLeft: '20px'
@@ -333,22 +334,22 @@ const ChallengeView = ({
                                             width: '6px',
                                             height: '6px',
                                             borderRadius: '50%',
-                                            background: '#007aff'
+                                            background: 'rgba(255, 255, 255, 0.15)'
                                         }} />
                                         Implement function: <code style={{ 
-                                            background: 'rgba(0, 122, 255, 0.15)',
-                                            border: '1px solid rgba(0, 122, 255, 0.3)',
+                                            background: 'rgba(255, 255, 255, 0.1)',
+                                            border: '1px solid rgba(255, 255, 255, 0.2)',
                                             padding: '4px 8px',
                                             borderRadius: '6px',
                                             fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#007aff',
+                                            color: 'rgba(255, 255, 255, 0.9)',
                                             fontSize: '0.875rem',
                                             fontWeight: 500
                                         }}>{fn}</code>
                                     </li>
                                 ))}
-                                {validation.exactRequirements.outputMessages?.map((msg, idx) => (
-                                    <li key={idx} style={{ 
+                                {validation?.exactRequirements?.outputMessages?.map((msg, idx) => (
+                                    <li key={`msg-${idx}`} style={{ 
                                         marginBottom: '12px',
                                         position: 'relative',
                                         paddingLeft: '20px'
@@ -374,8 +375,8 @@ const ChallengeView = ({
                                         }}>"{msg}"</code>
                                     </li>
                                 ))}
-                                {validation.exactRequirements.requiredIncludes?.map((inc, idx) => (
-                                    <li key={idx} style={{ 
+                                {validation?.exactRequirements?.requiredIncludes?.map((inc, idx) => (
+                                    <li key={`inc-${idx}`} style={{ 
                                         marginBottom: '12px',
                                         position: 'relative',
                                         paddingLeft: '20px'
@@ -399,6 +400,31 @@ const ChallengeView = ({
                                             fontSize: '0.875rem',
                                             fontWeight: 500
                                         }}>&lt;{inc}&gt;</code>
+                                    </li>
+                                ))}
+                                
+                                {/* New inputOutput.requirements support (from displayRequirements) */}
+                                {inputOutput?.requirements?.map((req, idx) => (
+                                    <li key={`req-${idx}`} style={{ 
+                                        marginBottom: '12px',
+                                        position: 'relative',
+                                        paddingLeft: '20px'
+                                    }}>
+                                        <span style={{
+                                            position: 'absolute',
+                                            left: 0,
+                                            top: '8px',
+                                            width: '6px',
+                                            height: '6px',
+                                            borderRadius: '50%',
+                                            background: 'rgba(255, 255, 255, 0.15)'
+                                        }} />
+                                        <span style={{ 
+                                            color: 'rgba(245, 245, 247, 0.8)',
+                                            fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif'
+                                        }}>
+                                            {req}
+                                        </span>
                                     </li>
                                 ))}
                             </ul>
@@ -7821,7 +7847,11 @@ MODULE_LICENSE("GPL");`,
                             {/* XP Card */}
                             <div style={{
                                 ...premiumStyles.statsCard,
-                                background: `linear-gradient(135deg, ${PremiumStyles.colors.primary}20 0%, ${PremiumStyles.colors.primaryDark}10 100%)`
+                                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%)',
+                                backdropFilter: 'blur(20px)',
+                                WebkitBackdropFilter: 'blur(20px)',
+                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                boxShadow: '0 8px 32px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.5rem' }}>
                                     <Sparkles size={24} color="rgba(255, 255, 255, 0.8)" />
