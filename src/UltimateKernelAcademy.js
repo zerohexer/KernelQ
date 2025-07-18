@@ -328,10 +328,10 @@ const UnlimitedKernelAcademy = () => {
     const getFilteredProblems = () => {
         return problemBank.filter(problem => {
             const phaseMatch = problemFilters.phase === 'all' || problem.phase === problemFilters.phase;
-            const difficultyMatch = problemFilters.difficulty === 'all' || problem.difficulty === problemFilters.difficulty;
+            const difficultyMatch = problemFilters.difficulty === 'all' || problem.difficulty === parseInt(problemFilters.difficulty);
             const completedMatch = problemFilters.completed === 'all' || 
                 (problemFilters.completed === 'completed' && completedChallenges.has(problem.id)) ||
-                (problemFilters.completed === 'not-completed' && !completedChallenges.has(problem.id));
+                (problemFilters.completed === 'incomplete' && !completedChallenges.has(problem.id));
             
             return phaseMatch && difficultyMatch && completedMatch;
         });
