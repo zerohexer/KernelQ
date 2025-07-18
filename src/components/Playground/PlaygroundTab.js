@@ -1,6 +1,6 @@
 import React from 'react';
 import { Play, Shuffle } from 'lucide-react';
-import SemanticCodeEditor from '../../SemanticCodeEditor';
+import SemanticCodeEditor from '../Editor/SemanticCodeEditor';
 import PremiumStyles from '../../styles/PremiumStyles';
 
 const PlaygroundTab = ({

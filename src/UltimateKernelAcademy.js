@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Code, Book, Target, Lightbulb } from 'lucide-react';
-import generatedProblems from './generated-problems.js';
+import generatedProblems from './data/generated-problems.js';
 
 // Extracted Components
 import { PremiumStyles, premiumStyles } from './styles/PremiumStyles.js';
