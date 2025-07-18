@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Target, Book, Star, Zap, Code, Terminal, Play, Timer, Shuffle } from 'lucide-react';
 import PremiumStyles from '../../styles/PremiumStyles';
 import ResizableSplitter from '../Layout/ResizableSplitter';
-import MultiFileEditor from '../../MultiFileEditor';
-import SemanticCodeEditor from '../../SemanticCodeEditor';
+import MultiFileEditor from '../Editor/MultiFileEditor';
+import SemanticCodeEditor from '../Editor/SemanticCodeEditor';
 import TestResultsView from './TestResultsView';
 
 const ChallengeView = ({

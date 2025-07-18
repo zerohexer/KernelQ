@@ -13,7 +13,7 @@ import {
     FUNCTION_SIGNATURES,
     CMAKE_KERNEL_DEFS,
     AUTOCOMPLETE_DATA
-} from './kernel-api-definitions.js';
+} from '../../data/kernel-api-definitions.js';
 
 const SemanticCodeEditor = ({
                                 value,
