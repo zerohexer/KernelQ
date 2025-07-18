@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120" height="100" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- Premium Material Gradients -->
+    <defs>
+        <!-- Apple-style K Gradients -->
+        <linearGradient id="appleSilverMain" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+            <stop offset="15%" style="stop-color:#f8f8f8;stop-opacity:0.95" />
+            <stop offset="35%" style="stop-color:#e8e8e8;stop-opacity:0.9" />
+            <stop offset="50%" style="stop-color:#d0d0d0;stop-opacity:0.85" />
+            <stop offset="70%" style="stop-color:#b8b8b8;stop-opacity:0.8" />
+            <stop offset="85%" style="stop-color:#a0a0a0;stop-opacity:0.75" />
+            <stop offset="100%" style="stop-color:#909090;stop-opacity:0.7" />
+        </linearGradient>
+        <radialGradient id="appleSilverHighlight" cx="30%" cy="20%" r="60%">
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.8" />
+            <stop offset="50%" style="stop-color:#f0f0f0;stop-opacity:0.4" />
+            <stop offset="100%" style="stop-color:transparent;stop-opacity:0" />
+        </radialGradient>
+        
+        <!-- Realistic Gold Cube Gradients -->
+        <linearGradient id="goldTopRealistic" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#fff4d6;stop-opacity:1" />
+            <stop offset="10%" style="stop-color:#ffe066;stop-opacity:0.95" />
+            <stop offset="25%" style="stop-color:#ffd700;stop-opacity:0.9" />
+            <stop offset="40%" style="stop-color:#ffcc00;stop-opacity:0.85" />
+            <stop offset="60%" style="stop-color:#ffb300;stop-opacity:0.8" />
+            <stop offset="80%" style="stop-color:#ff9500;stop-opacity:0.75" />
+            <stop offset="100%" style="stop-color:#e6850e;stop-opacity:0.7" />
+        </linearGradient>
+        <linearGradient id="goldLeftRealistic" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffcc33;stop-opacity:0.9" />
+            <stop offset="20%" style="stop-color:#ffb300;stop-opacity:0.85" />
+            <stop offset="40%" style="stop-color:#ff9500;stop-opacity:0.8" />
+            <stop offset="60%" style="stop-color:#e6850e;stop-opacity:0.7" />
+            <stop offset="80%" style="stop-color:#cc6600;stop-opacity:0.6" />
+            <stop offset="90%" style="stop-color:#8b4513;stop-opacity:0.5" />
+            <stop offset="100%" style="stop-color:#654321;stop-opacity:0.4" />
+        </linearGradient>
+        <linearGradient id="goldRightRealistic" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffb347;stop-opacity:0.9" />
+            <stop offset="25%" style="stop-color:#ff9500;stop-opacity:0.8" />
+            <stop offset="45%" style="stop-color:#e6850e;stop-opacity:0.7" />
+            <stop offset="65%" style="stop-color:#cc6600;stop-opacity:0.6" />
+            <stop offset="80%" style="stop-color:#8b4513;stop-opacity:0.5" />
+            <stop offset="90%" style="stop-color:#5d2f0a;stop-opacity:0.4" />
+            <stop offset="100%" style="stop-color:#2d1b0a;stop-opacity:0.3" />
+        </linearGradient>
+        
+        <!-- Metallic Highlights -->
+        <radialGradient id="goldTopHighlight" cx="40%" cy="30%" r="50%">
+            <stop offset="0%" style="stop-color:#fff9e6;stop-opacity:0.9" />
+            <stop offset="30%" style="stop-color:#ffe066;stop-opacity:0.6" />
+            <stop offset="70%" style="stop-color:#ffd700;stop-opacity:0.3" />
+            <stop offset="100%" style="stop-color:transparent;stop-opacity:0" />
+        </radialGradient>
+        <radialGradient id="goldLeftHighlight" cx="20%" cy="20%" r="40%">
+            <stop offset="0%" style="stop-color:#ffe066;stop-opacity:0.7" />
+            <stop offset="50%" style="stop-color:#ffcc00;stop-opacity:0.4" />
+            <stop offset="100%" style="stop-color:transparent;stop-opacity:0" />
+        </radialGradient>
+        <radialGradient id="goldRightHighlight" cx="80%" cy="20%" r="40%">
+            <stop offset="0%" style="stop-color:#ffcc00;stop-opacity:0.6" />
+            <stop offset="50%" style="stop-color:#ff9500;stop-opacity:0.3" />
+            <stop offset="100%" style="stop-color:transparent;stop-opacity:0" />
+        </radialGradient>
+        
+        <!-- Shadow and Depth Effects -->
+        <filter id="metallic-glow">
+            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+            <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <filter id="inner-shadow">
+            <feOffset dx="1" dy="1"/>
+            <feGaussianBlur stdDeviation="1" result="offset-blur"/>
+            <feFlood flood-color="#000000" flood-opacity="0.3"/>
+            <feComposite in2="offset-blur" operator="in"/>
+            <feMerge>
+                <feMergeNode/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+    
+    <!-- Apple-style K Letter with Realistic Materials -->
+    <g>
+        <!-- Main K shape with premium gradient -->
+        <path d="M15 15 L15 85 L25 85 L25 55 L45 85 L55 85 L35 55 L55 15 L45 15 L28 45 L25 35 L25 15 Z" 
+              fill="url(#appleSilverMain)" 
+              stroke="rgba(200,200,200,0.5)" 
+              stroke-width="0.3"
+              filter="url(#inner-shadow)"/>
+        <!-- Metallic highlight overlay -->
+        <path d="M15 15 L15 85 L25 85 L25 55 L45 85 L55 85 L35 55 L55 15 L45 15 L28 45 L25 35 L25 15 Z" 
+              fill="url(#appleSilverHighlight)" 
+              opacity="0.8"/>
+        <!-- Sharp edge highlights -->
+        <path d="M15 15 L25 15 L25 20 L20 20 Z" fill="rgba(255,255,255,0.9)"/>
+        <path d="M50 15 L55 15 L55 20 L50 20 Z" fill="rgba(255,255,255,0.9)"/>
+        <path d="M15 80 L25 80 L25 85 L15 85 Z" fill="rgba(180,180,180,0.8)"/>
+    </g>
+    
+    <!-- Realistic Metallic Gold Cube -->
+    <g transform="translate(45, 15) scale(0.6)">
+        <!-- Top face - Bright metallic gold -->
+        <g>
+            <path d="M20 20 L60 0 L100 20 L60 40 Z" 
+                  fill="url(#goldTopRealistic)" 
+                  stroke="rgba(255,215,0,0.6)" 
+                  stroke-width="0.8"
+                  filter="url(#metallic-glow)"/>
+            <path d="M20 20 L60 0 L100 20 L60 40 Z" 
+                  fill="url(#goldTopHighlight)" 
+                  opacity="0.7"/>
+            <!-- Top face edge highlights -->
+            <path d="M20 20 L60 0 L65 2 L22 22 Z" fill="rgba(255,255,255,0.4)"/>
+            <path d="M95 18 L100 20 L60 40 L58 38 Z" fill="rgba(255,215,0,0.8)"/>
+        </g>
+        
+        <!-- Left face - Gold fading to bronze -->
+        <g>
+            <path d="M20 20 L60 40 L60 100 L20 80 Z" 
+                  fill="url(#goldLeftRealistic)" 
+                  stroke="rgba(139,69,19,0.5)" 
+                  stroke-width="0.8"/>
+            <path d="M20 20 L60 40 L60 100 L20 80 Z" 
+                  fill="url(#goldLeftHighlight)" 
+                  opacity="0.6"/>
+            <!-- Left face edge details -->
+            <path d="M20 20 L22 22 L22 82 L20 80 Z" fill="rgba(255,204,0,0.6)"/>
+            <path d="M58 98 L60 100 L60 40 L58 42 Z" fill="rgba(101,67,33,0.7)"/>
+        </g>
+        
+        <!-- Right face - Gold fading to dark bronze -->
+        <g>
+            <path d="M60 40 L100 20 L100 80 L60 100 Z" 
+                  fill="url(#goldRightRealistic)" 
+                  stroke="rgba(45,27,10,0.6)" 
+                  stroke-width="0.8"/>
+            <path d="M60 40 L100 20 L100 80 L60 100 Z" 
+                  fill="url(#goldRightHighlight)" 
+                  opacity="0.5"/>
+            <!-- Right face edge shadows -->
+            <path d="M98 78 L100 80 L100 20 L98 22 Z" fill="rgba(45,27,10,0.8)"/>
+            <path d="M60 98 L62 96 L62 42 L60 40 Z" fill="rgba(139,69,19,0.6)"/>
+        </g>
+        
+        <!-- Detailed Grid Pattern -->
+        <g stroke-width="0.3" fill="none" opacity="0.8">
+            <!-- Top face detailed grid -->
+            <g stroke="rgba(255,255,255,0.4)">
+                <path d="M25 12.5 L65 32.5 M30 10 L70 30 M35 7.5 L75 27.5 M40 5 L80 25 M45 2.5 L85 22.5"/>
+                <path d="M32.5 17.5 L72.5 7.5 M37.5 22.5 L77.5 12.5 M42.5 27.5 L82.5 17.5 M47.5 32.5 L87.5 22.5"/>
+            </g>
+            <!-- Left face detailed grid -->
+            <g stroke="rgba(139,69,19,0.3)">
+                <path d="M20 30 L60 50 M20 40 L60 60 M20 50 L60 70 M20 60 L60 80 M20 70 L60 90"/>
+                <path d="M25 22.5 L25 82.5 M30 25 L30 85 M35 27.5 L35 87.5 M40 30 L40 90 M45 32.5 L45 92.5 M50 35 L50 95 M55 37.5 L55 97.5"/>
+            </g>
+            <!-- Right face detailed grid -->
+            <g stroke="rgba(45,27,10,0.4)">
+                <path d="M65 22.5 L65 82.5 M70 25 L70 85 M75 27.5 L75 87.5 M80 30 L80 90 M85 32.5 L85 92.5 M90 35 L90 95 M95 37.5 L95 97.5"/>
+                <path d="M60 50 L100 30 M60 60 L100 40 M60 70 L100 50 M60 80 L100 60 M60 90 L100 70"/>
+            </g>
+        </g>
+        
+        <!-- Central premium glow with multiple layers -->
+        <g>
+            <circle cx="60" cy="60" r="8" 
+                    fill="rgba(255,215,0,0.3)" 
+                    style="filter: blur(4px);"/>
+            <circle cx="60" cy="60" r="5" 
+                    fill="rgba(255,255,255,0.4)" 
+                    style="filter: blur(2px);"/>
+            <circle cx="60" cy="60" r="2.5" 
+                    fill="rgba(255,255,255,0.9)"/>
+            <circle cx="58" cy="58" r="1" 
+                    fill="rgba(255,255,255,1)"/>
+        </g>
+        
+        <!-- Additional metallic reflections -->
+        <g opacity="0.6">
+            <path d="M30 8 L35 6 L37 8 L32 10 Z" fill="rgba(255,255,255,0.8)"/>
+            <path d="M75 15 L80 13 L82 15 L77 17 Z" fill="rgba(255,255,255,0.7)"/>
+            <path d="M25 35 L27 37 L27 45 L25 43 Z" fill="rgba(255,204,0,0.5)"/>
+            <path d="M95 45 L97 47 L97 55 L95 53 Z" fill="rgba(139,69,19,0.6)"/>
+        </g>
+    </g>
+</svg>

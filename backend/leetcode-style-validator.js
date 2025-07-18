@@ -836,8 +836,24 @@ class LeetCodeStyleValidator {
         return feedback;
     }
 
+    // Helper method to extract code string from both legacy and multi-file formats
+    extractCodeString(codeOrFiles) {
+        if (typeof codeOrFiles === 'string') {
+            // Legacy single-file format
+            return codeOrFiles;
+        } else if (Array.isArray(codeOrFiles)) {
+            // Multi-file format: combine all non-readonly C files
+            return codeOrFiles
+                .filter(file => !file.readOnly && (file.name.endsWith('.c') || file.name.endsWith('.h')))
+                .map(file => file.content)
+                .join('\n');
+        }
+        return '';
+    }
+
     // Main validation function - LeetCode style
-    async validateSolution(code, problemId, moduleName) {
+    // Supports both legacy single-file and new multi-file formats
+    async validateSolution(codeOrFiles, problemId, moduleName) {
         const sessionId = this.generateSessionId();
         const results = {
             sessionId,
@@ -864,7 +880,7 @@ class LeetCodeStyleValidator {
             }
 
             // Step 2: Pre-compilation validation
-            const preValidation = await this.preCompilationValidation(code, testDef);
+            const preValidation = await this.preCompilationValidation(codeOrFiles, testDef);
             results.testResults.push(...preValidation.tests);
             
             if (preValidation.criticalFailure) {
@@ -876,7 +892,7 @@ class LeetCodeStyleValidator {
             // Step 3: Compilation (with testScenario support for kernel_project_test)
             const kernelProjectTest = testDef.testCases?.find(tc => tc.type === 'kernel_project_test');
             const testScenario = kernelProjectTest?.testScenario || null;
-            const compilation = await this.compileModule(code, moduleName, sessionId, testScenario);
+            const compilation = await this.compileModule(codeOrFiles, moduleName, sessionId, testScenario);
             results.compilationResult = compilation;
             
             if (!compilation.success) {
@@ -916,7 +932,7 @@ class LeetCodeStyleValidator {
             // Add original code to directResults for code analysis tests
             const directResultsWithCode = {
                 ...compilation.directResults,
-                code: code
+                code: codeOrFiles
             };
             const postTests = await this.analyzeDirectResults(
                 directResultsWithCode, 
@@ -943,15 +959,18 @@ class LeetCodeStyleValidator {
         return results;
     }
 
-    async preCompilationValidation(code, testDef) {
+    async preCompilationValidation(codeOrFiles, testDef) {
         const results = {
             tests: [],
             criticalFailure: false,
             feedback: []
         };
 
+        // Convert to string for security and requirements checking
+        const codeString = this.extractCodeString(codeOrFiles);
+
         // Security checks
-        const securityIssues = this.checkSecurity(code);
+        const securityIssues = this.checkSecurity(codeString);
         if (securityIssues.length > 0) {
             results.criticalFailure = true;
             results.feedback.push({
@@ -964,7 +983,7 @@ class LeetCodeStyleValidator {
 
         // Check exact requirements if defined (non-critical for pre-compilation)
         if (testDef.exactRequirements) {
-            const exactChecks = await this.checkExactRequirements(code, testDef.exactRequirements);
+            const exactChecks = await this.checkExactRequirements(codeString, testDef.exactRequirements);
             results.tests.push(...exactChecks.tests);
             
             // Don't fail pre-compilation on exact requirements - save for post-compilation
@@ -1087,7 +1106,7 @@ class LeetCodeStyleValidator {
                         testResult = this.analyzeDirectStructure(output, testCase);
                         break;
                     case 'code_analysis':
-                        testResult = this.analyzeCodeAnalysis(directResults.code || '', testCase);
+                        testResult = this.analyzeCodeAnalysis(this.extractCodeString(directResults.code || ''), testCase);
                         break;
                     case 'variable_check':
                         testResult = this.analyzeVariableCheck(output, testCase);
@@ -1536,10 +1555,10 @@ class LeetCodeStyleValidator {
         return issues;
     }
 
-    async compileModule(code, moduleName, sessionId, testScenario = null) {
+    async compileModule(codeOrFiles, moduleName, sessionId, testScenario = null) {
         try {
             console.log(`🔨 Direct Compiling module: ${moduleName}`);
-            const result = await this.directCompiler.compileKernelModule(code, moduleName, testScenario);
+            const result = await this.directCompiler.compileKernelModule(codeOrFiles, moduleName, testScenario);
             
             if (result.success) {
                 return {
