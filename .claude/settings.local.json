@@ -38,7 +38,14 @@
       "Bash(git config:*)",
       "Bash(git pull:*)",
       "Bash(npm uninstall:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(./troubleshoot-kernelq.sh:*)",
+      "Bash(nslookup:*)",
+      "Bash(./start-kernelq.sh)",
+      "Bash(cloudflared tunnel:*)",
+      "Bash(convert:*)",
+      "Bash(pgrep:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }

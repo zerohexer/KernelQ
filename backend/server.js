@@ -34,23 +34,32 @@ app.use(express.json({ limit: '10mb' }));
 
 // New comprehensive validation endpoint - LeetCode style with exact requirements
 app.post('/api/validate-solution-comprehensive', async (req, res) => {
-    const { code, moduleName, problemId } = req.body;
+    const { code, files, moduleName, problemId } = req.body;
     
-    if (!code || !moduleName || !problemId) {
+    // Support both legacy single-file and new multi-file formats
+    const codeOrFiles = files || code;
+    
+    if (!codeOrFiles || !moduleName || !problemId) {
         return res.status(400).json({ 
             success: false, 
-            error: 'Code, module name, and problem ID are required' 
+            error: 'Code/files, module name, and problem ID are required' 
         });
     }
 
     try {
         console.log(`🔍 Starting comprehensive validation for problem: ${problemId} (type: ${typeof problemId})`);
-        console.log(`📝 Code length: ${code.length} characters`);
+        
+        if (Array.isArray(codeOrFiles)) {
+            console.log(`📁 Multi-file project with ${codeOrFiles.length} files`);
+        } else {
+            console.log(`📝 Single-file project with ${codeOrFiles.length} characters`);
+        }
+        
         console.log(`🏗️ Module name: ${moduleName}`);
         
         // Use the new comprehensive LeetCode-style validator
         const validationResults = await leetcodeValidator.validateSolution(
-            code, 
+            codeOrFiles, 
             problemId, 
             moduleName
         );
@@ -75,48 +84,78 @@ app.post('/api/validate-solution-comprehensive', async (req, res) => {
 
 // Real kernel module compilation endpoint using direct compilation
 app.post('/api/compile-kernel-module', async (req, res) => {
-    const { code, moduleName, problemId } = req.body;
+    const { code, files, moduleName, problemId } = req.body;
     
-    if (!code || !moduleName) {
+    // Support both legacy single-file and new multi-file formats
+    const codeOrFiles = files || code;
+    
+    if (!codeOrFiles || !moduleName) {
         return res.status(400).json({ 
             success: false, 
-            error: 'Code and module name are required' 
+            error: 'Code/files and module name are required' 
         });
     }
 
     try {
-        // Use comprehensive validation (QEMU-based) with proper testScenario handling
-        console.log(`🔄 Using comprehensive validation for problem: ${problemId}`);
-        console.log(`📝 Code length: ${code.length} characters`);
-        console.log(`🏗️ Module name: ${moduleName}`);
-        
-        const validationResults = await leetcodeValidator.validateSolution(
-            code, 
-            problemId || 'generic', // Use generic if no problemId
-            moduleName
-        );
-        
-        console.log(`📊 Validation result: ${validationResults.overallResult}`);
-        console.log(`🔢 Score: ${validationResults.score}/${validationResults.maxScore}`);
-        if (validationResults.feedback && validationResults.feedback.length > 0) {
-            console.log(`💬 Feedback:`, validationResults.feedback.map(f => f.message));
+        // ALWAYS use comprehensive validation (QEMU-based)
+        if (true) { // Always use QEMU validation instead of host compilation
+            console.log(`🔄 Redirecting to comprehensive validation for problem: ${problemId}`);
+            
+            if (Array.isArray(codeOrFiles)) {
+                console.log(`📁 Multi-file project with ${codeOrFiles.length} files`);
+            } else {
+                console.log(`📝 Single-file project with ${codeOrFiles.length} characters`);
+            }
+            
+            console.log(`🏗️ Module name: ${moduleName}`);
+            
+            const validationResults = await leetcodeValidator.validateSolution(
+                codeOrFiles, 
+                problemId || 'generic', // Use generic if no problemId
+                moduleName
+            );
+            
+            console.log(`📊 Validation result: ${validationResults.overallResult}`);
+            console.log(`🔢 Score: ${validationResults.score}/${validationResults.maxScore}`);
+            if (validationResults.feedback && validationResults.feedback.length > 0) {
+                console.log(`💬 Feedback:`, validationResults.feedback.map(f => f.message));
+            }
+            
+            // Format response to match expected compile format
+            const response = {
+                success: validationResults.overallResult === 'ACCEPTED' || 
+                        validationResults.overallResult === 'PARTIAL_CREDIT',
+                output: validationResults.feedback.map(f => f.message).join('\n'),
+                stage: 'comprehensive_validation',
+                validationResults: validationResults,
+                score: validationResults.score,
+                maxScore: validationResults.maxScore
+            };
+            
+            if (response.success) {
+                res.json(response);
+            } else {
+                res.status(400).json(response);
+            }
+            return;
         }
+
+        // Fallback to basic compilation for legacy support
+        const securityCheck = validateKernelCode(code);
+        if (!securityCheck.safe) {
+            return res.status(400).json({
+                success: false,
+                error: `Security violation: ${securityCheck.reason}`,
+                stage: 'security_check'
+            });
+        }
+
+        const result = await compiler.compileKernelModule(code, moduleName);
         
-        // Format response to match expected compile format
-        const response = {
-            success: validationResults.overallResult === 'ACCEPTED' || 
-                    validationResults.overallResult === 'PARTIAL_CREDIT',
-            output: validationResults.feedback.map(f => f.message).join('\n'),
-            stage: 'comprehensive_validation',
-            validationResults: validationResults,
-            score: validationResults.score,
-            maxScore: validationResults.maxScore
-        };
-        
-        if (response.success) {
-            res.json(response);
+        if (result.success) {
+            res.json(result);
         } else {
-            res.status(400).json(response);
+            res.status(400).json(result);
         }
 
     } catch (error) {

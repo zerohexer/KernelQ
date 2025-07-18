@@ -127,6 +127,20 @@ class FrontendGenerator {
             skills: problem.skills || []
         };
 
+        // Add multi-file support
+        if (problem.files) {
+            frontendProblem.files = problem.files;
+        }
+        
+        if (problem.mainFile) {
+            frontendProblem.mainFile = problem.mainFile;
+        }
+
+        // Add required files for file creation challenges
+        if (problem.requiredFiles) {
+            frontendProblem.requiredFiles = problem.requiredFiles;
+        }
+
         // --- START OF THE FIX ---
         // The original function was missing this block.
         // This ensures the complete validation structure, including test scenarios and timeouts,
