@@ -211,7 +211,7 @@ export default problemBank;
 
     updateUltimateKernelAcademy(problems) {
         const frontendCode = this.generateFrontendCode(problems);
-        const outputPath = path.join(__dirname, '../src/generated-problems.js');
+        const outputPath = path.join(__dirname, '../src/data/generated-problems.js');
         
         fs.writeFileSync(outputPath, frontendCode);
         console.log(`✅ Generated frontend problems: ${outputPath}`);
@@ -219,7 +219,7 @@ export default problemBank;
         
         // Generate update instructions
         console.log('\n📝 To use in UltimateKernelAcademy.js:');
-        console.log('1. Import: import problemBank from "./generated-problems.js"');
+        console.log('1. Import: import problemBank from "./data/generated-problems.js"');
         console.log('2. Replace the existing problemBank array with the imported one');
     }
 
