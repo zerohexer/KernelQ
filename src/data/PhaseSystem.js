@@ -1,9 +1,9 @@
-// COMPREHENSIVE PHASE SYSTEM - From Zero to Professional Kernel Developer
+// KERNEL DEVELOPMENT SPECIALIZATIONS - Independent Learning Areas
 const phaseSystem = {
     foundations: {
-        name: "Phase 1: C Programming Foundations",
+        name: "Foundations",
         icon: "🏗️",
-        description: "Master C programming essentials for kernel development",
+        description: "C programming essentials for kernel development",
         level: 1,
         unlocked: true,
         concepts: [
@@ -23,9 +23,9 @@ const phaseSystem = {
     },
     
     kernel_core: {
-        name: "Phase 2: Kernel Introduction",
-        icon: "🔧",
-        description: "Understanding kernel architecture and your first module",
+        name: "Kernel Core",
+        icon: "🔧", 
+        description: "Kernel architecture and module development",
         level: 2,
         unlocked: true,
         concepts: [
@@ -39,15 +39,15 @@ const phaseSystem = {
             { name: 'proc filesystem', difficulty: 3, essential: false, topics: ['proc entries', 'seq_file', 'User interaction'] }
         ],
         skills: ['Module development', 'Kernel debugging', 'System architecture'],
-        prerequisites: ['foundations'],
+        prerequisites: [],
         objectives: 'Create and load kernel modules with confidence, understand kernel-user boundary',
         industryRelevance: 'Required for driver development roles'
     },
 
     memory_mgmt: {
-        name: "Phase 3: Memory Management",
+        name: "Memory Management",
         icon: "💾",
-        description: "Master kernel memory allocation and virtual memory",
+        description: "Kernel memory allocation and virtual memory",
         level: 3,
         unlocked: true,
         concepts: [
@@ -61,16 +61,16 @@ const phaseSystem = {
             { name: 'Copy to/from User', difficulty: 4, essential: true, topics: ['Access checks', 'Page faults', 'Kernel hardening'] }
         ],
         skills: ['Memory allocation', 'DMA programming', 'Performance optimization'],
-        prerequisites: ['kernel_core'],
+        prerequisites: [],
         objectives: 'Efficiently manage memory in kernel space like professional drivers',
         industryRelevance: 'Critical for NVIDIA GPU drivers, Intel graphics, storage systems'
     },
 
     drivers: {
-        name: "Phase 4: Device Drivers",  
+        name: "Device Drivers",  
         icon: "⚡",
-        description: "Build real device drivers for hardware interaction",
-        level: 4,
+        description: "Hardware interaction and device driver development",
+        level: 3,
         unlocked: true,
         concepts: [
             { name: 'Character Devices', difficulty: 4, essential: true, topics: ['cdev structure', 'File operations', 'Device nodes'] },
@@ -83,16 +83,16 @@ const phaseSystem = {
             { name: 'USB Drivers', difficulty: 7, essential: false, topics: ['USB subsystem', 'URBs', 'Endpoint handling'] }
         ],
         skills: ['Hardware interfacing', 'Driver architecture', 'Real-world development'],
-        prerequisites: ['memory_mgmt'],
+        prerequisites: [],
         objectives: 'Build production-quality device drivers for real hardware',
         industryRelevance: 'Core skill for hardware companies like Intel, NVIDIA, AMD'
     },
 
     synchronization: {
-        name: "Phase 5: Synchronization & Concurrency",
+        name: "Synchronization & Concurrency",
         icon: "🔐",
-        description: "Master multi-core programming and race condition prevention",
-        level: 5,
+        description: "Multi-core programming and race condition prevention",
+        level: 4,
         unlocked: true,
         concepts: [
             { name: 'Atomic Operations', difficulty: 5, essential: true, topics: ['Hardware atomics', 'Memory ordering', 'Lock-free counters'] },
@@ -105,16 +105,16 @@ const phaseSystem = {
             { name: 'Workqueues', difficulty: 5, essential: true, topics: ['Deferred work', 'System workqueues', 'Custom workqueues'] }
         ],
         skills: ['Concurrency control', 'Performance optimization', 'Multi-core programming'],
-        prerequisites: ['drivers'],
+        prerequisites: [],
         objectives: 'Write race-condition-free code suitable for high-performance systems',
         industryRelevance: 'Essential for scalable systems at Google, Facebook, server companies'
     },
 
     networking: {
-        name: "Phase 6: Network Programming",
+        name: "Network Programming",
         icon: "🌐",
-        description: "Advanced networking and protocol implementation",
-        level: 6,
+        description: "Network protocols and high-performance networking",
+        level: 4,
         unlocked: true,
         concepts: [
             { name: 'Socket Buffers (skb)', difficulty: 6, essential: true, topics: ['skb structure', 'Data manipulation', 'Memory management'] },
@@ -127,16 +127,16 @@ const phaseSystem = {
             { name: 'XDP (eXpress Data Path)', difficulty: 9, essential: false, topics: ['Bypass networking', 'User-space drivers', 'DPDK integration'] }
         ],
         skills: ['Network programming', 'Protocol development', 'High-performance networking'],
-        prerequisites: ['synchronization'],
+        prerequisites: [],
         objectives: 'Develop high-performance networking components',
         industryRelevance: 'Critical for cloud providers, CDN companies, network equipment vendors'
     },
 
     filesystems: {
-        name: "Phase 7: Filesystems & Storage",
+        name: "Filesystems & Storage",
         icon: "📁", 
-        description: "Implement filesystems and storage subsystems",
-        level: 7,
+        description: "Filesystem implementation and storage subsystems",
+        level: 5,
         unlocked: true,
         concepts: [
             { name: 'VFS (Virtual File System)', difficulty: 7, essential: true, topics: ['VFS layer', 'Super blocks', 'Dentries'] },
@@ -149,16 +149,16 @@ const phaseSystem = {
             { name: 'Storage Performance', difficulty: 8, essential: false, topics: ['I/O patterns', 'Caching strategies', 'SSD optimization'] }
         ],
         skills: ['Filesystem development', 'Storage optimization', 'I/O performance'],
-        prerequisites: ['networking'],
+        prerequisites: [],
         objectives: 'Design and implement efficient storage solutions',
         industryRelevance: 'Important for storage companies, database vendors, cloud storage'
     },
 
     security: {
-        name: "Phase 8: Security & Hardening",
+        name: "Security & Hardening",
         icon: "🛡️",
-        description: "Kernel security, exploit mitigation, and hardening",
-        level: 8,
+        description: "Kernel security and exploit mitigation",
+        level: 6,
         unlocked: true,
         concepts: [
             { name: 'Kernel Address Sanitizer', difficulty: 6, essential: true, topics: ['KASAN', 'Use-after-free', 'Buffer overflows'] },
@@ -171,16 +171,16 @@ const phaseSystem = {
             { name: 'Vulnerability Analysis', difficulty: 8, essential: true, topics: ['Static analysis', 'Fuzzing', 'CVE assessment'] }
         ],
         skills: ['Security assessment', 'Exploit mitigation', 'Secure coding'],
-        prerequisites: ['filesystems'],
+        prerequisites: [],
         objectives: 'Write secure kernel code and identify vulnerabilities',
         industryRelevance: 'Critical for security companies, government contractors, enterprise vendors'
     },
 
     performance: {
-        name: "Phase 9: Performance & Optimization",
+        name: "Performance & Optimization",
         icon: "⚡",
-        description: "Advanced performance tuning and optimization techniques",
-        level: 9,
+        description: "Advanced performance tuning and optimization",
+        level: 7,
         unlocked: true,
         concepts: [
             { name: 'CPU Cache Optimization', difficulty: 8, essential: true, topics: ['Cache hierarchies', 'False sharing', 'Prefetching'] },
@@ -193,16 +193,16 @@ const phaseSystem = {
             { name: 'Real-time Constraints', difficulty: 8, essential: false, topics: ['RT kernel', 'Latency', 'Determinism'] }
         ],
         skills: ['Performance analysis', 'Optimization techniques', 'Profiling'],
-        prerequisites: ['security'],
+        prerequisites: [],
         objectives: 'Optimize kernel code for maximum performance',
         industryRelevance: 'Essential for HPC, gaming, financial trading systems'
     },
 
     professional: {
-        name: "Phase 10: Professional Development",
+        name: "Professional Development",
         icon: "🎓",
         description: "Enterprise-level kernel development and contribution",
-        level: 10,
+        level: 8,
         unlocked: true,
         concepts: [
             { name: 'Kernel Contribution Process', difficulty: 6, essential: true, topics: ['LKML', 'Git workflow', 'Patch submission'] },
@@ -215,9 +215,31 @@ const phaseSystem = {
             { name: 'Community Engagement', difficulty: 5, essential: true, topics: ['Conferences', 'Mailing lists', 'Mentoring'] }
         ],
         skills: ['Open source contribution', 'Enterprise development', 'Team collaboration'],
-        prerequisites: ['performance'],
+        prerequisites: [],
         objectives: 'Ready to contribute to Linux kernel and work at major tech companies',
         industryRelevance: 'Prepares for senior roles at NVIDIA, Intel, Canonical, SUSE, Red Hat'
+    },
+
+    gpu_drivers: {
+        name: "GPU Drivers",
+        icon: "🎮",
+        description: "GPU driver development with real Linux kernel code",
+        level: 9,
+        unlocked: true,
+        concepts: [
+            { name: 'AMD GPU Architecture', difficulty: 9, essential: true, topics: ['AMDGPU driver', 'GEM/TTM', 'Command submission'] },
+            { name: 'GPU Memory Management', difficulty: 8, essential: true, topics: ['VRAM allocation', 'GTT domains', 'Page tables'] },
+            { name: 'DRM Framework', difficulty: 8, essential: true, topics: ['DRM subsystem', 'Mode setting', 'Atomic operations'] },
+            { name: 'GPU Scheduling', difficulty: 9, essential: true, topics: ['Hardware queues', 'Context switching', 'Preemption'] },
+            { name: 'Power Management', difficulty: 8, essential: true, topics: ['Dynamic clocking', 'Thermal management', 'Power states'] },
+            { name: 'Display Pipeline', difficulty: 8, essential: false, topics: ['CRTC', 'Planes', 'Connectors'] },
+            { name: 'Compute/OpenCL', difficulty: 9, essential: false, topics: ['Compute queues', 'HSA', 'ROCm integration'] },
+            { name: 'GPU Firmware', difficulty: 9, essential: false, topics: ['Microcode loading', 'PSP', 'SMU communication'] }
+        ],
+        skills: ['GPU architecture', 'Graphics programming', 'Hardware acceleration'],
+        prerequisites: [],
+        objectives: 'Contribute to real GPU drivers like AMD AMDGPU or Intel i915',
+        industryRelevance: 'Direct path to AMD, NVIDIA, Intel graphics teams'
     }
 };
 

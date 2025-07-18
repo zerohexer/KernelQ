@@ -17,11 +17,10 @@
     "phase": {
       "type": "string",
       "enum": [
-        "foundations", "intermediate", "advanced", "expert", "professional",
-        "kernel_core", "drivers", "synchronization", "filesystems", 
-        "memory_mgmt", "networking", "performance", "security"
+        "foundations", "kernel_core", "memory_mgmt", "drivers", "synchronization",
+        "networking", "filesystems", "security", "performance", "professional", "gpu_drivers"
       ],
-      "description": "Learning phase"
+      "description": "Learning specialization/category"
     },
     "difficulty": {
       "type": "integer",
