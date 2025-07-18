@@ -22,7 +22,7 @@ const phaseSystem = {
         industryRelevance: 'Essential for all kernel roles at tech companies'
     },
     
-    kernelIntro: {
+    kernel_core: {
         name: "Phase 2: Kernel Introduction",
         icon: "🔧",
         description: "Understanding kernel architecture and your first module",
@@ -44,7 +44,7 @@ const phaseSystem = {
         industryRelevance: 'Required for driver development roles'
     },
 
-    memoryMgmt: {
+    memory_mgmt: {
         name: "Phase 3: Memory Management",
         icon: "💾",
         description: "Master kernel memory allocation and virtual memory",
@@ -61,13 +61,13 @@ const phaseSystem = {
             { name: 'Copy to/from User', difficulty: 4, essential: true, topics: ['Access checks', 'Page faults', 'Kernel hardening'] }
         ],
         skills: ['Memory allocation', 'DMA programming', 'Performance optimization'],
-        prerequisites: ['kernelIntro'],
+        prerequisites: ['kernel_core'],
         objectives: 'Efficiently manage memory in kernel space like professional drivers',
         industryRelevance: 'Critical for NVIDIA GPU drivers, Intel graphics, storage systems'
     },
 
-    deviceDrivers: {
-        name: "Phase 4: Device Drivers",
+    drivers: {
+        name: "Phase 4: Device Drivers",  
         icon: "⚡",
         description: "Build real device drivers for hardware interaction",
         level: 4,
@@ -83,7 +83,7 @@ const phaseSystem = {
             { name: 'USB Drivers', difficulty: 7, essential: false, topics: ['USB subsystem', 'URBs', 'Endpoint handling'] }
         ],
         skills: ['Hardware interfacing', 'Driver architecture', 'Real-world development'],
-        prerequisites: ['memoryMgmt'],
+        prerequisites: ['memory_mgmt'],
         objectives: 'Build production-quality device drivers for real hardware',
         industryRelevance: 'Core skill for hardware companies like Intel, NVIDIA, AMD'
     },
@@ -105,7 +105,7 @@ const phaseSystem = {
             { name: 'Workqueues', difficulty: 5, essential: true, topics: ['Deferred work', 'System workqueues', 'Custom workqueues'] }
         ],
         skills: ['Concurrency control', 'Performance optimization', 'Multi-core programming'],
-        prerequisites: ['deviceDrivers'],
+        prerequisites: ['drivers'],
         objectives: 'Write race-condition-free code suitable for high-performance systems',
         industryRelevance: 'Essential for scalable systems at Google, Facebook, server companies'
     },
@@ -134,7 +134,7 @@ const phaseSystem = {
 
     filesystems: {
         name: "Phase 7: Filesystems & Storage",
-        icon: "📁",
+        icon: "📁", 
         description: "Implement filesystems and storage subsystems",
         level: 7,
         unlocked: true,
