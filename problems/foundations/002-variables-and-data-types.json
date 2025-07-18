@@ -1,0 +1,104 @@
+{
+  "id": 2,
+  "title": "Variables and Data Types",
+  "phase": "foundations",
+  "difficulty": 2,
+  "xp": 20,
+  "description": "Learn to work with different data types in kernel space. Create variables of different types, define them in a header file, and print their values using printk. This introduces kernel-space variable declaration and proper file organization.",
+  "mainFile": "variables.c",
+  "files": [
+    {
+      "name": "variables.h",
+      "content": "#ifndef VARIABLES_H\n#define VARIABLES_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n/* TODO: Declare global variables with exact names and values:\n * extern int my_int;\n * extern char my_char;\n * extern bool my_bool;\n */\n\n#endif /* VARIABLES_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "variables.c",
+      "content": "#include \"variables.h\"\n\n/* TODO: Define the variables declared in header:\n * int my_int = 42;\n * char my_char = 'K';\n * bool my_bool = true;\n */\n\nstatic int __init variables_init(void)\n{\n    /* TODO: Print the variables in exact format:\n     * printk(KERN_INFO \"Integer: %d\\n\", my_int);\n     * printk(KERN_INFO \"Character: %c\\n\", my_char);\n     * printk(KERN_INFO \"Boolean: %d\\n\", my_bool);\n     */\n    return 0;\n}\n\nstatic void __exit variables_exit(void)\n{\n    printk(KERN_INFO \"Variables module unloaded\\n\");\n}\n\nmodule_init(variables_init);\nmodule_exit(variables_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Variables and data types demonstration module\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Variables module Makefile\nobj-m += variables.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "kernel data types",
+    "variable declaration",
+    "extern declarations",
+    "printk formatting",
+    "global variables"
+  ],
+  "skills": [
+    "Variable management",
+    "Header/source separation",
+    "Data type understanding",
+    "Kernel logging with formatting"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["variables_init", "variables_exit"],
+      "variables": [
+        { "name": "my_int", "type": "int", "value": 42 },
+        { "name": "my_char", "type": "char", "value": "'K'" },
+        { "name": "my_bool", "type": "bool", "value": true }
+      ],
+      "outputMessages": [
+        "Integer: 42",
+        "Character: K",
+        "Boolean: 1"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/types.h"
+      ],
+      "mustContain": ["printk", "KERN_INFO", "extern"],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "header_declarations",
+        "name": "Header Variable Declarations",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["extern int my_int", "extern char my_char", "extern bool my_bool"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "source_definitions",
+        "name": "Source Variable Definitions",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["int my_int = 42", "char my_char = 'K'", "bool my_bool = true"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Format",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Integer: 42", "exact": true },
+          { "pattern": "Character: K", "exact": true },
+          { "pattern": "Boolean: 1", "exact": true }
+        ]
+      },
+      {
+        "id": "printk_usage",
+        "name": "Proper printk Usage",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["printk", "KERN_INFO"],
+        "prohibitedSymbols": ["printf"]
+      }
+    ]
+  }
+}
