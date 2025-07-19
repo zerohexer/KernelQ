@@ -103,6 +103,14 @@
           { "pattern": "Element 3: 40", "exact": true },
           { "pattern": "Element 4: 50", "exact": true }
         ]
+      },
+      {
+        "id": "header_inclusion",
+        "name": "Header File Inclusion",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["#include \"arrays.h\""],
+        "prohibitedSymbols": []
       }
     ]
   }
