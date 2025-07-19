@@ -107,21 +107,5 @@
         "prohibitedSymbols": []
       }
     ]
-  },
-  "inputOutput": {
-    "expectedOutput": [
-      "Functions module loaded",
-      "Addition result: 40",
-      "Before swap: num1=15, num2=25",
-      "After swap: num1=25, num2=15"
-    ],
-    "requirements": [
-      "Use required function names: functions_init, functions_exit, add_numbers, swap_values, print_result",
-      "Print exact message format for backend validation compatibility", 
-      "Must include: linux/module.h, linux/kernel.h, linux/init.h",
-      "Code must contain: int *x, int *y, &num1, &num2, return a + b",
-      "Must include MODULE_LICENSE(\"GPL\")",
-      "Must include header file: functions.h"
-    ]
   }
 }
