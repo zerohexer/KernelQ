@@ -1,22 +1,22 @@
-#  KernelQ - Interactive Linux Kernel Learning Platform
+# KernelQ - Interactive Linux Kernel Learning Platform
 
 **Professional-grade Linux kernel development training with Apple-inspired UI, real QEMU testing, and comprehensive validation system.**
 
 ![KernelQ Logo](public/kernelq-logo.png)
 
-##  What Makes KernelQ Special
+## What Makes KernelQ Special
 
--  **Apple-Inspired Premium UI** - Beautiful, intuitive interface with premium glass morphism design
--  **Real Kernel Compilation** - Students write code that compiles with actual GCC and kernel headers  
--  **QEMU Virtual Machine Testing** - Modules load and run in real Linux VMs with dmesg output
--  **Advanced Validation System** - LeetCode-style testing with comprehensive anti-cheat detection
--  **Multi-File Architecture** - Teaches proper header/source separation with visual feedback
--  **Interactive Problem Bank** - Curated challenges from foundations to advanced driver development
--  **Real-Time Test Results** - LeetCode-style test result display with detailed feedback
+- **Apple-Inspired Premium UI** - Beautiful, intuitive interface with premium glass morphism design
+- **Real Kernel Compilation** - Students write code that compiles with actual GCC and kernel headers  
+- **QEMU Virtual Machine Testing** - Modules load and run in real Linux VMs with dmesg output
+- **Advanced Validation System** - LeetCode-style testing with comprehensive anti-cheat detection
+- **Multi-File Architecture** - Teaches proper header/source separation with visual feedback
+- **Interactive Problem Bank** - Curated challenges from foundations to advanced driver development
+- **Real-Time Test Results** - LeetCode-style test result display with detailed feedback
 
 ---
 
-##  Modern Architecture
+## Modern Architecture
 
 ```
 Frontend (React)          Backend (Node.js)         Problem System
@@ -27,20 +27,20 @@ Frontend (React)          Backend (Node.js)         Problem System
 └── Glass Morphism         └── Anti-Cheat System
 ```
 
-### **Core Components**
+### Core Components
 
 | Component | Purpose | Key Features |
 |-----------|---------|-------------|
-| ** Premium Frontend** | Apple-inspired learning interface | Glass morphism, tabbed editor, real-time feedback |
-| ** Compilation Backend** | Real kernel compilation + testing | Node.js + QEMU + GCC validation |
-| ** Problem Framework** | JSON-based curriculum management | Auto-generation, schema validation |
-| ** Validation Engine** | LeetCode-style testing system | Multi-layer validation, anti-cheat detection |
+| **Premium Frontend** | Apple-inspired learning interface | Glass morphism, tabbed editor, real-time feedback |
+| **Compilation Backend** | Real kernel compilation + testing | Node.js + QEMU + GCC validation |
+| **Problem Framework** | JSON-based curriculum management | Auto-generation, schema validation |
+| **Validation Engine** | LeetCode-style testing system | Multi-layer validation, anti-cheat detection |
 
 ---
 
-##  Quick Start
+## Quick Start
 
-### **Prerequisites**
+### Prerequisites
 ```bash
 # Linux system (Ubuntu 20.04+ or openSUSE recommended)
 sudo apt-get update
@@ -50,7 +50,7 @@ sudo apt-get install linux-headers-$(uname -r) qemu-system-x86 build-essential n
 sudo zypper install kernel-devel qemu nodejs npm
 ```
 
-### **Installation**
+### Installation
 ```bash
 # Clone repository
 git clone https://github.com/zerohexer/KernelQ.git
@@ -61,7 +61,7 @@ npm install
 cd backend && npm install && cd ..
 ```
 
-### **Start Development Environment**
+### Start Development Environment
 ```bash
 # Terminal 1: Backend server
 cd backend && npm start
@@ -70,14 +70,14 @@ cd backend && npm start
 npm start
 ```
 
-### **Access KernelQ**
+### Access KernelQ
 - **Frontend:** http://localhost:3000
 - **Backend API:** http://localhost:3001
 - **Health Check:** http://localhost:3001/api/health
 
 ---
 
-##  Project Structure
+## Project Structure
 
 ```
 KernelQ/
@@ -131,62 +131,62 @@ KernelQ/
 
 ---
 
-##  Learning Experience
+## Learning Experience
 
-### **Progressive Curriculum**
-1. ** Foundations** - Multi-file modules, variables, functions, pointers
-2. ** Kernel Core** - Character devices, driver development
-3. ** Memory Management** - kmalloc/kfree, memory mapping
-4. ** Device Drivers** - Real hardware interaction
-5. ** Synchronization** - Mutexes, spinlocks, atomic operations
+### Progressive Curriculum
+1. **Foundations** - Multi-file modules, variables, functions, pointers
+2. **Kernel Core** - Character devices, driver development
+3. **Memory Management** - kmalloc/kfree, memory mapping
+4. **Device Drivers** - Real hardware interaction
+5. **Synchronization** - Mutexes, spinlocks, atomic operations
 
-### **Premium UI Features**
-- ** Glass Morphism Design** - Apple-inspired visual aesthetics
-- ** Tabbed Interface** - Code editor and test results in separate tabs
-- ** Multi-File Projects** - Header/source file separation with visual guidance
-- ** Smart Requirements** - Clear separation of header vs source file requirements
-- ** Test Results View** - LeetCode-style pass/fail feedback with detailed messages
+### Premium UI Features
+- **Glass Morphism Design** - Apple-inspired visual aesthetics
+- **Tabbed Interface** - Code editor and test results in separate tabs
+- **Multi-File Projects** - Header/source file separation with visual guidance
+- **Smart Requirements** - Clear separation of header vs source file requirements
+- **Test Results View** - LeetCode-style pass/fail feedback with detailed messages
 
-### **Learning Methodology**
+### Learning Methodology
 ```
 Header File Requirements               Source File Requirements
- Declare variable: my_int (int)      Define variable: my_int (int) = 42
- Declare function: print_array       Implement function: variables_init
-                                       Output: "Integer: 42"
-                                       Include: <linux/module.h>
+• Declare variable: my_int (int)       • Define variable: my_int (int) = 42
+• Declare function: print_array        • Implement function: variables_init
+                                      • Output: "Integer: 42"
+                                      • Include: <linux/module.h>
 ```
 
 ---
 
-##  Advanced Validation System
+## Advanced Validation System
 
-### **Multi-Layer Testing Architecture**
+### Multi-Layer Testing Architecture
 
-1. ** Pre-Compilation Analysis**
+1. **Pre-Compilation Analysis**
    - Security pattern detection
    - Anti-cheat template detection  
    - Required symbol validation
    - Code structure analysis
 
-2. ** Real Kernel Compilation**
+2. **Real Kernel Compilation**
    - GCC compilation with kernel headers
    - Multi-file project compilation
    - Makefile generation and build
    - Binary analysis and validation
 
-3. ** QEMU Virtual Machine Testing**
+3. **QEMU Virtual Machine Testing**
    - Custom Linux VM environment
    - Real module loading/unloading
    - Actual dmesg output capture
    - Performance and memory analysis
 
-4. ** LeetCode-Style Results**
+4. **LeetCode-Style Results**
    - Structured test case feedback
    - Pass/fail status with detailed messages
    - Execution time tracking
    - Overall acceptance scoring
 
-### **Problem Definition System**
+### Problem Definition System
 ```json
 {
   "id": 2,
@@ -228,9 +228,9 @@ Header File Requirements               Source File Requirements
 
 ---
 
-##  Development Workflow
+## Development Workflow
 
-### **Problem Management**
+### Problem Management
 ```bash
 # Generate frontend/backend from JSON problems
 node scripts/generate-frontend.js
@@ -245,7 +245,7 @@ curl -X POST http://localhost:3001/api/validate-solution-comprehensive \
   -d '{"code": "...", "problemId": 2}'
 ```
 
-### **Adding New Problems**
+### Adding New Problems
 1. Create JSON file in appropriate `/problems/phase/` directory
 2. Follow schema validation requirements
 3. Include comprehensive test cases
@@ -254,16 +254,16 @@ curl -X POST http://localhost:3001/api/validate-solution-comprehensive \
 
 ---
 
-##  UI/UX Highlights
+## UI/UX Highlights
 
-### **Premium Design System**
+### Premium Design System
 - **Glass Morphism Effects** - Translucent panels with backdrop blur
 - **Smooth Animations** - 60fps transitions and micro-interactions  
 - **Adaptive Color System** - Context-aware color coding for different requirement types
 - **Professional Typography** - SF Pro Display font system
 - **Responsive Layout** - Works on desktop, tablet, and mobile
 
-### **User Experience Features**
+### User Experience Features
 - **Real-Time Validation** - Instant feedback as students type
 - **Smart Error Messages** - Helpful hints and debugging suggestions
 - **Progress Tracking** - XP system with skill mastery indicators
@@ -272,21 +272,21 @@ curl -X POST http://localhost:3001/api/validate-solution-comprehensive \
 
 ---
 
-##  Technical Specifications
+## Technical Specifications
 
-### **Frontend Stack**
+### Frontend Stack
 - **React 18** - Modern hooks-based architecture
 - **Monaco Editor** - VS Code-quality code editing
 - **Glass Morphism CSS** - Apple-inspired visual design
 - **Responsive Design** - Mobile-first approach
 
-### **Backend Stack**  
+### Backend Stack  
 - **Node.js** - High-performance API server
 - **QEMU** - Real Linux kernel virtual machine testing
 - **GCC Toolchain** - Actual kernel compilation
 - **Express.js** - RESTful API framework
 
-### **Problem System**
+### Problem System
 - **JSON Schema** - Structured problem definitions
 - **Auto-Generation** - Frontend/backend code generation
 - **Multi-File Support** - Header/source file projects
@@ -294,16 +294,16 @@ curl -X POST http://localhost:3001/api/validate-solution-comprehensive \
 
 ---
 
-##  Educational Impact
+## Educational Impact
 
-### **Skills Developed**
+### Skills Developed
 - **Real Kernel Development** - Industry-standard tools and practices
 - **Multi-File Architecture** - Proper C/C++ project organization  
 - **Memory Management** - Safe kernel memory allocation/deallocation
 - **Device Driver Development** - Hardware abstraction and interaction
 - **Debugging Techniques** - QEMU, dmesg analysis, kernel debugging
 
-### **Career Preparation**
+### Career Preparation
 - **NVIDIA** - GPU driver development, CUDA interfaces
 - **Intel** - CPU microcode, hardware abstraction layers
 - **Canonical/Red Hat** - Linux distribution kernel maintenance
@@ -312,16 +312,16 @@ curl -X POST http://localhost:3001/api/validate-solution-comprehensive \
 
 ---
 
-##  Contributing
+## Contributing
 
-### **Getting Started**
+### Getting Started
 1. Fork the repository
 2. Create feature branch (`git checkout -b feature/amazing-feature`)
 3. Follow existing code organization patterns
 4. Test with real backend validation
 5. Submit pull request with detailed description
 
-### **Problem Creation Guidelines**
+### Problem Creation Guidelines
 - Use JSON schema validation
 - Include comprehensive anti-cheat measures
 - Test with both correct and incorrect solutions
@@ -330,13 +330,13 @@ curl -X POST http://localhost:3001/api/validate-solution-comprehensive \
 
 ---
 
-##  License
+## License
 
 MIT License - See [LICENSE](LICENSE) file for details.
 
 ---
 
-##  Get Started Today!
+## Get Started Today!
 
 ```bash
 git clone https://github.com/zerohexer/KernelQ.git
@@ -347,8 +347,8 @@ npm install && cd backend && npm install && cd ..
 # Open http://localhost:3000
 ```
 
-**Transform your kernel development skills with KernelQ's premium learning experience!** 
+**Transform your kernel development skills with KernelQ's premium learning experience!**
 
 ---
 
-*Built with  for the Linux kernel development community*
+*Built with ❤️ for the Linux kernel development community*
