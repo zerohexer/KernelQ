@@ -50,7 +50,10 @@
       "outputMessages": [
         "Integer: 42",
         "Character: K",
-        "Boolean: 1"
+        "Boolean: 1",
+        "Header must declare: extern int my_int",
+        "Header must declare: extern char my_char", 
+        "Header must declare: extern bool my_bool"
       ],
       "requiredIncludes": [
         "linux/module.h",
@@ -58,7 +61,7 @@
         "linux/init.h",
         "linux/types.h"
       ],
-      "mustContain": ["printk", "KERN_INFO", "extern", "extern int my_int", "extern char my_char", "extern bool my_bool"],
+      "mustContain": ["printk", "KERN_INFO", "extern"],
       "moduleInfo": {
         "license": "GPL"
       }

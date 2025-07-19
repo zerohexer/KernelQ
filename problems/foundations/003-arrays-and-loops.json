@@ -53,14 +53,16 @@
         "Element 1: 20",
         "Element 2: 30",
         "Element 3: 40",
-        "Element 4: 50"
+        "Element 4: 50",
+        "Header must declare: extern int numbers",
+        "Header must declare: void print_array"
       ],
       "requiredIncludes": [
         "linux/module.h",
         "linux/kernel.h",
         "linux/init.h"
       ],
-      "mustContain": ["for", "printk", "extern", "#define ARRAY_SIZE", "extern int numbers", "void print_array"],
+      "mustContain": ["for", "printk", "extern", "#define ARRAY_SIZE"],
       "moduleInfo": {
         "license": "GPL"
       }
