@@ -56,7 +56,7 @@
         "linux/kernel.h",
         "linux/init.h"
       ],
-      "mustContain": ["int *x", "int *y", "&num1", "&num2", "return a + b"],
+      "mustContain": ["int *x", "int *y", "&num1", "&num2", "return a + b", "int add_numbers", "void swap_values", "void print_result"],
       "moduleInfo": {
         "license": "GPL"
       }
