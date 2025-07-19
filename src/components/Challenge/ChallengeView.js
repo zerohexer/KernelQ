@@ -334,33 +334,6 @@ const ChallengeView = ({
                                         }}>&lt;{inc}&gt;</code>
                                     </li>
                                 ))}
-                                {validation?.exactRequirements?.mustContain?.map((code, idx) => (
-                                    <li key={idx} style={{ 
-                                        marginBottom: '12px',
-                                        position: 'relative',
-                                        paddingLeft: '20px'
-                                    }}>
-                                        <span style={{
-                                            position: 'absolute',
-                                            left: 0,
-                                            top: '8px',
-                                            width: '6px',
-                                            height: '6px',
-                                            borderRadius: '50%',
-                                            background: '#ff9f0a'
-                                        }} />
-                                        Code must contain: <code style={{ 
-                                            background: 'rgba(255, 159, 10, 0.15)',
-                                            border: '1px solid rgba(255, 159, 10, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#ff9f0a',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500
-                                        }}>{code}</code>
-                                    </li>
-                                ))}
                                 
                                 {/* Show inputOutput.requirements only if exactRequirements doesn't exist */}
                                 {!validation?.exactRequirements && inputOutput?.requirements?.map((req, idx) => (
