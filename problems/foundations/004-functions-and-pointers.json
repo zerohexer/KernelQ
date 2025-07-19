@@ -84,7 +84,7 @@
         "type": "code_analysis",
         "critical": true,
         "expectedSymbols": ["return a + b", "int temp = *x", "*x = *y", "*y = temp"],
-        "prohibitedSymbols": []
+        "prohibitedSymbols": ["int add_numbers.*{.*functions\\.h", "void swap_values.*{.*functions\\.h", "void print_result.*{.*functions\\.h"]
       },
       {
         "id": "exact_output",

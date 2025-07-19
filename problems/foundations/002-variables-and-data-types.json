@@ -78,7 +78,7 @@
         "type": "code_analysis",
         "critical": true,
         "expectedSymbols": ["int my_int = 42", "char my_char = 'K'", "bool my_bool = true"],
-        "prohibitedSymbols": []
+        "prohibitedSymbols": ["int my_int.*variables\\.h", "char my_char.*variables\\.h", "bool my_bool.*variables\\.h"]
       },
       {
         "id": "exact_output",
