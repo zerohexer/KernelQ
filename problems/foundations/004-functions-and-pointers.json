@@ -45,6 +45,11 @@
   "validation": {
     "exactRequirements": {
       "functionNames": ["functions_init", "functions_exit", "add_numbers", "swap_values", "print_result"],
+      "variables": [
+        { "name": "add_numbers", "type": "function", "value": "int add_numbers(int a, int b)" },
+        { "name": "swap_values", "type": "function", "value": "void swap_values(int *x, int *y)" },
+        { "name": "print_result", "type": "function", "value": "void print_result(const char *operation, int result)" }
+      ],
       "outputMessages": [
         "Functions module loaded",
         "Addition result: 40",
