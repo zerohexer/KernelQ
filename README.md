@@ -1,6 +1,6 @@
-# KernelQ - Interactive Linux Kernel Learning Platform
+# KernelQ - Interactive Linux Kernel Learning Platform - https://kernelq.com/
 
-**Professional-grade Linux kernel development training with Apple-inspired UI, real QEMU testing, and comprehensive validation system.**
+**Polished Linux kernel development learning platform with Apple-inspired UI, real QEMU testing, and comprehensive validation system.**
 
 ![KernelQ Logo](public/kernelq-logo.png)
 
