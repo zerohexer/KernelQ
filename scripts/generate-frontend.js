@@ -70,6 +70,20 @@ class FrontendGenerator {
             }
         }
 
+        // Part 1.5: Check for header inclusion requirements from test cases
+        const { testCases } = problem.validation || {};
+        if (testCases) {
+            const headerTest = testCases.find(tc => tc.id === 'header_inclusion');
+            if (headerTest && headerTest.expectedSymbols?.length > 0) {
+                const headerIncludes = headerTest.expectedSymbols
+                    .filter(symbol => symbol.includes('#include'))
+                    .map(include => include.replace('#include ', '').replace(/"/g, ''));
+                if (headerIncludes.length > 0) {
+                    requirements.push(`Must include header file: ${headerIncludes.join(', ')}`);
+                }
+            }
+        }
+
         // Part 2: Process new 'displayRequirements' for advanced tests
         const { displayRequirements } = problem;
         if (displayRequirements) {
