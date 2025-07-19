@@ -58,7 +58,7 @@
         "linux/init.h",
         "linux/types.h"
       ],
-      "mustContain": ["printk", "KERN_INFO", "extern"],
+      "mustContain": ["printk", "KERN_INFO", "extern", "extern int my_int", "extern char my_char", "extern bool my_bool"],
       "moduleInfo": {
         "license": "GPL"
       }

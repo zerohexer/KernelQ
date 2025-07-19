@@ -60,7 +60,7 @@
         "linux/kernel.h",
         "linux/init.h"
       ],
-      "mustContain": ["for", "printk", "extern", "#define ARRAY_SIZE"],
+      "mustContain": ["for", "printk", "extern", "#define ARRAY_SIZE", "extern int numbers", "void print_array"],
       "moduleInfo": {
         "license": "GPL"
       }
