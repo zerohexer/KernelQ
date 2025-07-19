@@ -50,10 +50,7 @@
       "outputMessages": [
         "Integer: 42",
         "Character: K",
-        "Boolean: 1",
-        "Header must declare: extern int my_int",
-        "Header must declare: extern char my_char", 
-        "Header must declare: extern bool my_bool"
+        "Boolean: 1"
       ],
       "requiredIncludes": [
         "linux/module.h",

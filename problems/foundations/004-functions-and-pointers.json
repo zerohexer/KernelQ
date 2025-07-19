@@ -49,10 +49,7 @@
         "Functions module loaded",
         "Addition result: 40",
         "Before swap: num1=15, num2=25",
-        "After swap: num1=25, num2=15",
-        "Header must declare: int add_numbers",
-        "Header must declare: void swap_values",
-        "Header must declare: void print_result"
+        "After swap: num1=25, num2=15"
       ],
       "requiredIncludes": [
         "linux/module.h",
