@@ -80,6 +80,10 @@
         "simple_driver_init",
         "simple_driver_exit"
       ],
+      "variables": [
+        { "name": "device_init", "type": "function", "value": "int device_init(struct simple_driver_data *data)" },
+        { "name": "device_cleanup", "type": "function", "value": "void device_cleanup(struct simple_driver_data *data)" }
+      ],
       "outputMessages": [
         "simple_driver: loaded successfully",
         "simple_driver: unloaded"
