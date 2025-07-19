@@ -1,22 +1,22 @@
-# 🚀 KernelQ - Interactive Linux Kernel Learning Platform
+#  KernelQ - Interactive Linux Kernel Learning Platform
 
 **Professional-grade Linux kernel development training with Apple-inspired UI, real QEMU testing, and comprehensive validation system.**
 
 ![KernelQ Logo](public/kernelq-logo.png)
 
-## ✨ What Makes KernelQ Special
+##  What Makes KernelQ Special
 
-- 🔥 **Apple-Inspired Premium UI** - Beautiful, intuitive interface with premium glass morphism design
-- ⚡ **Real Kernel Compilation** - Students write code that compiles with actual GCC and kernel headers  
-- 🖥️ **QEMU Virtual Machine Testing** - Modules load and run in real Linux VMs with dmesg output
-- 🛡️ **Advanced Validation System** - LeetCode-style testing with comprehensive anti-cheat detection
-- 📚 **Multi-File Architecture** - Teaches proper header/source separation with visual feedback
-- 🎯 **Interactive Problem Bank** - Curated challenges from foundations to advanced driver development
-- 📊 **Real-Time Test Results** - LeetCode-style test result display with detailed feedback
+-  **Apple-Inspired Premium UI** - Beautiful, intuitive interface with premium glass morphism design
+-  **Real Kernel Compilation** - Students write code that compiles with actual GCC and kernel headers  
+-  **QEMU Virtual Machine Testing** - Modules load and run in real Linux VMs with dmesg output
+-  **Advanced Validation System** - LeetCode-style testing with comprehensive anti-cheat detection
+-  **Multi-File Architecture** - Teaches proper header/source separation with visual feedback
+-  **Interactive Problem Bank** - Curated challenges from foundations to advanced driver development
+-  **Real-Time Test Results** - LeetCode-style test result display with detailed feedback
 
 ---
 
-## 🏗️ Modern Architecture
+##  Modern Architecture
 
 ```
 Frontend (React)          Backend (Node.js)         Problem System
@@ -31,14 +31,14 @@ Frontend (React)          Backend (Node.js)         Problem System
 
 | Component | Purpose | Key Features |
 |-----------|---------|-------------|
-| **🎨 Premium Frontend** | Apple-inspired learning interface | Glass morphism, tabbed editor, real-time feedback |
-| **⚙️ Compilation Backend** | Real kernel compilation + testing | Node.js + QEMU + GCC validation |
-| **📋 Problem Framework** | JSON-based curriculum management | Auto-generation, schema validation |
-| **🧪 Validation Engine** | LeetCode-style testing system | Multi-layer validation, anti-cheat detection |
+| ** Premium Frontend** | Apple-inspired learning interface | Glass morphism, tabbed editor, real-time feedback |
+| ** Compilation Backend** | Real kernel compilation + testing | Node.js + QEMU + GCC validation |
+| ** Problem Framework** | JSON-based curriculum management | Auto-generation, schema validation |
+| ** Validation Engine** | LeetCode-style testing system | Multi-layer validation, anti-cheat detection |
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### **Prerequisites**
 ```bash
@@ -77,7 +77,7 @@ npm start
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 KernelQ/
@@ -131,56 +131,56 @@ KernelQ/
 
 ---
 
-## 🎯 Learning Experience
+##  Learning Experience
 
 ### **Progressive Curriculum**
-1. **🏗️ Foundations** - Multi-file modules, variables, functions, pointers
-2. **⚙️ Kernel Core** - Character devices, driver development
-3. **🔧 Memory Management** - kmalloc/kfree, memory mapping
-4. **🚗 Device Drivers** - Real hardware interaction
-5. **🔒 Synchronization** - Mutexes, spinlocks, atomic operations
+1. ** Foundations** - Multi-file modules, variables, functions, pointers
+2. ** Kernel Core** - Character devices, driver development
+3. ** Memory Management** - kmalloc/kfree, memory mapping
+4. ** Device Drivers** - Real hardware interaction
+5. ** Synchronization** - Mutexes, spinlocks, atomic operations
 
 ### **Premium UI Features**
-- **🎨 Glass Morphism Design** - Apple-inspired visual aesthetics
-- **📑 Tabbed Interface** - Code editor and test results in separate tabs
-- **📁 Multi-File Projects** - Header/source file separation with visual guidance
-- **🎯 Smart Requirements** - Clear separation of header vs source file requirements
-- **📊 Test Results View** - LeetCode-style pass/fail feedback with detailed messages
+- ** Glass Morphism Design** - Apple-inspired visual aesthetics
+- ** Tabbed Interface** - Code editor and test results in separate tabs
+- ** Multi-File Projects** - Header/source file separation with visual guidance
+- ** Smart Requirements** - Clear separation of header vs source file requirements
+- ** Test Results View** - LeetCode-style pass/fail feedback with detailed messages
 
 ### **Learning Methodology**
 ```
 Header File Requirements               Source File Requirements
-🟠 Declare variable: my_int (int)     🟠 Define variable: my_int (int) = 42
-🟠 Declare function: print_array      🔵 Implement function: variables_init
-                                      🟢 Output: "Integer: 42"
-                                      🟣 Include: <linux/module.h>
+ Declare variable: my_int (int)      Define variable: my_int (int) = 42
+ Declare function: print_array       Implement function: variables_init
+                                       Output: "Integer: 42"
+                                       Include: <linux/module.h>
 ```
 
 ---
 
-## 🧪 Advanced Validation System
+##  Advanced Validation System
 
 ### **Multi-Layer Testing Architecture**
 
-1. **🔍 Pre-Compilation Analysis**
+1. ** Pre-Compilation Analysis**
    - Security pattern detection
    - Anti-cheat template detection  
    - Required symbol validation
    - Code structure analysis
 
-2. **⚙️ Real Kernel Compilation**
+2. ** Real Kernel Compilation**
    - GCC compilation with kernel headers
    - Multi-file project compilation
    - Makefile generation and build
    - Binary analysis and validation
 
-3. **🖥️ QEMU Virtual Machine Testing**
+3. ** QEMU Virtual Machine Testing**
    - Custom Linux VM environment
    - Real module loading/unloading
    - Actual dmesg output capture
    - Performance and memory analysis
 
-4. **✅ LeetCode-Style Results**
+4. ** LeetCode-Style Results**
    - Structured test case feedback
    - Pass/fail status with detailed messages
    - Execution time tracking
@@ -228,7 +228,7 @@ Header File Requirements               Source File Requirements
 
 ---
 
-## 🛠️ Development Workflow
+##  Development Workflow
 
 ### **Problem Management**
 ```bash
@@ -254,7 +254,7 @@ curl -X POST http://localhost:3001/api/validate-solution-comprehensive \
 
 ---
 
-## 🎨 UI/UX Highlights
+##  UI/UX Highlights
 
 ### **Premium Design System**
 - **Glass Morphism Effects** - Translucent panels with backdrop blur
@@ -272,7 +272,7 @@ curl -X POST http://localhost:3001/api/validate-solution-comprehensive \
 
 ---
 
-## 🔧 Technical Specifications
+##  Technical Specifications
 
 ### **Frontend Stack**
 - **React 18** - Modern hooks-based architecture
@@ -294,7 +294,7 @@ curl -X POST http://localhost:3001/api/validate-solution-comprehensive \
 
 ---
 
-## 🎓 Educational Impact
+##  Educational Impact
 
 ### **Skills Developed**
 - **Real Kernel Development** - Industry-standard tools and practices
@@ -312,7 +312,7 @@ curl -X POST http://localhost:3001/api/validate-solution-comprehensive \
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 ### **Getting Started**
 1. Fork the repository
@@ -330,13 +330,13 @@ curl -X POST http://localhost:3001/api/validate-solution-comprehensive \
 
 ---
 
-## 📄 License
+##  License
 
 MIT License - See [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🚀 Get Started Today!
+##  Get Started Today!
 
 ```bash
 git clone https://github.com/zerohexer/KernelQ.git
@@ -347,8 +347,8 @@ npm install && cd backend && npm install && cd ..
 # Open http://localhost:3000
 ```
 
-**Transform your kernel development skills with KernelQ's premium learning experience!** 🎉
+**Transform your kernel development skills with KernelQ's premium learning experience!** 
 
 ---
 
-*Built with ❤️ for the Linux kernel development community*
+*Built with  for the Linux kernel development community*
