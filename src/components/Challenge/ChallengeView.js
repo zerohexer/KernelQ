@@ -252,6 +252,69 @@ const ChallengeView = ({
                                 margin: 0,
                                 listStyleType: 'none'
                             }}>
+                                {/* Header Requirements Section */}
+                                {validation?.exactRequirements?.variables && validation.exactRequirements.variables.length > 0 && (
+                                    <>
+                                        <li style={{
+                                            marginBottom: '16px',
+                                            paddingLeft: '0',
+                                            fontWeight: 600,
+                                            color: '#ff9f0a',
+                                            fontSize: '1rem',
+                                            borderBottom: '1px solid rgba(255, 159, 10, 0.2)',
+                                            paddingBottom: '8px'
+                                        }}>
+                                            Header File Requirements
+                                        </li>
+                                        {validation.exactRequirements.variables.map((variable, idx) => (
+                                            <li key={`header-var-${idx}`} style={{ 
+                                                marginBottom: '12px',
+                                                position: 'relative',
+                                                paddingLeft: '20px'
+                                            }}>
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    left: 0,
+                                                    top: '8px',
+                                                    width: '6px',
+                                                    height: '6px',
+                                                    borderRadius: '50%',
+                                                    background: '#ff9f0a'
+                                                }} />
+                                                Declare variable: <code style={{ 
+                                                    background: 'rgba(255, 159, 10, 0.15)',
+                                                    border: '1px solid rgba(255, 159, 10, 0.3)',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
+                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    color: '#ff9f0a',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 500
+                                                }}>{variable.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>({variable.type})</span>
+                                            </li>
+                                        ))}
+                                        <li style={{
+                                            marginBottom: '24px',
+                                            paddingLeft: '0'
+                                        }}></li>
+                                    </>
+                                )}
+
+                                {/* Source File Requirements Section */}
+                                {(validation?.exactRequirements?.functionNames || validation?.exactRequirements?.outputMessages) && (
+                                    <li style={{
+                                        marginBottom: '16px',
+                                        paddingLeft: '0',
+                                        fontWeight: 600,
+                                        color: '#007aff',
+                                        fontSize: '1rem',
+                                        borderBottom: '1px solid rgba(0, 122, 255, 0.2)',
+                                        paddingBottom: '8px'
+                                    }}>
+                                        Source File Requirements
+                                    </li>
+                                )}
+
                                 {/* Show validation.exactRequirements if available */}
                                 {validation?.exactRequirements?.functionNames?.map((fn, idx) => (
                                     <li key={idx} style={{ 
@@ -278,33 +341,6 @@ const ChallengeView = ({
                                             fontSize: '0.875rem',
                                             fontWeight: 500
                                         }}>{fn}</code>
-                                    </li>
-                                ))}
-                                {validation?.exactRequirements?.variables?.map((variable, idx) => (
-                                    <li key={idx} style={{ 
-                                        marginBottom: '12px',
-                                        position: 'relative',
-                                        paddingLeft: '20px'
-                                    }}>
-                                        <span style={{
-                                            position: 'absolute',
-                                            left: 0,
-                                            top: '8px',
-                                            width: '6px',
-                                            height: '6px',
-                                            borderRadius: '50%',
-                                            background: '#ff9f0a'
-                                        }} />
-                                        Declare variable: <code style={{ 
-                                            background: 'rgba(255, 159, 10, 0.15)',
-                                            border: '1px solid rgba(255, 159, 10, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#ff9f0a',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500
-                                        }}>{variable.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>({variable.type})</span>
                                     </li>
                                 ))}
                                 {validation?.exactRequirements?.outputMessages?.map((msg, idx) => (
