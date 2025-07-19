@@ -329,15 +329,15 @@ const ChallengeView = ({
                                             width: '6px',
                                             height: '6px',
                                             borderRadius: '50%',
-                                            background: '#007aff'
+                                            background: '#ff9f0a'
                                         }} />
                                         Define variable: <code style={{ 
-                                            background: 'rgba(0, 122, 255, 0.15)',
-                                            border: '1px solid rgba(0, 122, 255, 0.3)',
+                                            background: 'rgba(255, 159, 10, 0.15)',
+                                            border: '1px solid rgba(255, 159, 10, 0.3)',
                                             padding: '4px 8px',
                                             borderRadius: '6px',
                                             fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#007aff',
+                                            color: '#ff9f0a',
                                             fontSize: '0.875rem',
                                             fontWeight: 500
                                         }}>{variable.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>({variable.type})</span>
