@@ -108,5 +108,21 @@
         "prohibitedSymbols": []
       }
     ]
+  },
+  "inputOutput": {
+    "expectedOutput": [
+      "Integer: 42",
+      "Character: K", 
+      "Boolean: 1"
+    ],
+    "requirements": [
+      "Use required function names: variables_init, variables_exit",
+      "Use required variable names: my_int, my_char, my_bool",
+      "Print exact message format for backend validation compatibility",
+      "Must include: linux/module.h, linux/kernel.h, linux/init.h, linux/types.h",
+      "Code must contain: printk, KERN_INFO, extern",
+      "Must include MODULE_LICENSE(\"GPL\")",
+      "Must include header file: variables.h"
+    ]
   }
 }
