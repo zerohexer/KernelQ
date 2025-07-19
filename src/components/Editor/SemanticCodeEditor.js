@@ -13,17 +13,17 @@ import {
     FUNCTION_SIGNATURES,
     CMAKE_KERNEL_DEFS,
     AUTOCOMPLETE_DATA
-} from './kernel-api-definitions.js';
+} from '../../data/kernel-api-definitions.js';
 
-const SemanticCodeEditor = ({ 
-    value, 
-    onChange, 
-    height = '500px', 
-    theme = 'vs-dark',
-    readOnly = false,
-    placeholder = '',
-    className = ''
-}) => {
+const SemanticCodeEditor = ({
+                                value,
+                                onChange,
+                                height = '500px',
+                                theme = 'vs-dark',
+                                readOnly = false,
+                                placeholder = '',
+                                className = ''
+                            }) => {
     const editorRef = useRef(null);
     const resizeListenerRef = useRef(null);
 
@@ -177,9 +177,9 @@ const SemanticCodeEditor = ({
                 if (!word) return;
 
                 const allItems = [
-                    ...KERNEL_FUNCTIONS, 
-                    ...KERNEL_TYPES, 
-                    ...KERNEL_CONSTANTS, 
+                    ...KERNEL_FUNCTIONS,
+                    ...KERNEL_TYPES,
+                    ...KERNEL_CONSTANTS,
                     ...MODULE_MACROS,
                     ...FUNCTION_SIGNATURES,
                     ...CMAKE_KERNEL_DEFS.standardTypes,
@@ -293,7 +293,7 @@ const SemanticCodeEditor = ({
                     if (!requirementMet) {
                         const matchIndex = content.indexOf(practice.pattern);
                         const startPos = model.getPositionAt(matchIndex);
-                         diagnostics.push({
+                        diagnostics.push({
                             severity: monaco.MarkerSeverity.Warning,
                             startLineNumber: startPos.lineNumber,
                             startColumn: startPos.column,
@@ -336,60 +336,39 @@ const SemanticCodeEditor = ({
             parameterHints: { enabled: true }
         });
 
-        // Auto-resize functionality
+        // Auto-resize functionality with safety checks
         const resizeEditor = () => {
-            editor.layout();
+            try {
+                if (editor && editorRef.current === editor) {
+                    editor.layout();
+                }
+            } catch (error) {
+                // Silently handle layout errors
+                console.debug('Editor layout error:', error);
+            }
         };
 
         // Add resize listener
         resizeListenerRef.current = resizeEditor;
         window.addEventListener('resize', resizeEditor);
 
-        // Initial focus and validation
+        // Initial focus and validation with safety checks
         setTimeout(() => {
-            editor.focus();
-            updateMarkers();
+            try {
+                if (editor && editorRef.current === editor) {
+                    editor.focus();
+                    updateMarkers();
+                }
+            } catch (error) {
+                console.debug('Editor initialization error:', error);
+            }
         }, 1000);
     };
 
-    // Handle editor change with validation
+    // Handle editor change
     const handleEditorChange = (newValue, event) => {
         if (onChange) {
             onChange(newValue);
-        }
-
-        // Trigger validation on change
-        if (editorRef.current) {
-            const editor = editorRef.current;
-            clearTimeout(editor.validationTimeout);
-            editor.validationTimeout = setTimeout(() => {
-                const model = editor.getModel();
-                if (model && window.monaco) {
-                    // Re-run validation
-                    const diagnostics = [];
-                    const content = model.getValue();
-
-                    // Quick validation for common issues
-                    KERNEL_VIOLATIONS.forEach(violation => {
-                        if (typeof violation.pattern === 'string' && content.includes(violation.pattern)) {
-                            const index = content.indexOf(violation.pattern);
-                            const startPos = model.getPositionAt(index);
-                            const endPos = model.getPositionAt(index + violation.pattern.length);
-                            diagnostics.push({
-                                severity: violation.severity === 'error' ? 
-                                    window.monaco.MarkerSeverity.Error : window.monaco.MarkerSeverity.Warning,
-                                startLineNumber: startPos.lineNumber,
-                                startColumn: startPos.column,
-                                endLineNumber: endPos.lineNumber,
-                                endColumn: endPos.column,
-                                message: violation.message
-                            });
-                        }
-                    });
-
-                    window.monaco.editor.setModelMarkers(model, 'semantic-validator', diagnostics);
-                }
-            }, 300);
         }
     };
 
@@ -413,11 +392,28 @@ const SemanticCodeEditor = ({
                     minimap: { enabled: false },
                     scrollBeyondLastLine: false,
                     wordWrap: 'on',
-                    renderLineHighlight: 'all',
+                    renderLineHighlight: 'none',
                     cursorStyle: 'line',
                     lineNumbers: 'on',
                     glyphMargin: true,
                     folding: true,
+                    // Disable problematic visual elements that cause zoom issues
+                    renderValidationDecorations: 'off',
+                    renderFinalNewline: 'off',
+                    renderControlCharacters: false,
+                    renderIndentGuides: false,
+                    renderWhitespace: 'none',
+                    hideCursorInOverviewRuler: true,
+                    overviewRulerBorder: false,
+                    scrollbar: {
+                        useShadows: false,
+                        verticalHasArrows: false,
+                        horizontalHasArrows: false,
+                        vertical: 'visible',
+                        horizontal: 'visible',
+                        verticalScrollbarSize: 8,
+                        horizontalScrollbarSize: 8
+                    },
                     // Enhanced features
                     suggestOnTriggerCharacters: true,
                     acceptSuggestionOnEnter: 'on',
@@ -427,7 +423,7 @@ const SemanticCodeEditor = ({
                         comments: false,
                         strings: false
                     },
-                    parameterHints: { 
+                    parameterHints: {
                         enabled: true,
                         cycle: true
                     },

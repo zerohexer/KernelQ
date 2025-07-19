@@ -1,0 +1,334 @@
+import React, { useState, useEffect } from 'react';
+import FileExplorer from './FileExplorer';
+import SemanticCodeEditor from './SemanticCodeEditor';
+import { Maximize2, Minimize2, FileText } from 'lucide-react';
+
+const MultiFileEditor = ({ 
+  files, 
+  mainFile, 
+  onFilesChange, 
+  premiumStyles,
+  readOnly = false,
+  showFileExplorer = true,
+  height = '500px',
+  requiredFiles = [],
+  allowFileCreation = false,
+  allowFileDeletion = false
+}) => {
+  const [activeFile, setActiveFile] = useState(mainFile || (files && files[0] ? files[0].name : ''));
+  const [fileContents, setFileContents] = useState({});
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  // Initialize file contents from props
+  useEffect(() => {
+    if (files && files.length > 0) {
+      // Always reset file contents when files prop changes
+      const contents = {};
+      files.forEach(file => {
+        contents[file.name] = file.content || '';
+      });
+      setFileContents(contents);
+      
+      // Only set active file if:
+      // 1. No active file is currently set, OR
+      // 2. Current active file doesn't exist in the new files array
+      const currentFileExists = files.find(f => f.name === activeFile);
+      if (!activeFile || !currentFileExists) {
+        if (mainFile && files.find(f => f.name === mainFile)) {
+          setActiveFile(mainFile);
+        } else if (files.length > 0) {
+          setActiveFile(files[0].name);
+        }
+      }
+    }
+  }, [files, mainFile, activeFile]);
+
+  const handleFileSelect = (fileName) => {
+    setActiveFile(fileName);
+  };
+
+  const handleFileCreate = (fileName, fileType = 'c') => {
+    if (!allowFileCreation) return;
+    
+    const newFile = {
+      name: fileName,
+      content: getDefaultFileContent(fileName, fileType),
+      readOnly: false,
+      language: getLanguageFromFileName(fileName)
+    };
+    
+    const updatedFiles = [...files, newFile];
+    setFileContents(prev => ({
+      ...prev,
+      [fileName]: newFile.content
+    }));
+    
+    if (onFilesChange) {
+      onFilesChange(updatedFiles);
+    }
+    
+    setActiveFile(fileName);
+  };
+
+  const handleFileDelete = (fileName) => {
+    if (!allowFileDeletion) return;
+    
+    const updatedFiles = files.filter(file => file.name !== fileName);
+    setFileContents(prev => {
+      const newContents = { ...prev };
+      delete newContents[fileName];
+      return newContents;
+    });
+    
+    if (onFilesChange) {
+      onFilesChange(updatedFiles);
+    }
+    
+    // If deleted file was active, switch to first available file
+    if (activeFile === fileName && updatedFiles.length > 0) {
+      setActiveFile(updatedFiles[0].name);
+    }
+  };
+
+  const getDefaultFileContent = (fileName, fileType) => {
+    const ext = fileName.split('.').pop().toLowerCase();
+    const baseName = fileName.split('.')[0];
+    
+    if (ext === 'h') {
+      const guardName = `${baseName.toUpperCase()}_H`;
+      return `#ifndef ${guardName}
+#define ${guardName}
+
+#include <linux/module.h>
+#include <linux/kernel.h>
+
+/* TODO: Add function declarations and definitions here */
+
+#endif /* ${guardName} */`;
+    } else if (ext === 'c') {
+      const headerName = baseName + '.h';
+      return `#include "${headerName}"
+
+/* TODO: Implement functions here */`;
+    }
+    
+    return '/* TODO: Add your code here */';
+  };
+
+  const handleCodeChange = (newCode) => {
+    const updatedContents = {
+      ...fileContents,
+      [activeFile]: newCode
+    };
+    setFileContents(updatedContents);
+
+    // Update the files array with new content
+    if (onFilesChange) {
+      const updatedFiles = files.map(file => 
+        file.name === activeFile 
+          ? { ...file, content: newCode }
+          : file
+      );
+      onFilesChange(updatedFiles);
+    }
+  };
+
+  const getCurrentFile = () => {
+    return files?.find(file => file.name === activeFile);
+  };
+
+  const getCurrentFileContent = () => {
+    // Always prioritize the current file content from files prop if available
+    const currentFile = files?.find(file => file.name === activeFile);
+    
+    // If we have modified content in state, use that
+    if (fileContents[activeFile] !== undefined) {
+      return fileContents[activeFile];
+    }
+    
+    // Otherwise use the original file content
+    return currentFile?.content || '';
+  };
+
+  const getLanguageFromFileName = (fileName) => {
+    const ext = fileName.split('.').pop().toLowerCase();
+    switch (ext) {
+      case 'c':
+        return 'c';
+      case 'h':
+        return 'c'; // Header files use C syntax
+      case 'makefile':
+        return 'makefile';
+      case 'sh':
+        return 'bash';
+      default:
+        return 'c';
+    }
+  };
+
+  if (!files || files.length === 0) {
+    return (
+      <div style={{
+        height,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...premiumStyles.glass.light,
+        borderRadius: '12px',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
+        <FileText size={48} color={premiumStyles.colors.textTertiary} />
+        <div style={{
+          color: premiumStyles.colors.textSecondary,
+          fontSize: premiumStyles.typography.sizes.lg,
+          fontWeight: premiumStyles.typography.weights.medium
+        }}>
+          No files available
+        </div>
+      </div>
+    );
+  }
+
+  const currentFile = getCurrentFile();
+  const isCurrentFileReadOnly = currentFile?.readOnly || readOnly;
+
+  return (
+    <div style={{
+        height: isFullScreen ? '100vh' : height,
+        width: '100%',
+        display: 'flex',
+        ...premiumStyles.glass.light,
+        borderRadius: '12px',
+        overflow: 'hidden',
+        position: isFullScreen ? 'fixed' : 'relative',
+        top: isFullScreen ? 0 : 'auto',
+        left: isFullScreen ? 0 : 'auto',
+        zIndex: isFullScreen ? 1000 : 'auto'
+      }}>
+      {/* File Explorer */}
+      {showFileExplorer && (
+        <FileExplorer
+          files={files}
+          activeFile={activeFile}
+          onFileSelect={handleFileSelect}
+          onFileCreate={allowFileCreation ? handleFileCreate : null}
+          onFileDelete={allowFileDeletion ? handleFileDelete : null}
+          requiredFiles={requiredFiles}
+          premiumStyles={premiumStyles}
+        />
+      )}
+
+      {/* Main Editor Area */}
+      <div style={{ 
+        flex: 1, 
+        display: 'flex', 
+        flexDirection: 'column',
+        minWidth: 0 // Prevent flex item from overflowing
+      }}>
+        {/* Header with tabs and controls */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 16px',
+          borderBottom: `1px solid ${premiumStyles.colors.border}`,
+          backgroundColor: premiumStyles.colors.backgroundSecondary
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <span style={{
+              color: premiumStyles.colors.text,
+              fontSize: premiumStyles.typography.sizes.sm,
+              fontWeight: premiumStyles.typography.weights.semibold
+            }}>
+              {activeFile}
+            </span>
+            {isCurrentFileReadOnly && (
+              <span style={{
+                color: premiumStyles.colors.warning,
+                fontSize: premiumStyles.typography.sizes.xs,
+                fontWeight: premiumStyles.typography.weights.medium,
+                backgroundColor: `${premiumStyles.colors.warning}20`,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                border: `1px solid ${premiumStyles.colors.warning}40`
+              }}>
+                READ ONLY
+              </span>
+            )}
+          </div>
+
+          <button
+            onClick={() => setIsFullScreen(!isFullScreen)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: premiumStyles.colors.textSecondary,
+              cursor: 'pointer',
+              padding: '4px',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = premiumStyles.colors.surfaceHover;
+              e.target.style.color = premiumStyles.colors.text;
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.color = premiumStyles.colors.textSecondary;
+            }}
+          >
+            {isFullScreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          </button>
+        </div>
+
+        {/* Editor */}
+        <div style={{ flex: 1 }}>
+          <SemanticCodeEditor
+            key={activeFile}
+            value={getCurrentFileContent()}
+            onChange={handleCodeChange}
+            language={getLanguageFromFileName(activeFile)}
+            readOnly={isCurrentFileReadOnly}
+            theme="vs-dark"
+            height="100%"
+            options={{
+              fontSize: 14,
+              lineHeight: 1.5,
+              padding: { top: 16, bottom: 16 },
+              scrollBeyondLastLine: false,
+              minimap: { enabled: false },
+              wordWrap: 'on',
+              automaticLayout: true,
+              tabSize: 4,
+              insertSpaces: true,
+              renderWhitespace: 'selection',
+              smoothScrolling: true,
+              cursorBlinking: 'smooth',
+              cursorSmoothCaretAnimation: true,
+              contextmenu: true,
+              selectOnLineNumbers: true,
+              lineNumbers: 'on',
+              rulers: [80, 120],
+              folding: true,
+              foldingStrategy: 'indentation',
+              showFoldingControls: 'always',
+              bracketPairColorization: {
+                enabled: true
+              }
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MultiFileEditor;

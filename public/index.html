@@ -2,14 +2,89 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+  <link rel="icon" href="%PUBLIC_URL%/kernelq-logo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#000000" />
   <meta
           name="description"
-          content="Ultimate Linux Kernel Academy - Interactive C and Kernel Programming Learning Platform"
+          content="KernelQ - Professional Kernel Development Platform"
   />
   <title>Ultimate Linux Kernel Academy</title>
+  <style>
+    /* Comprehensive Monaco Editor outline fix for all zoom levels */
+    .monaco-editor,
+    .monaco-editor *,
+    .monaco-editor::before,
+    .monaco-editor::after,
+    .monaco-editor *::before,
+    .monaco-editor *::after {
+      outline: none !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+    
+    /* Target all possible Monaco Editor elements */
+    .monaco-editor .view-lines,
+    .monaco-editor .view-line,
+    .monaco-editor .monaco-scrollable-element,
+    .monaco-editor .overflow-guard,
+    .monaco-editor .editor-scrollable,
+    .monaco-editor .lines-content,
+    .monaco-editor .view-zones,
+    .monaco-editor .cursor-layer,
+    .monaco-editor .margin-view-overlays,
+    .monaco-editor .scroll-decoration,
+    .monaco-editor .decorationsOverviewRuler,
+    .monaco-editor .minimap,
+    .monaco-editor .scrollbar,
+    .monaco-editor .slider,
+    .monaco-editor .arrows-visibility,
+    .monaco-editor .codicon,
+    .monaco-editor .current-line,
+    .monaco-editor .selected-text,
+    .monaco-editor .bracket-match {
+      outline: none !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+    
+    /* Force override at all states and zoom levels */
+    .monaco-editor:focus,
+    .monaco-editor:focus-within,
+    .monaco-editor:hover,
+    .monaco-editor:active,
+    .monaco-editor:focus *,
+    .monaco-editor:focus-within *,
+    .monaco-editor:hover *,
+    .monaco-editor:active * {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    
+    /* Use CSS transform to force repaint and fix zoom artifacts */
+    .monaco-editor {
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    
+    /* Zoom-specific fixes */
+    @media screen and (-webkit-min-device-pixel-ratio: 0) {
+      .monaco-editor * {
+        outline: none !important;
+        box-shadow: none !important;
+      }
+    }
+    
+    /* Firefox specific */
+    @-moz-document url-prefix() {
+      .monaco-editor * {
+        outline: none !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
 </head>
 <body>
 <noscript>You need to enable JavaScript to run this app.</noscript>

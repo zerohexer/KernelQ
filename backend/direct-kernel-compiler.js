@@ -329,11 +329,26 @@ poweroff -f
 
     // Compile kernel module using direct make command
     async compileModule(sessionDir, moduleName, sourceFiles) {
-        return new Promise((resolve) => {
-            // Generate Makefile
-            const makefile = this.generateMakefile(moduleName, sourceFiles);
+        return new Promise(async (resolve) => {
+            // Check if Makefile already exists (from multi-file project)
+            const makefilePath = path.join(sessionDir, 'Makefile');
+            let makefileExists = false;
             
-            fs.writeFile(path.join(sessionDir, 'Makefile'), makefile)
+            try {
+                await fs.access(makefilePath);
+                makefileExists = true;
+                console.log('📋 Using provided Makefile');
+            } catch (error) {
+                // Makefile doesn't exist, we'll generate one
+                console.log('📋 Generating default Makefile');
+            }
+            
+            // Generate Makefile only if it doesn't exist
+            const setupMakefile = makefileExists ? 
+                Promise.resolve() : 
+                fs.writeFile(makefilePath, this.generateMakefile(moduleName, sourceFiles));
+            
+            setupMakefile
                 .then(() => {
                     // Run make clean && make
                     const makeProcess = spawn('make', ['clean'], {
@@ -609,7 +624,8 @@ poweroff -f
     }
 
     // Main compilation method with kernel_project_test support
-    async compileKernelModule(code, moduleName, testScenario = null) {
+    // Supports both legacy single-file format and new multi-file format
+    async compileKernelModule(codeOrFiles, moduleName, testScenario = null) {
         // Check prerequisites
         const headerCheck = await this.checkKernelHeaders();
         if (!headerCheck.available) {
@@ -628,16 +644,74 @@ poweroff -f
         try {
             await fs.mkdir(sessionDir, { recursive: true });
 
-            // Write source file
-            const sourceFile = path.join(sessionDir, `${moduleName}.c`);
-            await fs.writeFile(sourceFile, code);
+            let sourceFiles = [];
+            let styleCheckResult = { passed: true, output: 'No style check needed', hasIssues: false };
 
-            // Run checkpatch.pl style checking
-            const styleCheckResult = await this.runCheckpatch(sourceFile);
-            console.log(`🎨 Style check completed for ${moduleName}: ${styleCheckResult.passed ? 'CLEAN' : 'ISSUES_FOUND'}`);
+            // Handle both legacy single-file and new multi-file formats
+            if (typeof codeOrFiles === 'string') {
+                // Legacy single-file format
+                const sourceFile = path.join(sessionDir, `${moduleName}.c`);
+                await fs.writeFile(sourceFile, codeOrFiles);
+                sourceFiles = [sourceFile];
+                
+                // Run checkpatch.pl style checking
+                styleCheckResult = await this.runCheckpatch(sourceFile);
+                console.log(`🎨 Style check completed for ${moduleName}: ${styleCheckResult.passed ? 'CLEAN' : 'ISSUES_FOUND'}`);
+            } else if (Array.isArray(codeOrFiles)) {
+                // New multi-file format
+                console.log(`📁 Multi-file compilation for ${moduleName} (${codeOrFiles.length} files)`);
+                
+                // Extract actual module name from Makefile
+                let actualModuleName = moduleName;
+                const makefileContent = codeOrFiles.find(f => f.name === 'Makefile')?.content;
+                if (makefileContent) {
+                    const objMMatch = makefileContent.match(/obj-m\s*\+=\s*(\w+)\.o/);
+                    if (objMMatch) {
+                        actualModuleName = objMMatch[1];
+                        console.log(`📁 Multi-file: Using actual module name '${actualModuleName}' from Makefile`);
+                    }
+                }
+                
+                for (const file of codeOrFiles) {
+                    const filePath = path.join(sessionDir, file.name);
+                    await fs.writeFile(filePath, file.content);
+                    
+                    // Set appropriate permissions
+                    if (file.name === 'Makefile') {
+                        await fs.chmod(filePath, 0o644);
+                    }
+                    
+                    // Collect C source files for compilation
+                    if (file.name.endsWith('.c')) {
+                        sourceFiles.push(filePath);
+                    }
+                }
+                
+                // Update moduleName for the rest of the compilation process
+                moduleName = actualModuleName;
+                
+                // Run style check on all C files
+                const styleResults = [];
+                for (const sourceFile of sourceFiles) {
+                    const result = await this.runCheckpatch(sourceFile);
+                    styleResults.push(result);
+                }
+                
+                // Combine style check results
+                const hasIssues = styleResults.some(r => r.hasIssues);
+                styleCheckResult = {
+                    passed: !hasIssues,
+                    output: styleResults.map(r => r.output).join('\n'),
+                    hasIssues
+                };
+                
+                console.log(`🎨 Style check completed for ${moduleName}: ${styleCheckResult.passed ? 'CLEAN' : 'ISSUES_FOUND'}`);
+            } else {
+                throw new Error('Invalid input format: expected string (legacy) or array (multi-file)');
+            }
 
             // Compile module
-            const compileResult = await this.compileModule(sessionDir, moduleName, [sourceFile]);
+            const compileResult = await this.compileModule(sessionDir, moduleName, sourceFiles);
             
             if (!compileResult.success) {
                 return {

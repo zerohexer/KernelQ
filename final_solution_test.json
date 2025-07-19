@@ -1,0 +1,36 @@
+{
+  "moduleName": "simple_driver",
+  "problemId": 80,
+  "files": [
+    {
+      "name": "driver_main.c",
+      "content": "#include \"driver_main.h\"\n#include \"device_ops.h\"\n\nstruct simple_driver_data *driver_data;\n\nstatic int __init simple_driver_init(void)\n{\n\tint result;\n\n\tpr_info(\"simple_driver: initializing\\n\");\n\n\tdriver_data = kzalloc(sizeof(struct simple_driver_data), GFP_KERNEL);\n\tif (!driver_data)\n\t\treturn -ENOMEM;\n\n\tresult = device_init(driver_data);\n\tif (result < 0) {\n\t\tpr_err(\"simple_driver: device initialization failed\\n\");\n\t\tkfree(driver_data);\n\t\treturn result;\n\t}\n\n\tpr_info(\"simple_driver: loaded successfully\\n\");\n\treturn 0;\n}\n\nstatic void __exit simple_driver_exit(void)\n{\n\tpr_info(\"simple_driver: unloading\\n\");\n\n\tif (driver_data) {\n\t\tdevice_cleanup(driver_data);\n\t\tkfree(driver_data);\n\t}\n\n\tpr_info(\"simple_driver: unloaded\\n\");\n}\n\nmodule_init(simple_driver_init);\nmodule_exit(simple_driver_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Simple Driver Creation Challenge\");\nMODULE_VERSION(\"1.0\");\n",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "driver_main.h",
+      "content": "#ifndef DRIVER_MAIN_H\n#define DRIVER_MAIN_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/fs.h>\n#include <linux/cdev.h>\n#include <linux/device.h>\n#include <linux/slab.h>\n#include <linux/uaccess.h>\n\n#define DRIVER_NAME \"simple_driver\"\n#define DEVICE_NAME \"simpledev\"\n#define CLASS_NAME \"simple_class\"\n\nstruct simple_driver_data {\n\tdev_t device_number;\n\tstruct cdev cdev;\n\tstruct class *device_class;\n\tstruct device *device_struct;\n\tchar *buffer;\n\tsize_t buffer_size;\n};\n\nextern struct simple_driver_data *driver_data;\n\n#endif /* DRIVER_MAIN_H */\n",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "device_ops.h",
+      "content": "#ifndef DEVICE_OPS_H\n#define DEVICE_OPS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/fs.h>\n#include <linux/cdev.h>\n#include <linux/device.h>\n#include <linux/uaccess.h>\n#include <linux/slab.h>\n\n/* Forward declaration */\nstruct simple_driver_data;\n\nint device_init(struct simple_driver_data *driver_data);\nvoid device_cleanup(struct simple_driver_data *driver_data);\n\nint device_open(struct inode *inode, struct file *file);\nint device_release(struct inode *inode, struct file *file);\nssize_t device_read(struct file *file, char __user *buffer, size_t len, loff_t *offset);\nssize_t device_write(struct file *file, const char __user *buffer, size_t len, loff_t *offset);\n\n#endif /* DEVICE_OPS_H */\n",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "device_ops.c",
+      "content": "#include \"device_ops.h\"\n#include \"driver_main.h\"\n\nstatic struct file_operations device_fops = {\n\t.owner = THIS_MODULE,\n\t.open = device_open,\n\t.release = device_release,\n\t.read = device_read,\n\t.write = device_write,\n};\n\nint device_open(struct inode *inode, struct file *file)\n{\n\tpr_info(\"simple_driver: device opened\\n\");\n\treturn 0;\n}\n\nint device_release(struct inode *inode, struct file *file)\n{\n\tpr_info(\"simple_driver: device released\\n\");\n\treturn 0;\n}\n\nssize_t device_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)\n{\n\tconst char *message = \"Hello from simple driver!\\n\";\n\tsize_t message_len = strlen(message);\n\n\tif (*offset >= message_len)\n\t\treturn 0;\n\n\tif (len > message_len - *offset)\n\t\tlen = message_len - *offset;\n\n\tif (copy_to_user(buffer, message + *offset, len))\n\t\treturn -EFAULT;\n\n\t*offset += len;\n\treturn len;\n}\n\nssize_t device_write(struct file *file, const char __user *buffer, size_t len, loff_t *offset)\n{\n\tpr_info(\"simple_driver: received %zu bytes\\n\", len);\n\treturn len;\n}\n\nint device_init(struct simple_driver_data *driver_data)\n{\n\tint result;\n\n\tpr_info(\"simple_driver: initializing device\\n\");\n\n\tresult = alloc_chrdev_region(&driver_data->device_number, 0, 1, DEVICE_NAME);\n\tif (result < 0) {\n\t\tpr_err(\"simple_driver: failed to allocate device number\\n\");\n\t\treturn result;\n\t}\n\n\tcdev_init(&driver_data->cdev, &device_fops);\n\tdriver_data->cdev.owner = THIS_MODULE;\n\n\tresult = cdev_add(&driver_data->cdev, driver_data->device_number, 1);\n\tif (result < 0) {\n\t\tpr_err(\"simple_driver: failed to add character device\\n\");\n\t\tunregister_chrdev_region(driver_data->device_number, 1);\n\t\treturn result;\n\t}\n\n\tdriver_data->device_class = class_create(CLASS_NAME);\n\tif (IS_ERR(driver_data->device_class)) {\n\t\tpr_err(\"simple_driver: failed to create device class\\n\");\n\t\tcdev_del(&driver_data->cdev);\n\t\tunregister_chrdev_region(driver_data->device_number, 1);\n\t\treturn PTR_ERR(driver_data->device_class);\n\t}\n\n\tdriver_data->device_struct = device_create(driver_data->device_class, NULL,\n\t\t\t\t\t\t   driver_data->device_number, NULL, DEVICE_NAME);\n\tif (IS_ERR(driver_data->device_struct)) {\n\t\tpr_err(\"simple_driver: failed to create device\\n\");\n\t\tclass_destroy(driver_data->device_class);\n\t\tcdev_del(&driver_data->cdev);\n\t\tunregister_chrdev_region(driver_data->device_number, 1);\n\t\treturn PTR_ERR(driver_data->device_struct);\n\t}\n\n\tdriver_data->buffer = kzalloc(1024, GFP_KERNEL);\n\tif (!driver_data->buffer) {\n\t\tdevice_destroy(driver_data->device_class, driver_data->device_number);\n\t\tclass_destroy(driver_data->device_class);\n\t\tcdev_del(&driver_data->cdev);\n\t\tunregister_chrdev_region(driver_data->device_number, 1);\n\t\treturn -ENOMEM;\n\t}\n\tdriver_data->buffer_size = 1024;\n\n\tpr_info(\"simple_driver: device initialized successfully\\n\");\n\treturn 0;\n}\n\nvoid device_cleanup(struct simple_driver_data *driver_data)\n{\n\tpr_info(\"simple_driver: cleaning up device\\n\");\n\n\tif (driver_data->buffer)\n\t\tkfree(driver_data->buffer);\n\n\tif (driver_data->device_struct)\n\t\tdevice_destroy(driver_data->device_class, driver_data->device_number);\n\n\tif (driver_data->device_class)\n\t\tclass_destroy(driver_data->device_class);\n\n\tcdev_del(&driver_data->cdev);\n\tunregister_chrdev_region(driver_data->device_number, 1);\n\n\tpr_info(\"simple_driver: device cleanup completed\\n\");\n}\n",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Simple driver Makefile\nobj-m += simple_driver.o\n\n# Object files that make up this module\nsimple_driver-objs := driver_main.o device_ops.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help\n",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ]
+}

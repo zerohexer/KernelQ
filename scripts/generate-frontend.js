@@ -70,6 +70,20 @@ class FrontendGenerator {
             }
         }
 
+        // Part 1.5: Check for header inclusion requirements from test cases
+        const { testCases } = problem.validation || {};
+        if (testCases) {
+            const headerTest = testCases.find(tc => tc.id === 'header_inclusion');
+            if (headerTest && headerTest.expectedSymbols?.length > 0) {
+                const headerIncludes = headerTest.expectedSymbols
+                    .filter(symbol => symbol.includes('#include'))
+                    .map(include => include.replace('#include ', '').replace(/"/g, ''));
+                if (headerIncludes.length > 0) {
+                    requirements.push(`Must include header file: ${headerIncludes.join(', ')}`);
+                }
+            }
+        }
+
         // Part 2: Process new 'displayRequirements' for advanced tests
         const { displayRequirements } = problem;
         if (displayRequirements) {
@@ -126,6 +140,20 @@ class FrontendGenerator {
             concepts: problem.concepts || [],
             skills: problem.skills || []
         };
+
+        // Add multi-file support
+        if (problem.files) {
+            frontendProblem.files = problem.files;
+        }
+        
+        if (problem.mainFile) {
+            frontendProblem.mainFile = problem.mainFile;
+        }
+
+        // Add required files for file creation challenges
+        if (problem.requiredFiles) {
+            frontendProblem.requiredFiles = problem.requiredFiles;
+        }
 
         // --- START OF THE FIX ---
         // The original function was missing this block.
@@ -197,7 +225,7 @@ export default problemBank;
 
     updateUltimateKernelAcademy(problems) {
         const frontendCode = this.generateFrontendCode(problems);
-        const outputPath = path.join(__dirname, '../src/generated-problems.js');
+        const outputPath = path.join(__dirname, '../src/data/generated-problems.js');
         
         fs.writeFileSync(outputPath, frontendCode);
         console.log(`✅ Generated frontend problems: ${outputPath}`);
@@ -205,7 +233,7 @@ export default problemBank;
         
         // Generate update instructions
         console.log('\n📝 To use in UltimateKernelAcademy.js:');
-        console.log('1. Import: import problemBank from "./generated-problems.js"');
+        console.log('1. Import: import problemBank from "./data/generated-problems.js"');
         console.log('2. Replace the existing problemBank array with the imported one');
     }
 
