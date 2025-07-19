@@ -316,6 +316,36 @@ const ChallengeView = ({
                                 )}
 
                                 {/* Show validation.exactRequirements if available */}
+                                {validation?.exactRequirements?.variables?.map((variable, idx) => (
+                                    <li key={`source-var-${idx}`} style={{ 
+                                        marginBottom: '12px',
+                                        position: 'relative',
+                                        paddingLeft: '20px'
+                                    }}>
+                                        <span style={{
+                                            position: 'absolute',
+                                            left: 0,
+                                            top: '8px',
+                                            width: '6px',
+                                            height: '6px',
+                                            borderRadius: '50%',
+                                            background: '#007aff'
+                                        }} />
+                                        Define variable: <code style={{ 
+                                            background: 'rgba(0, 122, 255, 0.15)',
+                                            border: '1px solid rgba(0, 122, 255, 0.3)',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                            color: '#007aff',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500
+                                        }}>{variable.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>({variable.type})</span>
+                                        {variable.value && (
+                                            <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}> = {variable.value}</span>
+                                        )}
+                                    </li>
+                                ))}
                                 {validation?.exactRequirements?.functionNames?.map((fn, idx) => (
                                     <li key={idx} style={{ 
                                         marginBottom: '12px',
