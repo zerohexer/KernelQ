@@ -97,6 +97,14 @@
           { "pattern": "Before swap: num1=15, num2=25", "exact": true },
           { "pattern": "After swap: num1=25, num2=15", "exact": true }
         ]
+      },
+      {
+        "id": "header_inclusion",
+        "name": "Header File Inclusion",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["#include \"functions.h\""],
+        "prohibitedSymbols": []
       }
     ]
   }
