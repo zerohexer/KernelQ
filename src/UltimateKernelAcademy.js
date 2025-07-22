@@ -642,7 +642,10 @@ const UnlimitedKernelAcademy = () => {
 
                 fetch(`/api/user/${user.id}/progress`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-user-id': user.id.toString() // 🔒 SECURITY: Send authenticated user ID
+                    },
                     body: JSON.stringify(updatedProgress)
                 }).catch(error => {
                     console.warn('Failed to sync progress to database:', error);
@@ -813,7 +816,11 @@ const UnlimitedKernelAcademy = () => {
             
             // Load solved problems from database and update completedChallenges set
             try {
-                const response = await fetch(`/api/user/${userData.id}/problems/solved`);
+                const response = await fetch(`/api/user/${userData.id}/problems/solved`, {
+                    headers: {
+                        'x-user-id': userData.id.toString() // 🔒 SECURITY: Send authenticated user ID
+                    }
+                });
                 if (response.ok) {
                     const result = await response.json();
                     if (result.success && result.problems) {

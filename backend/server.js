@@ -30,9 +30,55 @@ app.use(cors({
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-user-id']
 }));
 app.use(express.json({ limit: '10mb' }));
+
+// 🔒 SECURITY: Prevent User ID Parameter Tampering
+// This middleware protects all endpoints that start with /api/user/
+app.use((req, res, next) => {
+    // Only apply security to /api/user/ endpoints
+    if (!req.path.startsWith('/api/user/')) {
+        return next();
+    }
+    console.log('🔒 Security Check - User ID Authorization');
+    
+    // Get authenticated user ID from headers (temporary - will be JWT later)
+    const authUserId = req.headers['x-user-id'];
+    
+    // Extract userId from URL path like /api/user/123/progress -> 123
+    const urlParts = req.path.split('/');
+    const requestedUserId = urlParts[3]; // /api/user/[userId]/...
+    
+    console.log(`📋 Full URL path: ${req.path}`);
+    console.log(`📋 Route params: ${JSON.stringify(req.params)}`);
+    console.log(`📋 Auth User ID: ${authUserId}, Requested User ID: ${requestedUserId}`);
+    
+    // Require authentication
+    if (!authUserId) {
+        console.log('❌ Authentication required - no user ID provided');
+        return res.status(401).json({ 
+            success: false, 
+            error: 'Authentication required - please log in' 
+        });
+    }
+    
+    // Prevent horizontal privilege escalation (ensure both are strings for comparison)
+    const authUserIdStr = authUserId ? authUserId.toString() : null;
+    const requestedUserIdStr = requestedUserId ? requestedUserId.toString() : null;
+    
+    if (authUserIdStr !== requestedUserIdStr) {
+        console.log('❌ Access denied - user trying to access another user\'s data');
+        console.log(`📋 Comparison failed: "${authUserIdStr}" !== "${requestedUserIdStr}"`);
+        return res.status(403).json({ 
+            success: false, 
+            error: 'Access denied - you can only access your own data' 
+        });
+    }
+    
+    console.log('✅ Authorization passed - user can access their own data');
+    next();
+});
 
 // New comprehensive validation endpoint - LeetCode style with exact requirements
 app.post('/api/validate-solution-comprehensive', async (req, res) => {
