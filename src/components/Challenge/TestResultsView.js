@@ -1,13 +1,116 @@
 // src/components/Challenge/TestResultsView.js
 
 import React from 'react';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import PremiumStyles from '../../styles/PremiumStyles';
 
-const TestResultsView = ({ testResults, rawOutput }) => {
+const TestResultsView = ({ testResults, rawOutput, overallResult, feedback }) => {
+  // Check if this is a compilation error using overallResult first, then fallback to text analysis
+  const isCompilationError = overallResult === 'COMPILATION_ERROR' || 
+    overallResult === 'PRE_COMPILATION_ERROR' ||
+    (!testResults || testResults.length === 0) && rawOutput && (
+      rawOutput.includes('COMPILATION_ERROR') || 
+      rawOutput.includes('Compilation failed') ||
+      rawOutput.includes('error:') ||
+      rawOutput.includes('fatal error:') ||
+      rawOutput.includes('syntax error')
+    );
+
+  if (isCompilationError) {
+    // Extract error details from feedback if available
+    const errorFeedback = feedback?.find(f => f.type === 'error');
+    const errorDetails = errorFeedback?.details || rawOutput || "Compilation failed with unknown error.";
+    
+    // Display compilation error with proper styling
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* Compilation Error Header */}
+        <div style={{
+          ...PremiumStyles.glass.light,
+          padding: '1rem 1.5rem',
+          borderRadius: '12px',
+          borderLeft: `4px solid ${PremiumStyles.colors.error}`
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+            <AlertTriangle size={20} color={PremiumStyles.colors.error} />
+            <h4 style={{
+              margin: 0,
+              fontSize: '1.2rem',
+              fontWeight: 600,
+              color: PremiumStyles.colors.error
+            }}>
+              Compilation Error
+            </h4>
+          </div>
+          <p style={{ margin: 0, color: PremiumStyles.colors.textSecondary }}>
+            Your code contains syntax errors that prevent compilation.
+          </p>
+        </div>
+
+        {/* Error Details */}
+        <div style={{
+          background: 'rgba(220, 38, 38, 0.1)',
+          border: '1px solid rgba(220, 38, 38, 0.2)',
+          borderRadius: '8px',
+          padding: '1rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <XCircle size={16} color={PremiumStyles.colors.error} />
+            <span style={{ fontWeight: 600, color: PremiumStyles.colors.error }}>
+              {errorFeedback?.message || 'Compilation Failed'}
+            </span>
+          </div>
+          <pre style={{
+            fontSize: '0.875rem',
+            lineHeight: '1.5',
+            whiteSpace: 'pre-wrap',
+            margin: 0,
+            color: 'rgba(245, 245, 247, 0.9)',
+            fontFamily: 'SF Mono, Monaco, Menlo, "Ubuntu Mono", monospace',
+            background: 'rgba(0, 0, 0, 0.2)',
+            padding: '0.75rem',
+            borderRadius: '6px',
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            {errorDetails}
+          </pre>
+        </div>
+
+        {/* Help Section */}
+        <div style={{
+          background: 'rgba(255, 159, 10, 0.1)',
+          border: '1px solid rgba(255, 159, 10, 0.2)',
+          borderRadius: '8px',
+          padding: '1rem'
+        }}>
+          <h5 style={{
+            margin: '0 0 0.5rem 0',
+            fontSize: '1rem',
+            fontWeight: 600,
+            color: '#ff9f0a'
+          }}>
+            💡 Common Issues to Check:
+          </h5>
+          <ul style={{
+            margin: 0,
+            paddingLeft: '1.5rem',
+            color: PremiumStyles.colors.textSecondary,
+            fontSize: '0.875rem',
+            lineHeight: '1.5'
+          }}>
+            <li>Missing semicolons (;) at the end of statements</li>
+            <li>Unmatched braces {'{ }'} or parentheses ()</li>
+            <li>Missing header file includes</li>
+            <li>Typos in function names or variable names</li>
+            <li>Missing return statements in functions</li>
+          </ul>
+        </div>
+      </div>
+    );
+  }
+
   if (!testResults || testResults.length === 0) {
-    // This can happen if compilation fails before tests run.
-    // We can show the raw output as a fallback.
+    // Fallback for other cases where there are no test results
     return (
       <pre style={{
         fontSize: '0.875rem',

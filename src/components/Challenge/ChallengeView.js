@@ -704,7 +704,7 @@ const ChallengeView = ({
                             display: 'flex',
                             flexDirection: 'column'
                         }}>
-                            {codeEditor.output ? (
+                            {codeEditor.output || codeEditor.overallResult === 'COMPILATION_ERROR' || codeEditor.overallResult === 'PRE_COMPILATION_ERROR' ? (
                                 <div style={{
                                     background: 'rgba(29, 29, 31, 0.9)',
                                     backdropFilter: 'blur(20px)',
@@ -742,7 +742,9 @@ const ChallengeView = ({
                                     }}>
                                         <TestResultsView 
                                             testResults={codeEditor.testResults} 
-                                            rawOutput={codeEditor.output} 
+                                            rawOutput={codeEditor.output}
+                                            overallResult={codeEditor.overallResult}
+                                            feedback={codeEditor.feedback}
                                         />
                                     </div>
                                 </div>
