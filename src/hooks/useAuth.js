@@ -67,6 +67,7 @@ const useAuth = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'x-user-id': user.id.toString() // 🔒 SECURITY: Send authenticated user ID
                 },
                 body: JSON.stringify(problemData)
             });
@@ -93,7 +94,11 @@ const useAuth = () => {
                 `/api/user/${user.id}/problems/solved`;
             
             console.log('🌐 Fetching from URL:', url);
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                headers: {
+                    'x-user-id': user.id.toString() // 🔒 SECURITY: Send authenticated user ID
+                }
+            });
             console.log('📡 Response status:', response.status);
             
             if (response.ok) {
