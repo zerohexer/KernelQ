@@ -79,6 +79,38 @@ const useAuth = () => {
         }
     };
 
+    const getSolvedProblems = async (phase = null) => {
+        console.log('🔗 getSolvedProblems called:', { isAuthenticated, userId: user?.id, phase });
+        
+        if (!isAuthenticated || !user) {
+            console.log('❌ Cannot fetch solved problems: not authenticated or no user');
+            return [];
+        }
+
+        try {
+            const url = phase ? 
+                `/api/user/${user.id}/problems/solved?phase=${phase}` : 
+                `/api/user/${user.id}/problems/solved`;
+            
+            console.log('🌐 Fetching from URL:', url);
+            const response = await fetch(url);
+            console.log('📡 Response status:', response.status);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('📊 API response data:', data);
+                console.log('📊 Loaded solved problems from database:', data.problems?.length || 0);
+                return data.problems || [];
+            } else {
+                console.warn('❌ Failed to fetch solved problems:', response.status);
+                return [];
+            }
+        } catch (error) {
+            console.warn('❌ Error fetching solved problems:', error);
+            return [];
+        }
+    };
+
     return {
         user,
         userProgress,
@@ -87,7 +119,8 @@ const useAuth = () => {
         login,
         logout,
         updateProgress,
-        recordProblemCompletion
+        recordProblemCompletion,
+        getSolvedProblems
     };
 };
 

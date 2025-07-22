@@ -51,11 +51,15 @@ const UnlimitedKernelAcademy = () => {
         isLoading: authLoading,
         login,
         logout,
-        recordProblemCompletion
+        recordProblemCompletion,
+        getSolvedProblems
     } = useAuth();
 
     // Authentication UI state
     const [showRegister, setShowRegister] = useState(false);
+    
+    // Debouncing state for challenge generation to prevent race conditions
+    const [isGeneratingChallenge, setIsGeneratingChallenge] = useState(false);
     
     // Use custom hooks for state management
     const {
@@ -578,6 +582,42 @@ const UnlimitedKernelAcademy = () => {
                 xpEarned: currentChallenge.xp,
                 skillImprovement: skillImprovement
             }].slice(-50)); // Keep last 50 challenges
+
+            // Record problem completion in database if authenticated
+            if (isAuthenticated && user) {
+                const problemData = {
+                    problemId: challengeId,
+                    phase: currentChallenge.phase,
+                    difficulty: currentChallenge.difficulty,
+                    xpEarned: currentChallenge.xp,
+                    skillImprovement: skillImprovement,
+                    codeSubmitted: codeEditor.files || codeEditor.code,
+                    testResults: codeEditor.testResults || [],
+                    executionTime: codeEditor.executionTime || 0
+                };
+                
+                recordProblemCompletion(problemData).catch(error => {
+                    console.warn('Failed to record problem completion:', error);
+                });
+
+                // Also sync updated progress to database
+                const updatedProgress = {
+                    currentPhase: currentChallenge.phase,
+                    totalXp: newXP,
+                    problemsSolved: userProfile.uniqueChallengesCompleted + 1,
+                    streak: userProfile.streak + 1,
+                    masteryPoints: userProfile.masteryPoints + masteryBonus,
+                    skills: userSkills
+                };
+
+                fetch(`/api/user/${user.id}/progress`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedProgress)
+                }).catch(error => {
+                    console.warn('Failed to sync progress to database:', error);
+                });
+            }
         }
     };
 
@@ -609,25 +649,56 @@ const UnlimitedKernelAcademy = () => {
 
     // Generate new challenge - now supports problemBank
     const generateNewChallenge = () => {
-        const challenge = getNextAdaptiveChallenge();
+        // Prevent race conditions with debouncing
+        if (isGeneratingChallenge) {
+            console.log('🚫 Challenge generation already in progress, skipping...');
+            return;
+        }
         
-        // Create a deep copy of the challenge to prevent mutation of the original
-        const challengeCopy = {
-            ...challenge,
-            files: challenge.files ? deepCopyFiles(challenge.files) : undefined
-        };
+        setIsGeneratingChallenge(true);
         
-        console.log('Generated new challenge:', challenge.title, 'with', challenge.files?.length || 0, 'files');
-        
-        setCurrentChallenge(challengeCopy);
-        setCodeEditor({
-            code: challenge.starter,
-            output: '',
-            isRunning: false,
-            testResults: []
-        });
-        setShowHints(false);
-        setGenerationSeed(Date.now()); // Update seed for variety
+        try {
+            const challenge = getNextAdaptiveChallenge();
+            
+            // Add null check to prevent race condition errors
+            if (!challenge) {
+                console.warn('⚠️  No challenge available for current phase:', userProfile.currentPhase);
+                console.warn('📊 Problem bank has', problemBank.length, 'problems');
+                
+                // Set a fallback state instead of crashing
+                setCurrentChallenge(null);
+                setCodeEditor({
+                    code: '// No challenges available for the current phase\n// Please check back later or contact support',
+                    output: '',
+                    isRunning: false,
+                    testResults: []
+                });
+                return;
+            }
+            
+            // Create a deep copy of the challenge to prevent mutation of the original
+            const challengeCopy = {
+                ...challenge,
+                files: challenge.files ? deepCopyFiles(challenge.files) : undefined
+            };
+            
+            console.log('Generated new challenge:', challenge.title, 'with', challenge.files?.length || 0, 'files');
+            
+            setCurrentChallenge(challengeCopy);
+            setCodeEditor({
+                code: challenge.starter || '// Challenge starter code not available',
+                output: '',
+                isRunning: false,
+                testResults: []
+            });
+            setShowHints(false);
+            setGenerationSeed(Date.now()); // Update seed for variety
+        } finally {
+            // Reset the debouncing flag after a short delay
+            setTimeout(() => {
+                setIsGeneratingChallenge(false);
+            }, 500);
+        }
     };
 
     // Initialize with phase selection or first challenge
@@ -638,6 +709,47 @@ const UnlimitedKernelAcademy = () => {
             generateNewChallenge();
         }
     }, [userProfile.currentPhase]);
+
+    // Load solved problems when user is authenticated (including on page reload)
+    useEffect(() => {
+        const loadSolvedProblems = async () => {
+            console.log('🔍 useEffect triggered:', { isAuthenticated, userId: user?.id, authLoading });
+            
+            if (isAuthenticated && user && !authLoading) {
+                try {
+                    console.log('🔄 Loading solved problems from database for user:', user.id);
+                    const solvedProblems = await getSolvedProblems();
+                    console.log('📥 Raw solved problems from API:', solvedProblems);
+                    
+                    if (solvedProblems && solvedProblems.length > 0) {
+                        // Convert string IDs to numbers to match the problem bank format
+                        const solvedProblemIds = new Set(
+                            solvedProblems.map(p => {
+                                const numericId = parseInt(p.problem_id);
+                                console.log(`🔄 Converting problem_id "${p.problem_id}" to ${numericId}`);
+                                return numericId;
+                            })
+                        );
+                        console.log('📊 Problem IDs to mark as completed:', Array.from(solvedProblemIds));
+                        console.log(`📊 Loaded ${solvedProblemIds.size} completed challenges from database`);
+                        setCompletedChallenges(solvedProblemIds);
+                        console.log('✅ completedChallenges state updated');
+                    } else {
+                        console.log('📊 No solved problems found in database');
+                        setCompletedChallenges(new Set());
+                    }
+                } catch (error) {
+                    console.warn('❌ Failed to load solved problems from database:', error);
+                }
+            } else if (!isAuthenticated) {
+                // Clear completed challenges when user is not authenticated
+                console.log('👤 User not authenticated, clearing completed challenges');
+                setCompletedChallenges(new Set());
+            }
+        };
+
+        loadSolvedProblems();
+    }, [isAuthenticated, user, authLoading]);
 
     // Phase selection handler
     const selectPhase = (phaseKey) => {
@@ -651,9 +763,40 @@ const UnlimitedKernelAcademy = () => {
 
 
     // Authentication handlers
-    const handleLogin = (userData, progressData) => {
+    const handleLogin = async (userData, progressData) => {
         login(userData, progressData);
         setShowRegister(false);
+        
+        // Sync database progress with local state
+        if (userData && progressData) {
+            console.log('🔄 Syncing database progress with local state...');
+            
+            // Update local user profile with database values
+            setUserProfile(prev => ({
+                ...prev,
+                xp: progressData.total_xp || prev.xp,
+                uniqueChallengesCompleted: progressData.problems_solved || prev.uniqueChallengesCompleted,
+                streak: progressData.streak || prev.streak,
+                masteryPoints: progressData.mastery_points || prev.masteryPoints,
+                currentPhase: progressData.current_phase || prev.currentPhase
+            }));
+            
+            // Load solved problems from database and update completedChallenges set
+            try {
+                const response = await fetch(`/api/user/${userData.id}/problems/solved`);
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.problems) {
+                        // Convert string IDs to numbers to match the problem bank format
+                        const solvedProblemIds = new Set(result.problems.map(p => parseInt(p.problem_id)));
+                        console.log(`📊 Loaded ${solvedProblemIds.size} completed challenges from database`);
+                        setCompletedChallenges(solvedProblemIds);
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to load solved problems from database:', error);
+            }
+        }
     };
 
     const handleLogout = () => {

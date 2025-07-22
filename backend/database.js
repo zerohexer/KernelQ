@@ -294,23 +294,47 @@ class KernelQDatabase {
             executionTime = 0
         } = problemData;
 
+        // Validate and sanitize parameters for SQLite
+        const sanitizedParams = {
+            userId: typeof userId === 'number' ? userId : parseInt(userId) || null,
+            problemId: typeof problemId === 'string' ? problemId : String(problemId || ''),
+            phase: typeof phase === 'string' ? phase : String(phase || ''),
+            difficulty: typeof difficulty === 'number' ? difficulty : parseInt(difficulty) || 0,
+            xpEarned: typeof xpEarned === 'number' ? xpEarned : parseInt(xpEarned) || 0,
+            skillImprovement: typeof skillImprovement === 'number' ? skillImprovement : parseFloat(skillImprovement) || 0.0,
+            codeSubmitted: typeof codeSubmitted === 'string' ? codeSubmitted : String(codeSubmitted || ''),
+            testResults: typeof testResults === 'string' ? testResults : JSON.stringify(testResults || {}),
+            executionTime: typeof executionTime === 'number' ? executionTime : parseInt(executionTime) || 0
+        };
+
+        // Validate required parameters
+        if (!sanitizedParams.userId || !sanitizedParams.problemId || !sanitizedParams.phase) {
+            return { success: false, error: 'Missing required parameters: userId, problemId, or phase' };
+        }
+
         // Check if already solved
-        const existing = this.statements.checkProblemSolved.get(userId, problemId);
+        const existing = this.statements.checkProblemSolved.get(sanitizedParams.userId, sanitizedParams.problemId);
         if (existing.count > 0) {
             return { success: false, error: 'Problem already solved' };
         }
 
-        return this.statements.addSolvedProblem.run(
-            userId,
-            problemId,
-            phase,
-            difficulty,
-            xpEarned,
-            skillImprovement,
-            codeSubmitted,
-            JSON.stringify(testResults),
-            executionTime
-        );
+        try {
+            return this.statements.addSolvedProblem.run(
+                sanitizedParams.userId,
+                sanitizedParams.problemId,
+                sanitizedParams.phase,
+                sanitizedParams.difficulty,
+                sanitizedParams.xpEarned,
+                sanitizedParams.skillImprovement,
+                sanitizedParams.codeSubmitted,
+                sanitizedParams.testResults,
+                sanitizedParams.executionTime
+            );
+        } catch (error) {
+            console.error('❌ SQLite binding error in recordProblemSolution:', error);
+            console.error('📊 Parameters:', sanitizedParams);
+            return { success: false, error: `Database error: ${error.message}` };
+        }
     }
 
     async getUserSolvedProblems(userId, phase = null) {
