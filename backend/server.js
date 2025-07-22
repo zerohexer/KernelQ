@@ -1,9 +1,11 @@
 const express = require('express');
 const cors = require('cors');
+const bcrypt = require('bcrypt'); // For password hashing
 const DirectKernelCompiler = require('./direct-kernel-compiler');
 const TestCaseSystem = require('./test-case-system');
 const TestExecutionEngine = require('./test-execution-engine');
 const LeetCodeStyleValidator = require('./leetcode-style-validator');
+const { initializeDatabase, getDatabase } = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -603,17 +605,261 @@ app.post('/api/playground-compile', async (req, res) => {
     }
 });
 
+// Authentication Endpoints
+app.post('/api/auth/register', async (req, res) => {
+    const { username, email, password, memberStatus = 'Standard Free User' } = req.body;
+    
+    if (!username || !email || !password) {
+        return res.status(400).json({
+            success: false,
+            error: 'Username, email, and password are required'
+        });
+    }
+    
+    try {
+        const db = getDatabase();
+        const passwordHash = await bcrypt.hash(password, 10);
+        
+        const result = await db.createUser(username, email, passwordHash, memberStatus);
+        
+        if (result.success) {
+            res.json({
+                success: true,
+                message: 'User created successfully',
+                userId: result.userId
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                error: result.error
+            });
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Registration failed'
+        });
+    }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+        return res.status(400).json({
+            success: false,
+            error: 'Email and password are required'
+        });
+    }
+    
+    try {
+        const db = getDatabase();
+        const user = db.statements.getUserByEmail.get(email);
+        
+        if (!user || !await bcrypt.compare(password, user.password_hash)) {
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid credentials'
+            });
+        }
+        
+        // Update last login
+        db.statements.updateLastLogin.run(user.id);
+        
+        // Get user progress
+        const progress = await db.getUserProgress(user.id);
+        
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                memberStatus: user.member_status,
+                createdAt: user.created_at,
+                lastLogin: user.last_login
+            },
+            progress: progress
+        });
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Login failed'
+        });
+    }
+});
+
+// User Progress Endpoints
+app.get('/api/user/:userId/progress', async (req, res) => {
+    try {
+        const db = getDatabase();
+        const progress = await db.getUserProgress(parseInt(req.params.userId));
+        
+        if (!progress) {
+            return res.status(404).json({
+                success: false,
+                error: 'User progress not found'
+            });
+        }
+        
+        res.json({
+            success: true,
+            progress: {
+                ...progress,
+                phaseCompletions: JSON.parse(progress.phase_completions || '{}'),
+                skills: JSON.parse(progress.skills || '{}'),
+                preferences: JSON.parse(progress.preferences || '{}')
+            }
+        });
+        
+    } catch (error) {
+        console.error('Get progress error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get user progress'
+        });
+    }
+});
+
+app.put('/api/user/:userId/progress', async (req, res) => {
+    try {
+        const db = getDatabase();
+        const userId = parseInt(req.params.userId);
+        
+        await db.updateUserProgress(userId, req.body);
+        
+        res.json({
+            success: true,
+            message: 'Progress updated successfully'
+        });
+        
+    } catch (error) {
+        console.error('Update progress error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to update progress'
+        });
+    }
+});
+
+// Problem Completion Endpoints
+app.post('/api/user/:userId/problems/solved', async (req, res) => {
+    try {
+        const db = getDatabase();
+        const userId = parseInt(req.params.userId);
+        
+        const result = await db.recordProblemSolution(userId, req.body);
+        
+        if (result.success === false) {
+            return res.status(400).json(result);
+        }
+        
+        res.json({
+            success: true,
+            message: 'Problem solution recorded'
+        });
+        
+    } catch (error) {
+        console.error('Record solution error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to record solution'
+        });
+    }
+});
+
+app.get('/api/user/:userId/problems/solved', async (req, res) => {
+    try {
+        const db = getDatabase();
+        const userId = parseInt(req.params.userId);
+        const phase = req.query.phase;
+        
+        const problems = await db.getUserSolvedProblems(userId, phase);
+        
+        res.json({
+            success: true,
+            problems: problems.map(p => ({
+                ...p,
+                testResults: JSON.parse(p.test_results || '{}')
+            }))
+        });
+        
+    } catch (error) {
+        console.error('Get solved problems error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get solved problems'
+        });
+    }
+});
+
+app.get('/api/user/:userId/stats', async (req, res) => {
+    try {
+        const db = getDatabase();
+        const userId = parseInt(req.params.userId);
+        
+        const stats = await db.getUserStatistics(userId);
+        
+        res.json({
+            success: true,
+            stats: stats
+        });
+        
+    } catch (error) {
+        console.error('Get stats error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get user statistics'
+        });
+    }
+});
+
+// Database Management Endpoints
+app.post('/api/admin/database/backup', async (req, res) => {
+    try {
+        const db = getDatabase();
+        const backupPath = await db.backup();
+        
+        res.json({
+            success: true,
+            backupPath: backupPath
+        });
+        
+    } catch (error) {
+        console.error('Backup error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Backup failed'
+        });
+    }
+});
+
 // Start server
 async function startServer() {
-    await compiler.ensureDirectories();
-    
-    app.listen(PORT, () => {
-        console.log(`🚀 Direct Kernel Compilation Server running on port ${PORT}`);
-        console.log(`📁 Work directory: ${compiler.workDir}`);
-        console.log(`⚡ Method: Direct host kernel compilation`);
-        console.log(`🖥️  QEMU testing: Enabled`);
-        console.log(`🎯 No Docker required!`);
-    });
+    try {
+        // Initialize database first
+        console.log('🔧 Initializing KernelQ database...');
+        await initializeDatabase();
+        
+        // Then initialize compiler
+        await compiler.ensureDirectories();
+        
+        app.listen(PORT, () => {
+            console.log(`🚀 KernelQ Server running on port ${PORT}`);
+            console.log(`📁 Work directory: ${compiler.workDir}`);
+            console.log(`⚡ Method: Direct host kernel compilation`);
+            console.log(`🖥️  QEMU testing: Enabled`);
+            console.log(`💾 Database: SQLite with WAL mode`);
+            console.log(`🎯 No Docker required!`);
+        });
+        
+    } catch (error) {
+        console.error('❌ Server startup failed:', error);
+        process.exit(1);
+    }
 }
 
 startServer().catch(console.error);

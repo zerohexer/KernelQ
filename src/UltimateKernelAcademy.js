@@ -10,6 +10,8 @@ import ConceptLearner from './components/ConceptLearner/ConceptLearner.js';
 import PlaygroundTab from './components/Playground/PlaygroundTab.js';
 import NavigationBar from './components/Navigation/NavigationBar.js';
 import Sidebar from './components/Navigation/Sidebar.js';
+import LoginScreen from './components/Auth/LoginScreen.js';
+import RegisterScreen from './components/Auth/RegisterScreen.js';
 
 // Extracted Data
 import { conceptDatabase, getConcept, detectUnfamiliarConcepts } from './data/ConceptDatabase.js';
@@ -19,6 +21,7 @@ import phaseSystem from './data/PhaseSystem.js';
 import useUserProfile from './hooks/useUserProfile.js';
 import useCodeEditor from './hooks/useCodeEditor.js';
 import useUIState from './hooks/useUIState.js';
+import useAuth from './hooks/useAuth.js';
 
 // Utility function to create a proper deep copy of files
 const deepCopyFiles = (files) => {
@@ -39,6 +42,20 @@ const UnlimitedKernelAcademy = () => {
     // Backend API configuration - supports both localhost and cloudflared
     const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '/api';
     console.log('🔧 Frontend loaded with BACKEND_URL:', BACKEND_URL);
+    
+    // Authentication hook
+    const {
+        user,
+        userProgress,
+        isAuthenticated,
+        isLoading: authLoading,
+        login,
+        logout,
+        recordProblemCompletion
+    } = useAuth();
+
+    // Authentication UI state
+    const [showRegister, setShowRegister] = useState(false);
     
     // Use custom hooks for state management
     const {
@@ -633,19 +650,87 @@ const UnlimitedKernelAcademy = () => {
     };
 
 
-    // Return the main component JSX
+    // Authentication handlers
+    const handleLogin = (userData, progressData) => {
+        login(userData, progressData);
+        setShowRegister(false);
+    };
+
+    const handleLogout = () => {
+        logout();
+        setShowRegister(false);
+    };
+
+    const switchToRegister = () => {
+        setShowRegister(true);
+    };
+
+    const switchToLogin = () => {
+        setShowRegister(false);
+    };
+
+    // Show loading screen while checking authentication
+    if (authLoading) {
+        return (
+            <div style={{
+                ...premiumStyles.container,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100vh'
+            }}>
+                <div style={{
+                    ...PremiumStyles.glass.medium,
+                    padding: '2rem',
+                    textAlign: 'center',
+                    borderRadius: '20px',
+                    border: `1px solid ${PremiumStyles.colors.border}`
+                }}>
+                    <h2 style={premiumStyles.headingLG}>Loading KernelQ...</h2>
+                    <p style={premiumStyles.textSecondary}>Initializing your kernel development environment</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Show authentication screens if not authenticated
+    if (!isAuthenticated) {
+        if (showRegister) {
+            return (
+                <RegisterScreen 
+                    onRegister={handleLogin}
+                    onSwitchToLogin={switchToLogin}
+                    premiumStyles={premiumStyles}
+                />
+            );
+        }
+        
+        return (
+            <LoginScreen 
+                onLogin={handleLogin}
+                onSwitchToRegister={switchToRegister}
+                premiumStyles={premiumStyles}
+            />
+        );
+    }
+
+    // Return the main component JSX for authenticated users
     return (
         <div style={premiumStyles.container}>
             <NavigationBar
                 getCurrentPhase={getCurrentPhase}
                 phaseSystem={phaseSystem}
                 premiumStyles={premiumStyles}
+                user={user}
+                onLogout={handleLogout}
             />
 
             <div style={premiumStyles.mainContent}>
                 <Sidebar
                     userProfile={userProfile}
                     premiumStyles={premiumStyles}
+                    user={user}
+                    userProgress={userProgress}
                 />
 
                 {/* Main Content */}
