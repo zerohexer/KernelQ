@@ -294,7 +294,33 @@ const UnlimitedKernelAcademy = () => {
     const formatLeetCodeResults = (results, debugMode = false) => {
         let output = '';
         
-        if (results.compilationResult && results.compilationResult.output) {
+        // Handle compilation errors first
+        if (results.overallResult === 'COMPILATION_ERROR' || results.overallResult === 'PRE_COMPILATION_ERROR') {
+            output += `❌ Compilation Error\n\n`;
+            
+            // Add compilation error details from feedback
+            const errorFeedback = results.feedback?.find(f => f.type === 'error');
+            if (errorFeedback) {
+                output += `${errorFeedback.message}:\n`;
+                output += `\`\`\`\n`;
+                output += `${errorFeedback.details}\n`;
+                output += `\`\`\`\n\n`;
+            }
+            
+            // Add compilation output if available
+            if (results.compilationResult && results.compilationResult.output) {
+                output += `Compilation Output:\n`;
+                output += `\`\`\`\n`;
+                const cleanOutput = results.compilationResult.output.replace(/\r/g, '');
+                output += `${cleanOutput}\n`;
+                output += `\`\`\`\n\n`;
+            }
+            
+            // Ensure we have some output for compilation errors
+            if (!output.trim()) {
+                output = 'Compilation failed. Please check your syntax and try again.';
+            }
+        } else if (results.compilationResult && results.compilationResult.output) {
             output += `Compilation Output:\n`;
             output += `\`\`\`\n`;
             const cleanOutput = results.compilationResult.output
@@ -500,7 +526,7 @@ const UnlimitedKernelAcademy = () => {
     const runCode = async () => {
         if (!currentChallenge) return;
 
-        setCodeEditor(prev => ({ ...prev, isRunning: true, output: '', testResults: [] }));
+        setCodeEditor(prev => ({ ...prev, isRunning: true, output: '', testResults: [], overallResult: null, feedback: [] }));
 
         const codeOrFiles = codeEditor.files && codeEditor.files.length > 0 ? 
             codeEditor.files : 
@@ -511,11 +537,15 @@ const UnlimitedKernelAcademy = () => {
         try {
             const leetCodeResults = await runLeetCodeStyleValidation(codeOrFiles, problemId);
             
+            const formattedOutput = formatLeetCodeResults(leetCodeResults, debugMode);
+            
             setCodeEditor(prev => ({
                 ...prev,
                 isRunning: false,
-                output: formatLeetCodeResults(leetCodeResults, debugMode),
-                testResults: leetCodeResults.testResults || []
+                output: formattedOutput || 'No output available',
+                testResults: leetCodeResults.testResults || [],
+                overallResult: leetCodeResults.overallResult,
+                feedback: leetCodeResults.feedback
             }));
 
             if (leetCodeResults.overallResult === 'ACCEPTED') {

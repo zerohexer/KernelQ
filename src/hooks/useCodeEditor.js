@@ -16,7 +16,9 @@ const useCodeEditor = (currentChallenge) => {
         files: [],
         output: '',
         isRunning: false,
-        testResults: []
+        testResults: [],
+        overallResult: null,
+        feedback: []
     });
 
     // Playground state
