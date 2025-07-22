@@ -45,7 +45,12 @@
       "Bash(cloudflared tunnel:*)",
       "Bash(convert:*)",
       "Bash(pgrep:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git revert:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(limactl start:*)",
+      "Bash(limactl list:*)",
+      "Bash(limactl shell:*)"
     ],
     "deny": []
   }
