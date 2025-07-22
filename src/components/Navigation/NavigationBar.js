@@ -1,11 +1,13 @@
 import React from 'react';
-import { Shield } from 'lucide-react';
+import { Shield, User, LogOut } from 'lucide-react';
 import PremiumStyles from '../../styles/PremiumStyles';
 
 const NavigationBar = ({
     getCurrentPhase,
     phaseSystem,
-    premiumStyles
+    premiumStyles,
+    user,
+    onLogout
 }) => {
     return (
         <nav style={premiumStyles.navbar}>
@@ -91,15 +93,134 @@ const NavigationBar = ({
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{
-                    ...premiumStyles.statusBadge,
-                    background: `linear-gradient(135deg, ${PremiumStyles.colors.accent} 0%, ${PremiumStyles.colors.accentPurple} 100%)`,
-                    color: 'white',
-                    border: 'none'
-                }}>
-                    <Shield size={14} />
-                    <span>{phaseSystem[getCurrentPhase()].name}</span>
-                </div>
+
+                {/* Ultra Sleek User Profile */}
+                {user && (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.375rem',
+                        padding: '0.25rem 0.5rem 0.25rem 0.25rem',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        backdropFilter: 'blur(12px)',
+                        borderRadius: '20px',
+                        border: `1px solid rgba(255, 255, 255, 0.06)`,
+                        transition: PremiumStyles.animations.transition,
+                        cursor: 'pointer'
+                    }}
+                    onMouseOver={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                        e.currentTarget.style.transform = 'translateY(-0.5px)';
+                    }}
+                    onMouseOut={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                    >
+                        {/* Sleek Silver Avatar */}
+                        <div style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '14px',
+                            background: 'linear-gradient(135deg, #ffffff 0%, #d1d1d6 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            border: '0.5px solid rgba(255, 255, 255, 0.2)'
+                        }}>
+                            {/* Silver glow effect */}
+                            <div style={{
+                                position: 'absolute',
+                                top: '2px',
+                                left: '2px',
+                                right: '2px',
+                                height: '8px',
+                                background: 'rgba(255, 255, 255, 0.8)',
+                                borderRadius: '12px',
+                                filter: 'blur(2px)'
+                            }} />
+                            <User size={14} color="#666" style={{ position: 'relative', zIndex: 1 }} />
+                        </div>
+
+                        {/* User Info - Ultra Compact */}
+                        <div style={{ 
+                            minWidth: 0,
+                            maxWidth: '100px'
+                        }}>
+                            <div style={{
+                                fontSize: '0.775rem',
+                                fontWeight: PremiumStyles.typography.weights.semibold,
+                                color: PremiumStyles.colors.text,
+                                margin: 0,
+                                lineHeight: 1.1,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                letterSpacing: '-0.01em'
+                            }}>
+                                {user.username}
+                            </div>
+                            <div style={{
+                                fontSize: '0.6rem',
+                                color: user.memberStatus === 'Creator' ? '#d1d1d6' : PremiumStyles.colors.textSecondary,
+                                margin: 0,
+                                lineHeight: 1,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                fontWeight: PremiumStyles.typography.weights.medium,
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.02em'
+                            }}>
+                                {user.memberStatus === 'Creator' ? 'ADMIN' : 
+                                 user.memberStatus === 'Standard Free User' ? 'FREE' :
+                                 user.memberStatus === 'Monthly Subscription User' ? 'PRO' :
+                                 user.memberStatus === 'Permanent User' ? 'LIFE' : 'FREE'}
+                            </div>
+                        </div>
+
+                        {/* Minimal Sign Out */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onLogout();
+                            }}
+                            title="Sign Out"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '24px',
+                                height: '24px',
+                                background: 'rgba(255, 69, 58, 0.06)',
+                                border: 'none',
+                                borderRadius: '6px',
+                                color: PremiumStyles.colors.error,
+                                cursor: 'pointer',
+                                transition: PremiumStyles.animations.transition,
+                                opacity: 0.7,
+                                flexShrink: 0,
+                                marginLeft: '0.25rem'
+                            }}
+                            onMouseOver={(e) => {
+                                e.target.style.background = 'rgba(255, 69, 58, 0.12)';
+                                e.target.style.opacity = '1';
+                                e.target.style.transform = 'scale(1.05)';
+                            }}
+                            onMouseOut={(e) => {
+                                e.target.style.background = 'rgba(255, 69, 58, 0.06)';
+                                e.target.style.opacity = '0.7';
+                                e.target.style.transform = 'scale(1)';
+                            }}
+                        >
+                            <LogOut size={11} />
+                        </button>
+                    </div>
+                )}
             </div>
         </nav>
     );
