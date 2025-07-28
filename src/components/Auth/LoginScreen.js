@@ -42,7 +42,7 @@ const LoginScreen = ({ onLogin, onSwitchToRegister, premiumStyles: styles }) => 
             const result = await response.json();
 
             if (result.success) {
-                onLogin(result.user, result.progress);
+                onLogin(result.user, result.progress, result.accessToken, result.refreshToken);
             } else {
                 setError(result.error || 'Login failed');
             }
@@ -318,7 +318,7 @@ const LoginScreen = ({ onLogin, onSwitchToRegister, premiumStyles: styles }) => 
                         fontSize: PremiumStyles.typography.sizes.xs,
                         margin: 0
                     }}>
-                        Secure authentication • SQLite + WAL mode
+                        Secure authentication
                     </p>
                 </div>
             </div>

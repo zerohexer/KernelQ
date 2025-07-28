@@ -151,6 +151,10 @@ class KernelQDatabase {
                 SELECT * FROM users WHERE username = ? AND is_active = true
             `),
             
+            getUserById: this.db.prepare(`
+                SELECT * FROM users WHERE id = ? AND is_active = true
+            `),
+            
             updateLastLogin: this.db.prepare(`
                 UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?
             `),
