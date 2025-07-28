@@ -29,11 +29,12 @@ const useAuth = () => {
     const refreshAccessToken = async () => {
         const refreshToken = localStorage.getItem('kernelq_refresh_token');
         if (!refreshToken) {
-            logout();
+            console.log('❌ No refresh token available');
             return false;
         }
 
         try {
+            console.log('🔄 Attempting to refresh access token...');
             const response = await fetch('/api/auth/refresh', {
                 method: 'POST',
                 headers: {
@@ -45,14 +46,14 @@ const useAuth = () => {
             if (response.ok) {
                 const { accessToken: newAccessToken } = await response.json();
                 localStorage.setItem('kernelq_access_token', newAccessToken);
+                console.log('✅ Access token refreshed successfully');
                 return true;
             } else {
-                logout();
+                console.log('❌ Token refresh failed - server responded with error');
                 return false;
             }
         } catch (error) {
-            console.error('Token refresh failed:', error);
-            logout();
+            console.error('❌ Token refresh failed:', error);
             return false;
         }
     };
@@ -64,25 +65,51 @@ const useAuth = () => {
                 const storedUser = localStorage.getItem('kernelq_user');
                 const storedProgress = localStorage.getItem('kernelq_progress');
                 const storedAccessToken = localStorage.getItem('kernelq_access_token');
+                const storedRefreshToken = localStorage.getItem('kernelq_refresh_token');
 
-                if (storedUser && storedAccessToken) {
+                console.log('🔍 Auth check on page load:');
+                console.log('  - User data:', !!storedUser);
+                console.log('  - Access token:', !!storedAccessToken);
+                console.log('  - Refresh token:', !!storedRefreshToken);
+                console.log('  - Access token expired:', storedAccessToken ? isTokenExpired(storedAccessToken) : 'N/A');
+                console.log('  - Refresh token expired:', storedRefreshToken ? isTokenExpired(storedRefreshToken) : 'N/A');
+
+                if (storedUser) {
                     const userData = JSON.parse(storedUser);
                     
-                    // Check if token is expired (basic check)
-                    if (isTokenExpired(storedAccessToken)) {
-                        console.log('🔒 Access token expired, attempting refresh...');
-                        const refreshed = await refreshAccessToken();
-                        if (!refreshed) {
-                            setIsLoading(false);
-                            return;
+                    // If we have both user data and tokens
+                    if (storedAccessToken || storedRefreshToken) {
+                        // Check if access token is expired (basic check)
+                        if (!storedAccessToken || isTokenExpired(storedAccessToken)) {
+                            console.log('🔒 Access token expired or missing, attempting refresh...');
+                            
+                            if (storedRefreshToken && !isTokenExpired(storedRefreshToken)) {
+                                const refreshed = await refreshAccessToken();
+                                if (!refreshed) {
+                                    console.log('❌ Token refresh failed, user needs to login again');
+                                    clearAuthData();
+                                    setIsLoading(false);
+                                    return;
+                                }
+                            } else {
+                                console.log('❌ No valid refresh token, user needs to login again');
+                                clearAuthData();
+                                setIsLoading(false);
+                                return;
+                            }
                         }
-                    }
-                    
-                    setUser(userData);
-                    setIsAuthenticated(true);
+                        
+                        // If we get here, we have valid tokens
+                        setUser(userData);
+                        setIsAuthenticated(true);
 
-                    if (storedProgress) {
-                        setUserProgress(JSON.parse(storedProgress));
+                        if (storedProgress) {
+                            setUserProgress(JSON.parse(storedProgress));
+                        }
+                    } else {
+                        // User data exists but no tokens - clear everything
+                        console.log('⚠️ User data found but no tokens, clearing auth data');
+                        clearAuthData();
                     }
                 }
             } catch (error) {
@@ -97,6 +124,15 @@ const useAuth = () => {
     }, []);
 
     const login = (userData, progressData = null, accessToken = null, refreshToken = null) => {
+        console.log('🔐 Login function called with:', {
+            userData: !!userData,
+            progressData: !!progressData,
+            accessToken: !!accessToken,
+            refreshToken: !!refreshToken,
+            accessTokenLength: accessToken?.length,
+            refreshTokenLength: refreshToken?.length
+        });
+
         setUser(userData);
         setUserProgress(progressData);
         setIsAuthenticated(true);
@@ -109,10 +145,17 @@ const useAuth = () => {
         
         // Store JWT tokens
         if (accessToken) {
+            console.log('💾 Storing access token:', accessToken.substring(0, 50) + '...');
             localStorage.setItem('kernelq_access_token', accessToken);
+        } else {
+            console.log('⚠️ No access token provided to login function');
         }
+        
         if (refreshToken) {
+            console.log('💾 Storing refresh token:', refreshToken.substring(0, 50) + '...');
             localStorage.setItem('kernelq_refresh_token', refreshToken);
+        } else {
+            console.log('⚠️ No refresh token provided to login function');
         }
     };
 
@@ -218,6 +261,30 @@ const useAuth = () => {
         }
     };
 
+    // Debug function to check token status (for browser console)
+    const debugTokens = () => {
+        const user = localStorage.getItem('kernelq_user');
+        const accessToken = localStorage.getItem('kernelq_access_token');
+        const refreshToken = localStorage.getItem('kernelq_refresh_token');
+        
+        console.log('🐛 JWT Debug Info:');
+        console.log('  User data:', user ? JSON.parse(user) : null);
+        console.log('  Access token exists:', !!accessToken);
+        console.log('  Refresh token exists:', !!refreshToken);
+        console.log('  Access token expired:', accessToken ? isTokenExpired(accessToken) : 'N/A');
+        console.log('  Refresh token expired:', refreshToken ? isTokenExpired(refreshToken) : 'N/A');
+        
+        if (accessToken) {
+            try {
+                const payload = JSON.parse(atob(accessToken.split('.')[1]));
+                console.log('  Access token payload:', payload);
+                console.log('  Access token expires at:', new Date(payload.exp * 1000).toLocaleString());
+            } catch (e) {
+                console.log('  Access token payload: Invalid');
+            }
+        }
+    };
+
     return {
         user,
         userProgress,
@@ -227,7 +294,8 @@ const useAuth = () => {
         logout,
         updateProgress,
         recordProblemCompletion,
-        getSolvedProblems
+        getSolvedProblems,
+        debugTokens  // For debugging in browser console
     };
 };
 

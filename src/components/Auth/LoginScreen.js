@@ -41,7 +41,18 @@ const LoginScreen = ({ onLogin, onSwitchToRegister, premiumStyles: styles }) => 
 
             const result = await response.json();
 
+            console.log('🔍 LoginScreen - Backend response:');
+            console.log('  success:', result.success);
+            console.log('  hasUser:', !!result.user);
+            console.log('  hasProgress:', !!result.progress);
+            console.log('  hasAccessToken:', !!result.accessToken);
+            console.log('  hasRefreshToken:', !!result.refreshToken);
+            console.log('  accessToken:', result.accessToken ? result.accessToken.substring(0, 50) + '...' : 'MISSING');
+            console.log('  refreshToken:', result.refreshToken ? result.refreshToken.substring(0, 50) + '...' : 'MISSING');
+            console.log('  Full response keys:', Object.keys(result));
+
             if (result.success) {
+                console.log('✅ LoginScreen - Calling onLogin with tokens');
                 onLogin(result.user, result.progress, result.accessToken, result.refreshToken);
             } else {
                 setError(result.error || 'Login failed');

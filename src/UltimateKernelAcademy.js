@@ -796,8 +796,12 @@ const UnlimitedKernelAcademy = () => {
 
 
     // Authentication handlers
-    const handleLogin = async (userData, progressData) => {
-        login(userData, progressData);
+    const handleLogin = async (userData, progressData, accessToken, refreshToken) => {
+        console.log('🔗 handleLogin called with tokens:', {
+            hasAccessToken: !!accessToken,
+            hasRefreshToken: !!refreshToken
+        });
+        login(userData, progressData, accessToken, refreshToken);
         setShowRegister(false);
         
         // Sync database progress with local state
