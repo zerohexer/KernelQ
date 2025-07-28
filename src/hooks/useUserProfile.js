@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
 const useUserProfile = () => {
-    const [userProfile, setUserProfile] = useState({
+    // Define initial states as constants to ensure consistency
+    const initialUserProfile = {
         xp: 0,
         streak: 0,
         totalChallenges: 0,
@@ -9,10 +10,9 @@ const useUserProfile = () => {
         masteryPoints: 0,
         challengesGenerated: 0,
         uniqueChallengesCompleted: 0
-    });
+    };
 
-    // Detailed skill tracking with sub-skills for unlimited depth
-    const [userSkills, setUserSkills] = useState({
+    const initialUserSkills = {
         foundations: {
             cBasics: 0.0,
             pointers: 0.0,
@@ -49,8 +49,10 @@ const useUserProfile = () => {
             security: 0.0,
             architecture: 0.0
         }
-    });
+    };
 
+    const [userProfile, setUserProfile] = useState(initialUserProfile);
+    const [userSkills, setUserSkills] = useState(initialUserSkills);
     const [completedChallenges, setCompletedChallenges] = useState(new Set());
 
     const getCurrentPhase = () => {
@@ -80,6 +82,25 @@ const useUserProfile = () => {
         updateUserXP(50); // Standard XP gain
     };
 
+    // Reset functions for clean logout
+    const resetProfile = () => {
+        setUserProfile(initialUserProfile);
+    };
+
+    const resetSkills = () => {
+        setUserSkills(initialUserSkills);
+    };
+
+    const resetCompletedChallenges = () => {
+        setCompletedChallenges(new Set());
+    };
+
+    const resetAll = () => {
+        resetProfile();
+        resetSkills();
+        resetCompletedChallenges();
+    };
+
     return {
         userProfile,
         setUserProfile,
@@ -90,7 +111,11 @@ const useUserProfile = () => {
         getCurrentPhase,
         updateUserXP,
         updateSkill,
-        markChallengeCompleted
+        markChallengeCompleted,
+        resetProfile,
+        resetSkills,
+        resetCompletedChallenges,
+        resetAll
     };
 };
 

@@ -11,7 +11,8 @@ const deepCopyFiles = (files) => {
 };
 
 const useCodeEditor = (currentChallenge) => {
-    const [codeEditor, setCodeEditor] = useState({
+    // Define initial states as constants
+    const initialCodeEditor = {
         code: '',
         files: [],
         output: '',
@@ -19,10 +20,9 @@ const useCodeEditor = (currentChallenge) => {
         testResults: [],
         overallResult: null,
         feedback: []
-    });
+    };
 
-    // Playground state
-    const [playground, setPlayground] = useState({
+    const initialPlayground = {
         code: `#include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -47,7 +47,10 @@ MODULE_AUTHOR("Kernel Academy Student");`,
         isRunning: false,
         compilationResult: null,
         testingResult: null
-    });
+    };
+
+    const [codeEditor, setCodeEditor] = useState(initialCodeEditor);
+    const [playground, setPlayground] = useState(initialPlayground);
 
     // Sync code editor with current challenge
     useEffect(() => {
@@ -109,12 +112,23 @@ MODULE_AUTHOR("Kernel Academy Student");`,
         }
     };
 
+    const resetPlayground = () => {
+        setPlayground(initialPlayground);
+    };
+
+    const resetAll = () => {
+        setCodeEditor(initialCodeEditor);
+        resetPlayground();
+    };
+
     return {
         codeEditor,
         setCodeEditor,
         playground,
         setPlayground,
-        resetCodeEditor
+        resetCodeEditor,
+        resetPlayground,
+        resetAll
     };
 };
 

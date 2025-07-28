@@ -295,6 +295,7 @@ const useAuth = () => {
         updateProgress,
         recordProblemCompletion,
         getSolvedProblems,
+        makeAuthenticatedRequest,
         debugTokens  // For debugging in browser console
     };
 };
