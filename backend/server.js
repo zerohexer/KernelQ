@@ -6,9 +6,18 @@ const TestCaseSystem = require('./test-case-system');
 const TestExecutionEngine = require('./test-execution-engine');
 const LeetCodeStyleValidator = require('./leetcode-style-validator');
 const { initializeDatabase, getDatabase } = require('./database');
+const {
+    generateAccessToken,
+    generateRefreshToken,
+    protectUserEndpoints,
+    authLimiter
+} = require('./middleware/jwt-auth');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Trust proxy for Cloudflare/tunnels (fixes rate limiting behind proxy)
+app.set('trust proxy', true);
 
 // Initialize the direct kernel compiler
 const compiler = new DirectKernelCompiler('./work');
@@ -30,54 +39,19 @@ app.use(cors({
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-user-id']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(express.json({ limit: '10mb' }));
 
-// 🔒 SECURITY: Prevent User ID Parameter Tampering
-// This middleware protects all endpoints that start with /api/user/
+// 🔒 SECURITY: JWT Authentication for User Endpoints
 app.use((req, res, next) => {
-    // Only apply security to /api/user/ endpoints
+    // Only apply JWT security to /api/user/ endpoints
     if (!req.path.startsWith('/api/user/')) {
         return next();
     }
-    console.log('🔒 Security Check - User ID Authorization');
     
-    // Get authenticated user ID from headers (temporary - will be JWT later)
-    const authUserId = req.headers['x-user-id'];
-    
-    // Extract userId from URL path like /api/user/123/progress -> 123
-    const urlParts = req.path.split('/');
-    const requestedUserId = urlParts[3]; // /api/user/[userId]/...
-    
-    console.log(`📋 Full URL path: ${req.path}`);
-    console.log(`📋 Route params: ${JSON.stringify(req.params)}`);
-    console.log(`📋 Auth User ID: ${authUserId}, Requested User ID: ${requestedUserId}`);
-    
-    // Require authentication
-    if (!authUserId) {
-        console.log('❌ Authentication required - no user ID provided');
-        return res.status(401).json({ 
-            success: false, 
-            error: 'Authentication required - please log in' 
-        });
-    }
-    
-    // Prevent horizontal privilege escalation (ensure both are strings for comparison)
-    const authUserIdStr = authUserId ? authUserId.toString() : null;
-    const requestedUserIdStr = requestedUserId ? requestedUserId.toString() : null;
-    
-    if (authUserIdStr !== requestedUserIdStr) {
-        console.log('❌ Access denied - user trying to access another user\'s data');
-        console.log(`📋 Comparison failed: "${authUserIdStr}" !== "${requestedUserIdStr}"`);
-        return res.status(403).json({ 
-            success: false, 
-            error: 'Access denied - you can only access your own data' 
-        });
-    }
-    
-    console.log('✅ Authorization passed - user can access their own data');
-    next();
+    // Apply JWT protection to user endpoints
+    protectUserEndpoints(req, res, next);
 });
 
 // New comprehensive validation endpoint - LeetCode style with exact requirements
@@ -652,7 +626,7 @@ app.post('/api/playground-compile', async (req, res) => {
 });
 
 // Authentication Endpoints
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', authLimiter, async (req, res) => {
     const { username, email, password, memberStatus = 'Standard Free User' } = req.body;
     
     if (!username || !email || !password) {
@@ -689,7 +663,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authLimiter, async (req, res) => {
     const { email, password } = req.body;
     
     if (!email || !password) {
@@ -716,6 +690,10 @@ app.post('/api/auth/login', async (req, res) => {
         // Get user progress
         const progress = await db.getUserProgress(user.id);
         
+        // Generate JWT tokens
+        const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken(user);
+        
         res.json({
             success: true,
             user: {
@@ -726,7 +704,9 @@ app.post('/api/auth/login', async (req, res) => {
                 createdAt: user.created_at,
                 lastLogin: user.last_login
             },
-            progress: progress
+            progress: progress,
+            accessToken: accessToken,
+            refreshToken: refreshToken
         });
         
     } catch (error) {
@@ -734,6 +714,48 @@ app.post('/api/auth/login', async (req, res) => {
         res.status(500).json({
             success: false,
             error: 'Login failed'
+        });
+    }
+});
+
+// Token refresh endpoint
+app.post('/api/auth/refresh', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    const refreshToken = authHeader && authHeader.split(' ')[1];
+
+    if (!refreshToken) {
+        return res.status(401).json({
+            success: false,
+            error: 'Refresh token required'
+        });
+    }
+
+    const { JWT_SECRET, generateAccessToken } = require('./middleware/jwt-auth');
+    const jwt = require('jsonwebtoken');
+
+    try {
+        const decoded = jwt.verify(refreshToken, JWT_SECRET);
+        const db = getDatabase();
+        const user = db.statements.getUserById.get(decoded.userId);
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid refresh token'
+            });
+        }
+
+        const newAccessToken = generateAccessToken(user);
+        
+        res.json({
+            success: true,
+            accessToken: newAccessToken
+        });
+
+    } catch (error) {
+        res.status(401).json({
+            success: false,
+            error: 'Invalid refresh token'
         });
     }
 });
