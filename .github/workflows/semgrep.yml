@@ -5,6 +5,7 @@ on:
     branches:
     - main
     - master
+    - prod-1.0.0
     paths:
     - .github/workflows/semgrep.yml
   schedule:
