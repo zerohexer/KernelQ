@@ -52,7 +52,9 @@ const UnlimitedKernelAcademy = () => {
         login,
         logout,
         recordProblemCompletion,
-        getSolvedProblems
+        getSolvedProblems,
+        makeAuthenticatedRequest,
+        updateProgress
     } = useAuth();
 
     // Authentication UI state
@@ -69,7 +71,8 @@ const UnlimitedKernelAcademy = () => {
         setUserSkills,
         completedChallenges,
         setCompletedChallenges,
-        getCurrentPhase
+        getCurrentPhase,
+        resetAll: resetUserProfile
     } = useUserProfile();
 
     const {
@@ -98,7 +101,8 @@ const UnlimitedKernelAcademy = () => {
         codeEditor,
         setCodeEditor,
         playground,
-        setPlayground
+        setPlayground,
+        resetAll: resetCodeEditor
     } = useCodeEditor(currentChallenge);
 
     // Problem bank and utility functions
@@ -596,14 +600,26 @@ const UnlimitedKernelAcademy = () => {
             const newXP = userProfile.xp + currentChallenge.xp;
             const masteryBonus = Math.floor(skillImprovement * 1000); // Convert to mastery points
 
-            setUserProfile(prev => ({
-                ...prev,
+            const updatedProfile = {
+                ...userProfile,
                 xp: newXP,
-                totalChallenges: prev.totalChallenges + 1,
-                uniqueChallengesCompleted: prev.uniqueChallengesCompleted + 1,
-                streak: prev.streak + 1,
-                masteryPoints: prev.masteryPoints + masteryBonus
-            }));
+                totalChallenges: userProfile.totalChallenges + 1,
+                uniqueChallengesCompleted: userProfile.uniqueChallengesCompleted + 1,
+                streak: userProfile.streak + 1,
+                masteryPoints: userProfile.masteryPoints + masteryBonus
+            };
+
+            setUserProfile(updatedProfile);
+            
+            // Store updated progress in localStorage via useAuth
+            updateProgress({
+                currentPhase: currentChallenge.phase,
+                totalXp: newXP,
+                problemsSolved: userProfile.uniqueChallengesCompleted + 1,
+                streak: userProfile.streak + 1,
+                masteryPoints: userProfile.masteryPoints + masteryBonus,
+                skills: newSkills
+            });
 
             // Add to challenge history
             setChallengeHistory(prev => [...prev, {
@@ -640,12 +656,8 @@ const UnlimitedKernelAcademy = () => {
                     skills: userSkills
                 };
 
-                fetch(`/api/user/${user.id}/progress`, {
+                makeAuthenticatedRequest(`/api/user/${user.id}/progress`, {
                     method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-user-id': user.id.toString() // 🔒 SECURITY: Send authenticated user ID
-                    },
                     body: JSON.stringify(updatedProgress)
                 }).catch(error => {
                     console.warn('Failed to sync progress to database:', error);
@@ -784,6 +796,21 @@ const UnlimitedKernelAcademy = () => {
         loadSolvedProblems();
     }, [isAuthenticated, user, authLoading]);
 
+    // Sync userProgress from localStorage to userProfile on page load
+    useEffect(() => {
+        if (isAuthenticated && userProgress && !authLoading) {
+            console.log('🔄 Syncing userProgress to userProfile on page load:', userProgress);
+            setUserProfile(prev => ({
+                ...prev,
+                xp: userProgress.totalXp || prev.xp,
+                uniqueChallengesCompleted: userProgress.problemsSolved || prev.uniqueChallengesCompleted,
+                streak: userProgress.streak || prev.streak,
+                masteryPoints: userProgress.masteryPoints || prev.masteryPoints,
+                currentPhase: userProgress.currentPhase || prev.currentPhase
+            }));
+        }
+    }, [isAuthenticated, userProgress, authLoading]);
+
     // Phase selection handler
     const selectPhase = (phaseKey) => {
         setUserProfile(prev => ({ ...prev, currentPhase: phaseKey }));
@@ -820,11 +847,7 @@ const UnlimitedKernelAcademy = () => {
             
             // Load solved problems from database and update completedChallenges set
             try {
-                const response = await fetch(`/api/user/${userData.id}/problems/solved`, {
-                    headers: {
-                        'x-user-id': userData.id.toString() // 🔒 SECURITY: Send authenticated user ID
-                    }
-                });
+                const response = await makeAuthenticatedRequest(`/api/user/${userData.id}/problems/solved`);
                 if (response.ok) {
                     const result = await response.json();
                     if (result.success && result.problems) {
@@ -841,7 +864,16 @@ const UnlimitedKernelAcademy = () => {
     };
 
     const handleLogout = () => {
+        // Clear authentication state and localStorage
         logout();
+        
+        // Reset all user-related state using hook reset functions
+        resetUserProfile(); // Resets userProfile, userSkills, completedChallenges
+        resetCodeEditor();  // Resets codeEditor and playground
+        
+        // Clear remaining local state
+        setCurrentChallenge(null);
+        setChallengeHistory([]);
         setShowRegister(false);
     };
 
@@ -973,6 +1005,7 @@ const UnlimitedKernelAcademy = () => {
                             detectUnfamiliarConcepts={detectUnfamiliarConcepts}
                             getConcept={getConcept}
                             setSelectedConcept={setSelectedConcept}
+                            switchToTab={switchToTab}
                         />
                     )}
 

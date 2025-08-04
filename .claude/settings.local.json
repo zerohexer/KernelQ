@@ -50,7 +50,8 @@
       "Bash(git remote set-url:*)",
       "Bash(limactl start:*)",
       "Bash(limactl list:*)",
-      "Bash(limactl shell:*)"
+      "Bash(limactl shell:*)",
+      "Bash(sqlite3:*)"
     ],
     "deny": []
   }

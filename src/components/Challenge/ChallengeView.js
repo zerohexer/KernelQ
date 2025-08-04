@@ -16,7 +16,8 @@ const ChallengeView = ({
     onShowConcepts,
     detectUnfamiliarConcepts,
     getConcept,
-    setSelectedConcept
+    setSelectedConcept,
+    switchToTab
 }) => {
     const [activeTab, setActiveTab] = useState('code');
     const [leftPanelWidth, setLeftPanelWidth] = useState(45); // Initial width as percentage
@@ -48,8 +49,7 @@ const ChallengeView = ({
                         Select a problem from the "Problem Bank" to get started.
                     </p>
                     <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
-                        <a
-                            href="#problemBank"
+                        <button
                             style={{ 
                                 background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
                                 color: 'white',
@@ -64,16 +64,13 @@ const ChallengeView = ({
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '0.5rem',
-                                textDecoration: 'none'
+                                fontFamily: PremiumStyles.typography.fontFamily
                             }}
-                            onClick={(e) => {
-                                e.preventDefault();
-                                // This will be handled by the parent component's state
-                            }}
+                            onClick={() => switchToTab('problemBank')}
                         >
                             <Book size={18} />
                             <span>Browse Problem Bank</span>
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
