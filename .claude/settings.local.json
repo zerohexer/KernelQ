@@ -51,7 +51,8 @@
       "Bash(limactl start:*)",
       "Bash(limactl list:*)",
       "Bash(limactl shell:*)",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch --env-filter '\nOLD_EMAIL=\"\"zerohexer@localhost.localdomain\"\"\nCORRECT_NAME=\"\"zerohexer\"\"\nCORRECT_EMAIL=\"\"zerohexer@gmail.com\"\"\n\nif [ \"\"$GIT_COMMITTER_EMAIL\"\" = \"\"$OLD_EMAIL\"\" ]\nthen\n    export GIT_COMMITTER_NAME=\"\"$CORRECT_NAME\"\"\n    export GIT_COMMITTER_EMAIL=\"\"$CORRECT_EMAIL\"\"\nfi\nif [ \"\"$GIT_AUTHOR_EMAIL\"\" = \"\"$OLD_EMAIL\"\" ]\nthen\n    export GIT_AUTHOR_NAME=\"\"$CORRECT_NAME\"\"\n    export GIT_AUTHOR_EMAIL=\"\"$CORRECT_EMAIL\"\"\nfi\n' --tag-name-filter cat -- prod-1.0.0)"
     ],
     "deny": []
   }
