@@ -1,12 +1,9 @@
 # KernelQ - Interactive Linux Kernel Learning Platform
 
-**Professional-grade Linux kernel development training with Apple-inspired UI, real QEMU testing, and comprehensive validation system.**
-
 ![KernelQ Logo](public/kernelq-logo.png)
 
 ## What Makes KernelQ Special
 
-- **Apple-Inspired Premium UI** - Beautiful, intuitive interface with premium glass morphism design
 - **Real Kernel Compilation** - Students write code that compiles with actual GCC and kernel headers  
 - **QEMU Virtual Machine Testing** - Modules load and run in real Linux VMs with dmesg output
 - **Advanced Validation System** - LeetCode-style testing with comprehensive anti-cheat detection
@@ -31,7 +28,6 @@ Frontend (React)          Backend (Node.js)         Problem System
 
 | Component | Purpose | Key Features |
 |-----------|---------|-------------|
-| **Premium Frontend** | Apple-inspired learning interface | Glass morphism, tabbed editor, real-time feedback |
 | **Compilation Backend** | Real kernel compilation + testing | Node.js + QEMU + GCC validation |
 | **Problem Framework** | JSON-based curriculum management | Auto-generation, schema validation |
 | **Validation Engine** | LeetCode-style testing system | Multi-layer validation, anti-cheat detection |
