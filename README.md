@@ -136,8 +136,7 @@ KernelQ/
 4. **Device Drivers** - Real hardware interaction
 5. **Synchronization** - Mutexes, spinlocks, atomic operations
 
-### Premium UI Features
-- **Glass Morphism Design** - Apple-inspired visual aesthetics
+### UI Views
 - **Tabbed Interface** - Code editor and test results in separate tabs
 - **Multi-File Projects** - Header/source file separation with visual guidance
 - **Smart Requirements** - Clear separation of header vs source file requirements
