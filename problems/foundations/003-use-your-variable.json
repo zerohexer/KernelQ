@@ -65,14 +65,6 @@
     },
     "testCases": [
       {
-        "id": "function_declaration",
-        "name": "Function Declaration in Header",
-        "type": "code_analysis",
-        "critical": true,
-        "expectedSymbols": ["void print_my_number(void)"],
-        "prohibitedSymbols": []
-      },
-      {
         "id": "function_implementation",
         "name": "Function Implementation",
         "type": "code_analysis",

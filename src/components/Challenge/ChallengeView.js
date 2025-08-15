@@ -250,7 +250,9 @@ const ChallengeView = ({
                                 listStyleType: 'none'
                             }}>
                                 {/* Header Requirements Section */}
-                                {validation?.exactRequirements?.variables && validation.exactRequirements.variables.length > 0 && (
+                                {((validation?.exactRequirements?.variables && validation.exactRequirements.variables.length > 0) || 
+                                  (validation?.exactRequirements?.mustContain && validation.exactRequirements.mustContain.some(item => item.includes('(') && !item.includes('='))) 
+                                ) && (
                                     <>
                                         <li style={{
                                             marginBottom: '16px',
@@ -263,7 +265,8 @@ const ChallengeView = ({
                                         }}>
                                             Header File Requirements
                                         </li>
-                                        {validation.exactRequirements.variables.map((variable, idx) => (
+                                        {/* Display variables */}
+                                        {validation?.exactRequirements?.variables?.map((variable, idx) => (
                                             <li key={`header-var-${idx}`} style={{ 
                                                 marginBottom: '12px',
                                                 position: 'relative',
@@ -288,6 +291,38 @@ const ChallengeView = ({
                                                     fontSize: '0.875rem',
                                                     fontWeight: 500
                                                 }}>{variable.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>({variable.type})</span>
+                                            </li>
+                                        ))}
+                                        {/* Display function declarations from mustContain (only if there are header function tests) */}
+                                        {validation?.testCases?.some(tc => 
+                                            tc.id === 'function_declarations' || tc.id === 'function_declaration'
+                                        ) && validation?.exactRequirements?.mustContain?.filter(item => 
+                                            item.includes('(') && !item.includes('=') && !item.includes('#') && !item.includes('printk')
+                                        ).map((funcDecl, idx) => (
+                                            <li key={`header-func-${idx}`} style={{ 
+                                                marginBottom: '12px',
+                                                position: 'relative',
+                                                paddingLeft: '20px'
+                                            }}>
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    left: 0,
+                                                    top: '8px',
+                                                    width: '6px',
+                                                    height: '6px',
+                                                    borderRadius: '50%',
+                                                    background: '#007aff'
+                                                }} />
+                                                Declare function: <code style={{ 
+                                                    background: 'rgba(0, 122, 255, 0.15)',
+                                                    border: '1px solid rgba(0, 122, 255, 0.3)',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
+                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    color: '#007aff',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 500
+                                                }}>{funcDecl}</code>
                                             </li>
                                         ))}
                                         <li style={{
