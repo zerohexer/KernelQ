@@ -15,19 +15,10 @@ class KernelQDatabase {
     }
 
     getDefaultDBPath() {
-        // Try Lima VM path first, then local fallback
-        const limaPath = '/home/zerohexer/kernelq-data/db/kernelq.db';
+        // Use local path by default (not Lima VM)
         const localPath = path.join(__dirname, 'kernelq.db');
-        
-        try {
-            // Check if Lima path exists and is writable
-            const limaDir = path.dirname(limaPath);
-            fs.accessSync(limaDir, fs.constants.W_OK);
-            return limaPath;
-        } catch (error) {
-            console.log('📍 Using local database path:', localPath);
-            return localPath;
-        }
+        console.log('📍 Using local database path:', localPath);
+        return localPath;
     }
 
     async initialize() {
@@ -91,13 +82,10 @@ class KernelQDatabase {
                 is_active BOOLEAN DEFAULT true
             );
 
-            -- User progress table
+            -- User progress table (normalized - calculated fields removed)
             CREATE TABLE IF NOT EXISTS user_progress (
                 user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
                 current_phase TEXT DEFAULT 'foundations',
-                total_xp INTEGER DEFAULT 0,
-                problems_solved INTEGER DEFAULT 0,
-                phase_completions TEXT DEFAULT '{}', -- JSON: {"foundations": 5, "kernel_core": 2}
                 streak INTEGER DEFAULT 0,
                 mastery_points INTEGER DEFAULT 0,
                 skills TEXT DEFAULT '{}', -- JSON: skill levels by phase
@@ -171,9 +159,6 @@ class KernelQDatabase {
             updateUserProgress: this.db.prepare(`
                 UPDATE user_progress SET 
                     current_phase = ?,
-                    total_xp = ?,
-                    problems_solved = ?,
-                    phase_completions = ?,
                     streak = ?,
                     mastery_points = ?,
                     skills = ?,
@@ -221,6 +206,25 @@ class KernelQDatabase {
                 FROM solved_problems 
                 WHERE user_id = ? 
                 GROUP BY phase
+            `),
+
+            // NEW: Dynamic calculation queries
+            getUserCalculatedStats: this.db.prepare(`
+                SELECT 
+                    COUNT(*) as problems_solved,
+                    COALESCE(SUM(xp_earned), 0) as total_xp
+                FROM solved_problems 
+                WHERE user_id = ?
+            `),
+
+            getUserPhaseCompletions: this.db.prepare(`
+                SELECT 
+                    phase,
+                    COUNT(*) as count,
+                    SUM(xp_earned) as xp
+                FROM solved_problems 
+                WHERE user_id = ?
+                GROUP BY phase
             `)
         };
 
@@ -259,28 +263,45 @@ class KernelQDatabase {
 
     // Progress Management Methods
     async getUserProgress(userId) {
-        return this.statements.getUserProgress.get(userId);
+        // Get base progress data (current_phase, streak, etc.)
+        const baseProgress = this.statements.getUserProgress.get(userId);
+        
+        // Calculate dynamic values from solved_problems
+        const calculatedStats = this.statements.getUserCalculatedStats.get(userId);
+        
+        // Get phase completions
+        const phaseCompletions = this.statements.getUserPhaseCompletions.all(userId);
+        const phaseCompletionsObj = {};
+        phaseCompletions.forEach(phase => {
+            phaseCompletionsObj[phase.phase] = {
+                count: phase.count,
+                xp: phase.xp
+            };
+        });
+        
+        return {
+            ...baseProgress,
+            // Dynamic calculated values (always accurate)
+            total_xp: calculatedStats.total_xp,
+            problems_solved: calculatedStats.problems_solved,
+            phase_completions: phaseCompletionsObj
+        };
     }
 
     async updateUserProgress(userId, progressData) {
         const {
             currentPhase = 'foundations',
-            totalXp = 0,
-            problemsSolved = 0,
-            phaseCompletions = '{}',
             streak = 0,
             masteryPoints = 0,
             skills = '{}'
         } = progressData;
 
+        // Only update non-calculated fields
         return this.statements.updateUserProgress.run(
             currentPhase,
-            totalXp,
-            problemsSolved,
-            JSON.stringify(phaseCompletions),
             streak,
             masteryPoints,
-            JSON.stringify(skills),
+            typeof skills === 'string' ? skills : JSON.stringify(skills),
             userId
         );
     }
