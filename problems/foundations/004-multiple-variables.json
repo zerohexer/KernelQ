@@ -1,0 +1,121 @@
+{
+  "id": 4,
+  "title": "Multiple Variables and Data Types",
+  "phase": "foundations",
+  "difficulty": 2,
+  "xp": 25,
+  "description": "Work with multiple variables of different data types (int, char, bool) in a well-structured kernel module. Learn to manage different data types and their corresponding format specifiers while maintaining clean code organization.",
+  "mainFile": "multi_vars.c",
+  "files": [
+    {
+      "name": "multi_vars.h",
+      "content": "#ifndef MULTI_VARS_H\n#define MULTI_VARS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n/* TODO: Declare multiple variables */\n/* extern int student_id; */\n/* extern char student_grade; */\n/* extern bool student_passed; */\n\nvoid print_student_info(void);\n\n#endif /* MULTI_VARS_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "multi_vars.c",
+      "content": "#include \"multi_vars.h\"\n\n/* TODO: Define your variables with these values:\n * student_id = 12345\n * student_grade = 'A'\n * student_passed = true\n */\n\nvoid print_student_info(void)\n{\n    /* TODO: Print all variables in this exact format:\n     * printk(KERN_INFO \"Student ID: %d\\n\", student_id);\n     * printk(KERN_INFO \"Student Grade: %c\\n\", student_grade);\n     * printk(KERN_INFO \"Student Passed: %d\\n\", student_passed);\n     */\n}\n\nstatic int __init multi_vars_init(void)\n{\n    printk(KERN_INFO \"Multi-variable module loaded\\n\");\n    print_student_info();\n    return 0;\n}\n\nstatic void __exit multi_vars_exit(void)\n{\n    printk(KERN_INFO \"Multi-variable module unloaded\\n\");\n}\n\nmodule_init(multi_vars_init);\nmodule_exit(multi_vars_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Learning multiple variables and data types\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Multi-variable module Makefile\nobj-m += multi_vars.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "multiple data types",
+    "integer variables",
+    "character variables", 
+    "boolean variables",
+    "format specifiers for different types"
+  ],
+  "skills": [
+    "Managing multiple variables",
+    "Understanding data type differences",
+    "Using appropriate format specifiers",
+    "Code organization with multiple variables"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["multi_vars_init", "multi_vars_exit", "print_student_info"],
+      "variables": [
+        { "name": "student_id", "type": "int", "value": 12345 },
+        { "name": "student_grade", "type": "char", "value": "'A'" },
+        { "name": "student_passed", "type": "bool", "value": true }
+      ],
+      "outputMessages": [
+        "Multi-variable module loaded",
+        "Student ID: 12345",
+        "Student Grade: A",
+        "Student Passed: 1"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/types.h"
+      ],
+      "mustContain": [
+        "extern int student_id",
+        "extern char student_grade", 
+        "extern bool student_passed",
+        "int student_id = 12345",
+        "char student_grade = 'A'",
+        "bool student_passed = true"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "multiple_declarations",
+        "name": "Multiple Variable Declarations",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["extern int student_id", "extern char student_grade", "extern bool student_passed"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "multiple_definitions", 
+        "name": "Multiple Variable Definitions",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["int student_id = 12345", "char student_grade = 'A'", "bool student_passed = true"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "format_specifiers",
+        "name": "Correct Format Specifiers for All Types",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["%d", "student_id", "%c", "student_grade", "student_passed"],
+        "prohibitedSymbols": ["\"%s\""]
+      },
+      {
+        "id": "function_structure",
+        "name": "Print Function Implementation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["void print_student_info(void)"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Multi-variable module loaded", "exact": true },
+          { "pattern": "Student ID: 12345", "exact": true },
+          { "pattern": "Student Grade: A", "exact": true },
+          { "pattern": "Student Passed: 1", "exact": true }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "id": 2,
+  "title": "Create Your First Variable",
+  "phase": "foundations",
+  "difficulty": 1,
+  "xp": 15,
+  "description": "Learn to create variables in kernel modules using proper file structure. You'll work with separate header and C files - a fundamental practice in professional kernel development that builds good coding habits from day one.",
+  "mainFile": "variables.c",
+  "files": [
+    {
+      "name": "variables.h",
+      "content": "#ifndef VARIABLES_H\n#define VARIABLES_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n\n/* TODO: Declare your variable here */\n/* extern int my_number; */\n\n#endif /* VARIABLES_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "variables.c",
+      "content": "#include \"variables.h\"\n\n/* TODO: Define your variable here with value 42 */\n/* int my_number = 42; */\n\nstatic int __init variables_init(void)\n{\n    printk(KERN_INFO \"Variables module loaded\\n\");\n    return 0;\n}\n\nstatic void __exit variables_exit(void)\n{\n    printk(KERN_INFO \"Variables module unloaded\\n\");\n}\n\nmodule_init(variables_init);\nmodule_exit(variables_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Learning variables with proper file structure\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Variables module Makefile\nobj-m += variables.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "variable declaration",
+    "variable definition", 
+    "header files",
+    "extern keyword",
+    "file structure"
+  ],
+  "skills": [
+    "Proper file organization",
+    "Header/C file separation",
+    "Variable management",
+    "Professional coding habits"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["variables_init", "variables_exit"],
+      "variables": [
+        { "name": "my_number", "type": "int", "value": 42 }
+      ],
+      "outputMessages": [
+        "Variables module loaded"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h", 
+        "linux/init.h"
+      ],
+      "mustContain": [
+        "#ifndef VARIABLES_H",
+        "#define VARIABLES_H",
+        "extern int my_number",
+        "int my_number = 42",
+        "#include \"variables.h\""
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "header_guards",
+        "name": "Proper Header Guards",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["#ifndef VARIABLES_H", "#define VARIABLES_H", "#endif"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "variable_declaration",
+        "name": "Variable Declaration in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["extern int my_number"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "variable_definition",
+        "name": "Variable Definition in C File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["int my_number = 42"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "header_inclusion",
+        "name": "Include Own Header First",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["#include \"variables.h\""],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Message",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Variables module loaded", "exact": true }
+        ]
+      }
+    ]
+  }
+}
