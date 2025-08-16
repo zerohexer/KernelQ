@@ -47,7 +47,7 @@ const ResizableSplitter = ({ leftPanelWidth, onWidthChange, children }) => {
             ref={containerRef}
             style={{ 
                 display: 'flex',
-                minHeight: '75vh',
+                minHeight: '110vh',
                 position: 'relative',
                 gap: '0px'
             }}
