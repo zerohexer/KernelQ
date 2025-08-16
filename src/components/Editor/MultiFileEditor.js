@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import FileExplorer from './FileExplorer';
 import SemanticCodeEditor from './SemanticCodeEditor';
 import { Maximize2, Minimize2, FileText } from 'lucide-react';
@@ -18,6 +18,7 @@ const MultiFileEditor = ({
   const [activeFile, setActiveFile] = useState(mainFile || (files && files[0] ? files[0].name : ''));
   const [fileContents, setFileContents] = useState({});
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const resizeTimeoutRef = useRef(null);
 
   // Initialize file contents from props
   useEffect(() => {
@@ -42,6 +43,29 @@ const MultiFileEditor = ({
       }
     }
   }, [files, mainFile, activeFile]);
+
+  // Auto file re-switch during zoom to fix Monaco scrollbar bug
+  useEffect(() => {
+    const handleResize = () => {
+      clearTimeout(resizeTimeoutRef.current);
+      resizeTimeoutRef.current = setTimeout(() => {
+        // Force Monaco recreation by switching to same file
+        const currentFile = activeFile;
+        if (currentFile) {
+          setActiveFile('__temp__'); // Switch to temporary file
+          setTimeout(() => {
+            setActiveFile(currentFile); // Switch back - this triggers key change and Monaco recreation
+          }, 10);
+        }
+      }, 200); // 200ms debounce for zoom operations
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimeoutRef.current);
+    };
+  }, [activeFile]);
 
   const handleFileSelect = (fileName) => {
     setActiveFile(fileName);
@@ -317,6 +341,14 @@ const MultiFileEditor = ({
               selectOnLineNumbers: true,
               lineNumbers: 'on',
               rulers: [80, 120],
+              scrollbar: {
+                alwaysConsumeMouseWheel: false,
+                vertical: 'auto',
+                horizontal: 'auto',
+                verticalScrollbarSize: 17,
+                horizontalScrollbarSize: 17,
+                useShadows: false
+              },
               folding: true,
               foldingStrategy: 'indentation',
               showFoldingControls: 'always',
