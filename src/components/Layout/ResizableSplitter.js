@@ -49,7 +49,8 @@ const ResizableSplitter = ({ leftPanelWidth, onWidthChange, children }) => {
                 display: 'flex',
                 minHeight: '110vh',
                 position: 'relative',
-                gap: '0px'
+                gap: '0px',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
             }}
         >
             {/* Left Panel */}
@@ -90,7 +91,8 @@ const ResizableSplitter = ({ leftPanelWidth, onWidthChange, children }) => {
             <div style={{ 
                 flex: 1,
                 minWidth: '400px',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
             }}>
                 {children[1]}
             </div>

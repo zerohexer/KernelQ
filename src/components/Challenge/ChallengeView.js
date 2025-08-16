@@ -92,7 +92,8 @@ const ChallengeView = ({
             overflow: 'hidden',
             minHeight: `calc(100vh - 100px)`,
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
         }}>
             {/* Subtle background glow effect */}
             <div style={{
@@ -641,10 +642,7 @@ const ChallengeView = ({
                             }}>
                                 <div style={{ 
                                     padding: '24px',
-                                    flex: 1,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    minHeight: 0
+                                    flex: 1
                                 }}>
                                     <div style={{
                                         borderRadius: '16px',
@@ -652,9 +650,7 @@ const ChallengeView = ({
                                         border: '1px solid rgba(255, 255, 255, 0.15)',
                                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
                                         background: 'rgba(0, 0, 0, 0.3)',
-                                        flex: 1,
-                                        display: 'flex',
-                                        flexDirection: 'column'
+                                        height: '100%'
                                     }}>
                                         {/* Multi-file editor for projects with multiple files */}
                                         {codeEditor.files && codeEditor.files.length > 0 ? (
