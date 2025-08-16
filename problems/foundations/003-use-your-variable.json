@@ -9,7 +9,7 @@
   "files": [
     {
       "name": "use_vars.h",
-      "content": "#ifndef USE_VARS_H\n#define USE_VARS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n\nextern int my_number;\n\n/* TODO: Add function declaration */\n/* void print_my_number(void); */\n\n#endif /* USE_VARS_H */",
+      "content": "#ifndef USE_VARS_H\n#define USE_VARS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n\nextern int my_number;\n\n#endif /* USE_VARS_H */",
       "readOnly": false,
       "language": "h"
     },
