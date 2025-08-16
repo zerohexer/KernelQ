@@ -20,7 +20,7 @@ const ChallengeView = ({
     switchToTab
 }) => {
     const [activeTab, setActiveTab] = useState('code');
-    const [leftPanelWidth, setLeftPanelWidth] = useState(45); // Initial width as percentage
+    const [leftPanelWidth, setLeftPanelWidth] = useState(32); // Initial width as percentage - splitter moved left for more code space
     
     if (!challenge) {
         return (
