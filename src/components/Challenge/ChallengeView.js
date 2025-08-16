@@ -247,7 +247,10 @@ const ChallengeView = ({
                                 color: 'rgba(245, 245, 247, 0.7)',
                                 paddingLeft: '20px',
                                 margin: 0,
-                                listStyleType: 'none'
+                                listStyleType: 'none',
+                                maxHeight: '60vh',
+                                overflowY: 'auto',
+                                paddingRight: '8px'
                             }}>
                                 {/* Header Requirements Section */}
                                 {((validation?.exactRequirements?.variables && validation.exactRequirements.variables.length > 0) || 
