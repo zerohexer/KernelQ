@@ -20,7 +20,7 @@ const ChallengeView = ({
     switchToTab
 }) => {
     const [activeTab, setActiveTab] = useState('code');
-    const [leftPanelWidth, setLeftPanelWidth] = useState(32); // Initial width as percentage - splitter moved left for more code space
+    const [leftPanelWidth, setLeftPanelWidth] = useState(40); // Initial width as percentage - splitter moved left for more code space
     
     if (!challenge) {
         return (
@@ -105,96 +105,13 @@ const ChallengeView = ({
                 background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)'
             }} />
             
-            {/* Challenge Header */}
-            <div style={{ marginBottom: '32px' }}>
-                <h2 style={{ 
-                    fontSize: 'clamp(1.875rem, 1.6rem + 1.375vw, 2.5rem)',
-                    fontWeight: 700,
-                    color: '#f5f5f7',
-                    margin: 0,
-                    marginBottom: '16px',
-                    letterSpacing: '-0.025em',
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
-                }}>
-                    {challenge.id ? `#${challenge.id}: ${title}` : title}
-                </h2>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <span style={{
-                        background: difficulty <= 3 ? 
-                            'linear-gradient(135deg, #30d158 0%, #bf5af2 100%)' :
-                            difficulty <= 6 ?
-                            'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)' :
-                            'linear-gradient(135deg, #ff453a 0%, #bf5af2 100%)',
-                        color: 'white',
-                        padding: '8px 16px',
-                        borderRadius: '20px',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        border: 'none',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-                    }}>
-                        <Star size={14} />
-                        <span>Level {difficulty}</span>
-                    </span>
-                    <span style={{
-                        background: 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
-                        color: 'white',
-                        padding: '8px 16px',
-                        borderRadius: '20px',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        border: 'none',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-                    }}>
-                        <Zap size={14} />
-                        <span>{xp} XP</span>
-                    </span>
-                    <span style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        backdropFilter: 'blur(20px)',
-                        color: '#f5f5f7',
-                        padding: '8px 16px',
-                        borderRadius: '20px',
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        border: '1px solid rgba(255, 255, 255, 0.15)'
-                    }}>
-                        {phase}
-                    </span>
-                    {challenge.id && (
-                        <span style={{
-                            background: 'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)',
-                            color: 'white',
-                            padding: '8px 16px',
-                            borderRadius: '20px',
-                            fontSize: '0.875rem',
-                            fontWeight: 600,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            border: 'none',
-                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-                        }}>
-                            <Book size={14} />
-                            <span>From Problem Bank</span>
-                        </span>
-                    )}
-                </div>
-            </div>
-
-            {/* Main Resizable Layout: Description + Editor */}
+            {/* Main Resizable Layout: Header + Description + Editor */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                 <ResizableSplitter 
                     leftPanelWidth={leftPanelWidth}
                     onWidthChange={setLeftPanelWidth}
                 >
-                {/* Left Panel: Description & Requirements */}
+                {/* Left Panel: Header + Description & Requirements */}
                 <div style={{ 
                     display: 'flex', 
                     flexDirection: 'column', 
@@ -203,6 +120,91 @@ const ChallengeView = ({
                     height: '100%',
                     overflow: 'auto'
                 }}>
+                    {/* Challenge Header */}
+                    <div style={{ 
+                        marginBottom: '8px',
+                        flexShrink: 0
+                    }}>
+                        <h2 style={{ 
+                            fontSize: 'clamp(1.875rem, 1.6rem + 1.375vw, 2.5rem)',
+                            fontWeight: 700,
+                            color: '#f5f5f7',
+                            margin: 0,
+                            marginBottom: '16px',
+                            letterSpacing: '-0.025em',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                        }}>
+                            {challenge.id ? `#${challenge.id}: ${title}` : title}
+                        </h2>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <span style={{
+                                background: difficulty <= 3 ? 
+                                    'linear-gradient(135deg, #30d158 0%, #bf5af2 100%)' :
+                                    difficulty <= 6 ?
+                                    'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)' :
+                                    'linear-gradient(135deg, #ff453a 0%, #bf5af2 100%)',
+                                color: 'white',
+                                padding: '8px 16px',
+                                borderRadius: '20px',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                border: 'none',
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                            }}>
+                                <Star size={14} />
+                                <span>Level {difficulty}</span>
+                            </span>
+                            <span style={{
+                                background: 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
+                                color: 'white',
+                                padding: '8px 16px',
+                                borderRadius: '20px',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                border: 'none',
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                            }}>
+                                <Zap size={14} />
+                                <span>{xp} XP</span>
+                            </span>
+                            <span style={{
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                backdropFilter: 'blur(20px)',
+                                color: '#f5f5f7',
+                                padding: '8px 16px',
+                                borderRadius: '20px',
+                                fontSize: '0.875rem',
+                                fontWeight: 500,
+                                border: '1px solid rgba(255, 255, 255, 0.15)'
+                            }}>
+                                {phase}
+                            </span>
+                            {challenge.id && (
+                                <span style={{
+                                    background: 'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)',
+                                    color: 'white',
+                                    padding: '8px 16px',
+                                    borderRadius: '20px',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 600,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    border: 'none',
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                                }}>
+                                    <Book size={14} />
+                                    <span>From Problem Bank</span>
+                                </span>
+                            )}
+                        </div>
+                    </div>
                     <div style={{
                         background: 'rgba(255, 255, 255, 0.05)',
                         backdropFilter: 'blur(20px)',
