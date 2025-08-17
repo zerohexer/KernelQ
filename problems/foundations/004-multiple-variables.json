@@ -89,12 +89,16 @@
         "prohibitedSymbols": []
       },
       {
-        "id": "format_specifiers",
-        "name": "Correct Format Specifiers for All Types",
+        "id": "printk_format_usage",
+        "name": "Proper printk Format Specifier Usage", 
         "type": "code_analysis",
         "critical": true,
-        "expectedSymbols": ["%d", "student_id", "%c", "student_grade", "student_passed"],
-        "prohibitedSymbols": ["\"%s\""]
+        "expectedSymbols": [
+          "Student ID.*%d.*student_id",
+          "Student Grade.*%c.*student_grade",
+          "Student Passed.*%d.*student_passed"
+        ],
+        "prohibitedSymbols": ["12345", "'A'", "true", "\"%s\""]
       },
       {
         "id": "function_structure",
