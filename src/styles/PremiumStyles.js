@@ -94,6 +94,32 @@ const PremiumStyles = {
     glowHover: '0 0 30px rgba(0, 122, 255, 0.5)'
   },
   
+  // Scrollbar System
+  scrollbar: {
+    // WebKit scrollbar styles
+    '&::-webkit-scrollbar': {
+      width: '8px',
+      height: '8px'
+    },
+    '&::-webkit-scrollbar-track': {
+      background: 'transparent'
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: 'rgba(255, 255, 255, 0.2)',
+      borderRadius: '4px',
+      border: 'none'
+    },
+    '&::-webkit-scrollbar-thumb:hover': {
+      background: 'rgba(255, 255, 255, 0.3)'
+    },
+    '&::-webkit-scrollbar-corner': {
+      background: 'transparent'
+    },
+    // Firefox scrollbar
+    scrollbarWidth: 'thin',
+    scrollbarColor: 'rgba(255, 255, 255, 0.2) transparent'
+  },
+
   // Animation System
   animations: {
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
