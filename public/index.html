@@ -9,6 +9,12 @@
           name="description"
           content="KernelQ - Professional Kernel Development Platform"
   />
+  
+  <!-- Disable caching for all browsers -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>KernelQ - Professional Kernel Development Platform</title>
   <style>
     /* Comprehensive Monaco Editor outline fix for all zoom levels */
@@ -89,5 +95,114 @@
 <body>
 <noscript>You need to enable JavaScript to run this app.</noscript>
 <div id="root"></div>
+
+<script>
+// Firefox Monaco Editor Compatibility Fix
+(function() {
+  const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+  
+  if (isFirefox) {
+    console.info('🦊 Firefox detected - applying Monaco Editor compatibility fixes');
+    
+    // 1. Enhanced global error handler for Monaco crashes
+    window.addEventListener('error', function(e) {
+      if (e.message && (e.message.includes('L is null') || 
+          e.message.includes('_doHitTestWithCaretPositionFromPoint') ||
+          e.message.includes('doHitTest') ||
+          e.message.includes('createMouseTarget')) || 
+          e.filename && e.filename.includes('monaco-editor')) {
+        console.warn('Monaco Editor Firefox issue suppressed:', e.message);
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+    });
+    
+    // 2. Enhanced promise rejection handler
+    window.addEventListener('unhandledrejection', function(e) {
+      if (e.reason && (e.reason.toString().includes('monaco-editor') ||
+          e.reason.toString().includes('L is null'))) {
+        console.warn('Monaco Editor Firefox promise rejection suppressed:', e.reason);
+        e.preventDefault();
+      }
+    });
+    
+    // 3. Enhanced Monaco Editor event listener wrapper
+    const originalAddEventListener = Element.prototype.addEventListener;
+    Element.prototype.addEventListener = function(type, listener, options) {
+      // Wrap ALL event types for Monaco Editor elements, not just mouse events
+      if (this.classList && (this.classList.contains('monaco-editor') || 
+          this.closest && this.closest('.monaco-editor'))) {
+        const wrappedListener = function(e) {
+          try {
+            // Add extra validation for mouse/pointer events
+            if ((type === 'mousedown' || type === 'mousemove' || type === 'mouseup' ||
+                 type === 'click' || type === 'dblclick' || type === 'contextmenu' ||
+                 type === 'pointerdown' || type === 'pointermove' || type === 'pointerup') && 
+                (!e || !e.target)) {
+              console.debug('Invalid event object - skipping');
+              return false;
+            }
+            
+            return listener.call(this, e);
+          } catch (err) {
+            if (err.message && (err.message.includes('L is null') ||
+                err.message.includes('_doHitTestWithCaretPositionFromPoint') ||
+                err.message.includes('doHitTest') ||
+                err.message.includes('createMouseTarget'))) {
+              console.debug('Monaco Editor event error suppressed:', type);
+              return false;
+            }
+            // Re-throw other errors
+            throw err;
+          }
+        };
+        return originalAddEventListener.call(this, type, wrappedListener, options);
+      }
+      return originalAddEventListener.call(this, type, listener, options);
+    };
+    
+    // 4. Patch requestAnimationFrame for Monaco operations
+    const originalRAF = window.requestAnimationFrame;
+    window.requestAnimationFrame = function(callback) {
+      const wrappedCallback = function(timestamp) {
+        try {
+          return callback(timestamp);
+        } catch (err) {
+          if (err.message && (err.message.includes('L is null') ||
+              err.message.includes('monaco-editor'))) {
+            console.debug('Monaco Editor RAF error suppressed');
+            return;
+          }
+          throw err;
+        }
+      };
+      return originalRAF.call(this, wrappedCallback);
+    };
+    
+    // 5. Full Monaco Editor configuration - ALL FEATURES ENABLED
+    window.MONACO_FIREFOX_CONFIG = {
+      // ALL FEATURES ENABLED - Protected by enhanced error handling
+      mouseWheelZoom: true,                   // ✅ ENABLED - Mouse wheel zoom
+      cursorSmoothCaretAnimation: true,       // ✅ ENABLED - Smooth cursor animations
+      smoothScrolling: true,                  // ✅ ENABLED - Smooth scrolling
+      hover: { enabled: true },               // ✅ ENABLED - Hover tooltips
+      renderWhitespace: 'selection',          // ✅ ENABLED - Show whitespace when selected
+      renderControlCharacters: true,         // ✅ ENABLED - Show control characters
+      selectOnLineNumbers: true,             // ✅ ENABLED - Click line numbers to select
+      selectionHighlight: true,              // ✅ ENABLED - Highlight selected text
+      occurrencesHighlight: true,            // ✅ ENABLED - Highlight matching words
+      codeLens: true,                        // ✅ ENABLED - Show code references
+      colorDecorators: true,                 // ✅ ENABLED - Show color previews
+      minimap: { enabled: true }             // ✅ ENABLED - Mini code overview
+    };
+    
+    // 6. Test if enhanced error handling alone is sufficient
+    console.info('🧪 Testing all Monaco Editor features with enhanced error protection');
+    console.info('✅ Firefox Monaco Editor fixes applied');
+  }
+})();
+</script>
 </body>
 </html>
