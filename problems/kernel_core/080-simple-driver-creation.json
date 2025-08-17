@@ -110,8 +110,8 @@
         "type": "code_analysis",
         "critical": true,
         "expectedSymbols": [
-          "int device_init(struct simple_driver_data *data)",
-          "void device_cleanup(struct simple_driver_data *data)"
+          "int device_init(struct simple_driver_data *driver_data)",
+          "void device_cleanup(struct simple_driver_data *driver_data)"
         ],
         "prohibitedSymbols": []
       },
@@ -121,8 +121,8 @@
         "type": "code_analysis",
         "critical": true,
         "expectedSymbols": [
-          "int device_init(struct simple_driver_data *data)",
-          "void device_cleanup(struct simple_driver_data *data)",
+          "int device_init(struct simple_driver_data *driver_data)",
+          "void device_cleanup(struct simple_driver_data *driver_data)",
           "static int __init simple_driver_init(void)",
           "static void __exit simple_driver_exit(void)"
         ],
