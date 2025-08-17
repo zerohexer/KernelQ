@@ -764,9 +764,10 @@ const ChallengeView = ({
                             border: '1px solid rgba(255, 255, 255, 0.1)',
                             overflow: 'hidden',
                             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                            height: '600px',
+                            flex: 1,
                             display: 'flex',
-                            flexDirection: 'column'
+                            flexDirection: 'column',
+                            minHeight: 0
                         }}>
                             {codeEditor.output || codeEditor.overallResult === 'COMPILATION_ERROR' || codeEditor.overallResult === 'PRE_COMPILATION_ERROR' ? (
                                 <div style={{
