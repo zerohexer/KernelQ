@@ -28,12 +28,7 @@ const ProblemBankTab = ({
         <select
           value={filters.phase}
           onChange={(e) => onFilterChange('phase', e.target.value)}
-          style={{
-            ...premiumStyles.buttonSecondary,
-            width: '100%',
-            padding: '0.75rem 1rem',
-            fontSize: PremiumStyles.typography.sizes.sm
-          }}
+          style={{ ...premiumStyles.dropdown, width: '100%' }}
         >
           <option value="all">All Phases</option>
           {phaseSystem && Object.entries(phaseSystem).map(([key, phase]) => (
@@ -45,12 +40,7 @@ const ProblemBankTab = ({
         <select
           value={filters.difficulty}
           onChange={(e) => onFilterChange('difficulty', e.target.value)}
-          style={{
-            ...premiumStyles.buttonSecondary,
-            width: '100%',
-            padding: '0.75rem 1rem',
-            fontSize: PremiumStyles.typography.sizes.sm
-          }}
+          style={{ ...premiumStyles.dropdown, width: '100%' }}
         >
           <option value="all">All Difficulties</option>
           {[...Array(10).keys()].map(i => (
@@ -62,12 +52,7 @@ const ProblemBankTab = ({
         <select
           value={filters.completed}
           onChange={(e) => onFilterChange('completed', e.target.value)}
-          style={{
-            ...premiumStyles.buttonSecondary,
-            width: '100%',
-            padding: '0.75rem 1rem',
-            fontSize: PremiumStyles.typography.sizes.sm
-          }}
+          style={{ ...premiumStyles.dropdown, width: '100%' }}
         >
           <option value="all">All Statuses</option>
           <option value="completed">Completed</option>

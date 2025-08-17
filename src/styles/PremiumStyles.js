@@ -216,6 +216,27 @@ const premiumStyles = {
     textDecoration: 'none'
   },
   
+  // Dropdown Select
+  dropdown: {
+    background: PremiumStyles.colors.backgroundSecondary,
+    border: `1px solid ${PremiumStyles.colors.border}`,
+    borderRadius: '12px',
+    color: PremiumStyles.colors.text,
+    padding: '0.75rem 1rem',
+    fontSize: PremiumStyles.typography.sizes.sm,
+    fontFamily: PremiumStyles.typography.fontFamily,
+    outline: 'none',
+    cursor: 'pointer',
+    transition: PremiumStyles.animations.transition,
+    WebkitAppearance: 'none',
+    MozAppearance: 'none',
+    appearance: 'none',
+    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,<svg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 1L6 6L11 1' stroke='%23f5f5f7' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 1rem center',
+    paddingRight: '3rem'
+  },
+  
   // Tab Navigation
   tabNav: {
     display: 'flex',
