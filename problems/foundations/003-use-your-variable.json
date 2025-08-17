@@ -95,9 +95,7 @@
         "critical": true,
         "expectedSymbols": [
           "void print_my_number(void)",
-          "static int use_var_init(void)",
           "static int __init use_var_init(void)",
-          "static void use_var_exit(void)",
           "static void __exit use_var_exit(void)"
         ],
         "prohibitedSymbols": []

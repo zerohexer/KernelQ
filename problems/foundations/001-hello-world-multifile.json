@@ -77,9 +77,7 @@
         "type": "code_analysis",
         "critical": true,
         "expectedSymbols": [
-          "static int hello_init(void)",
           "static int __init hello_init(void)",
-          "static void hello_exit(void)",
           "static void __exit hello_exit(void)"
         ],
         "prohibitedSymbols": []

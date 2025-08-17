@@ -103,9 +103,7 @@
         "type": "code_analysis",
         "critical": true,
         "expectedSymbols": [
-          "static int variables_init(void)",
           "static int __init variables_init(void)",
-          "static void variables_exit(void)",
           "static void __exit variables_exit(void)"
         ],
         "prohibitedSymbols": []

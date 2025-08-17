@@ -315,11 +315,12 @@ const ChallengeView = ({
                                         {validation?.testCases?.find(tc => 
                                             tc.id === 'function_declarations' || tc.id === 'function_declaration'
                                         )?.expectedSymbols?.map((funcDecl, idx) => {
-                                            // Parse function signature: "int add_numbers(int a, int b)" -> name: "add_numbers", params: "(int a, int b)"
+                                            // Parse function signature: "int add_numbers(int a, int b)" -> returnType: "int", name: "add_numbers", params: "(int a, int b)"
                                             const parseFunction = (signature) => {
                                                 const match = signature.match(/(\w+)\s+(\w+)\s*(\([^)]*\))/);
                                                 if (match) {
                                                     return {
+                                                        returnType: match[1],
                                                         name: match[2],
                                                         params: match[3]
                                                     };
@@ -330,10 +331,11 @@ const ChallengeView = ({
                                                     const beforeParen = signature.substring(0, parenIndex).trim();
                                                     const words = beforeParen.split(/\s+/);
                                                     const name = words[words.length - 1];
+                                                    const returnType = words.length > 1 ? words[words.length - 2] : '';
                                                     const params = signature.substring(parenIndex);
-                                                    return { name, params };
+                                                    return { returnType, name, params };
                                                 }
-                                                return { name: signature, params: '' };
+                                                return { returnType: '', name: signature, params: '' };
                                             };
                                             
                                             const parsed = parseFunction(funcDecl);
@@ -353,7 +355,19 @@ const ChallengeView = ({
                                                         borderRadius: '50%',
                                                         background: '#ffcc02'
                                                     }} />
-                                                    Declare function: <code style={{ 
+                                                    Declare function: {' '}
+                                                    {parsed.returnType && <code style={{ 
+                                                        background: 'rgba(255, 204, 2, 0.15)',
+                                                        border: '1px solid rgba(255, 204, 2, 0.3)',
+                                                        padding: '4px 8px',
+                                                        borderRadius: '6px',
+                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        color: '#ffcc02',
+                                                        fontSize: '0.875rem',
+                                                        fontWeight: 500,
+                                                        marginRight: '6px'
+                                                    }}>{parsed.returnType}</code>}
+                                                    <code style={{ 
                                                         background: 'rgba(255, 204, 2, 0.15)',
                                                         border: '1px solid rgba(255, 204, 2, 0.3)',
                                                         padding: '4px 8px',
@@ -421,33 +435,51 @@ const ChallengeView = ({
                                 ))}
                                 {/* Display function signatures from function_signatures_source test case */}
                                 {validation?.testCases?.some(tc => tc.id === 'function_signatures_source') && 
-                                 validation?.testCases?.find(tc => tc.id === 'function_signatures_source')?.expectedSymbols
-                                 ?.filter((funcSig, idx, arr) => {
-                                     // Remove duplicates: prefer versions without __init/__exit for display
-                                     const withoutAttributes = funcSig.replace(/__init\s+|__exit\s+/g, '');
-                                     const hasSimpleVersion = arr.some(other => other === withoutAttributes && other !== funcSig);
-                                     return !hasSimpleVersion; // Keep this one only if there's no simpler version
-                                 })
-                                 ?.map((funcSig, idx) => {
-                                    // Parse function signature: "void print_student_info(void)" -> name: "print_student_info", params: "(void)"
+                                 validation?.testCases?.find(tc => tc.id === 'function_signatures_source')?.expectedSymbols?.map((funcSig, idx) => {
+                                    // Parse function signature: "static int __init hello_init(void)" -> attributes: "__init", returnType: "int", name: "hello_init", params: "(void)"
                                     const parseFunction = (signature) => {
-                                        const match = signature.match(/(\w+)\s+(\w+)\s*(\([^)]*\))/);
-                                        if (match) {
+                                        // Match pattern: [static] [returnType] [__init/__exit] functionName(params)
+                                        const fullMatch = signature.match(/(?:static\s+)?(\w+)\s+(?:(__init|__exit)\s+)?(\w+)\s*(\([^)]*\))/);
+                                        if (fullMatch) {
                                             return {
-                                                name: match[2],
-                                                params: match[3]
+                                                returnType: fullMatch[1],
+                                                attribute: fullMatch[2] || '',  // __init, __exit, or empty
+                                                name: fullMatch[3],
+                                                params: fullMatch[4]
                                             };
                                         }
-                                        // Fallback for other patterns
+                                        
+                                        // Fallback for simpler patterns without static
+                                        const simpleMatch = signature.match(/(\w+)\s+(\w+)\s*(\([^)]*\))/);
+                                        if (simpleMatch) {
+                                            return {
+                                                returnType: simpleMatch[1],
+                                                attribute: '',
+                                                name: simpleMatch[2],
+                                                params: simpleMatch[3]
+                                            };
+                                        }
+                                        
+                                        // Final fallback
                                         const parenIndex = signature.indexOf('(');
                                         if (parenIndex > 0) {
                                             const beforeParen = signature.substring(0, parenIndex).trim();
                                             const words = beforeParen.split(/\s+/);
                                             const name = words[words.length - 1];
                                             const params = signature.substring(parenIndex);
-                                            return { name, params };
+                                            return { 
+                                                returnType: '',
+                                                attribute: '', 
+                                                name, 
+                                                params 
+                                            };
                                         }
-                                        return { name: signature, params: '' };
+                                        return { 
+                                            returnType: '',
+                                            attribute: '', 
+                                            name: signature, 
+                                            params: '' 
+                                        };
                                     };
                                     
                                     const parsed = parseFunction(funcSig);
@@ -467,7 +499,20 @@ const ChallengeView = ({
                                                 borderRadius: '50%',
                                                 background: '#ffcc02'
                                             }} />
-                                            Implement function: <code style={{ 
+                                            Implement function: {' '}
+                                            {parsed.attribute && <span style={{ color: 'rgba(255, 204, 2, 0.8)', marginRight: '6px' }}>{parsed.attribute}</span>}
+                                            {parsed.returnType && <code style={{ 
+                                                background: 'rgba(255, 204, 2, 0.15)',
+                                                border: '1px solid rgba(255, 204, 2, 0.3)',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                color: '#ffcc02',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500,
+                                                marginRight: '6px'
+                                            }}>{parsed.returnType}</code>}
+                                            <code style={{ 
                                                 background: 'rgba(255, 204, 2, 0.15)',
                                                 border: '1px solid rgba(255, 204, 2, 0.3)',
                                                 padding: '4px 8px',

@@ -111,9 +111,7 @@
         "critical": true,
         "expectedSymbols": [
           "void print_student_info(void)",
-          "static int multi_vars_init(void)",
           "static int __init multi_vars_init(void)",
-          "static void multi_vars_exit(void)",
           "static void __exit multi_vars_exit(void)"
         ],
         "prohibitedSymbols": []

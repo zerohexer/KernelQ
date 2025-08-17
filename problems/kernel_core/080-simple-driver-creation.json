@@ -123,9 +123,7 @@
         "expectedSymbols": [
           "int device_init(struct simple_driver_data *data)",
           "void device_cleanup(struct simple_driver_data *data)",
-          "static int simple_driver_init(void)",
           "static int __init simple_driver_init(void)",
-          "static void simple_driver_exit(void)",
           "static void __exit simple_driver_exit(void)"
         ],
         "prohibitedSymbols": []
