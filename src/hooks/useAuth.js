@@ -104,8 +104,12 @@ const useAuth = () => {
                         setIsAuthenticated(true);
 
                         if (storedProgress) {
+                            console.log('📄 Loading progress from localStorage...');
                             setUserProgress(JSON.parse(storedProgress));
                         }
+                        
+                        // Mark that we need to refresh progress once components are ready
+                        console.log('📝 User authenticated - progress refresh will happen when component is ready');
                     } else {
                         // User data exists but no tokens - clear everything
                         console.log('⚠️ User data found but no tokens, clearing auth data');
@@ -122,6 +126,36 @@ const useAuth = () => {
 
         checkAuthStatus();
     }, []);
+
+    // Refresh progress when user becomes authenticated (handles browser refresh)
+    useEffect(() => {
+        if (isAuthenticated && user && !isLoading) {
+            console.log('🔄 User is authenticated, refreshing progress from backend...');
+            // Small delay to ensure all components are ready
+            const timer = setTimeout(() => {
+                refreshUserProgress();
+            }, 500);
+            
+            return () => clearTimeout(timer);
+        }
+    }, [isAuthenticated, user, isLoading]);
+
+    // Periodic progress refresh for long sessions
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            console.log('⏰ Setting up periodic progress refresh (every 5 minutes)');
+            
+            const intervalId = setInterval(() => {
+                console.log('⏰ Periodic progress refresh triggered');
+                refreshUserProgress();
+            }, 5 * 60 * 1000); // Refresh every 5 minutes
+            
+            return () => {
+                console.log('⏰ Clearing periodic progress refresh');
+                clearInterval(intervalId);
+            };
+        }
+    }, [isAuthenticated, user]);
 
     const login = (userData, progressData = null, accessToken = null, refreshToken = null) => {
         console.log('🔐 Login function called with:', {
@@ -207,6 +241,50 @@ const useAuth = () => {
         }
     };
 
+    const refreshUserProgress = async () => {
+        if (!isAuthenticated || !user) {
+            console.log('❌ Cannot refresh progress: not authenticated or no user');
+            return null;
+        }
+
+        try {
+            console.log('🔄 Refreshing user progress from solved problems endpoint...');
+            const response = await makeAuthenticatedRequest(`/api/user/${user.id}/problems/solved`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Fresh solved problems data loaded:', data.problems?.length || 0, 'problems');
+                
+                // Calculate progress from solved problems
+                const solvedProblems = data.problems || [];
+                const totalXP = solvedProblems.reduce((sum, problem) => sum + (problem.xp_earned || 0), 0);
+                const problemsSolved = solvedProblems.length;
+                
+                // Create updated progress object
+                const freshProgress = {
+                    ...userProgress, // Keep existing progress data
+                    total_xp: totalXP,
+                    problems_solved: problemsSolved,
+                    solved_problems: solvedProblems
+                };
+                
+                console.log('✅ Calculated progress:', { problemsSolved, totalXP });
+                
+                // Update both state and localStorage with fresh data
+                setUserProgress(freshProgress);
+                localStorage.setItem('kernelq_progress', JSON.stringify(freshProgress));
+                
+                return freshProgress;
+            } else {
+                console.warn('❌ Failed to refresh progress:', response.status);
+                return null;
+            }
+        } catch (error) {
+            console.warn('❌ Error refreshing progress:', error);
+            return null;
+        }
+    };
+
     const updateProgress = (newProgress) => {
         setUserProgress(newProgress);
         localStorage.setItem('kernelq_progress', JSON.stringify(newProgress));
@@ -223,6 +301,10 @@ const useAuth = () => {
 
             if (response.ok) {
                 console.log('✅ Problem completion recorded in database');
+                
+                // Refresh user progress to get updated problems_solved count
+                console.log('🔄 Refreshing progress after problem completion...');
+                await refreshUserProgress();
             }
         } catch (error) {
             console.warn('Failed to record problem completion:', error);
@@ -293,6 +375,7 @@ const useAuth = () => {
         login,
         logout,
         updateProgress,
+        refreshUserProgress,
         recordProblemCompletion,
         getSolvedProblems,
         makeAuthenticatedRequest,
