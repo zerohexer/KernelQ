@@ -113,6 +113,22 @@
         "prohibitedSymbols": []
       },
       {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "int add_numbers(int a, int b)",
+          "void print_calculation(int num1, int num2, int result)",
+          "bool is_even(int number)",
+          "static int functions_init(void)",
+          "static int __init functions_init(void)",
+          "static void functions_exit(void)",
+          "static void __exit functions_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
         "id": "exact_output",
         "name": "Exact Output Messages",
         "type": "output_match",

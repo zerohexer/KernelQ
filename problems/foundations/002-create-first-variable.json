@@ -98,6 +98,19 @@
         "prohibitedSymbols": []
       },
       {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "static int variables_init(void)",
+          "static int __init variables_init(void)",
+          "static void variables_exit(void)",
+          "static void __exit variables_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
         "id": "exact_output",
         "name": "Exact Output Message",
         "type": "output_match",

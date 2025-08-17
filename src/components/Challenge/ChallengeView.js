@@ -268,7 +268,8 @@ const ChallengeView = ({
                             }}>
                                 {/* Header Requirements Section */}
                                 {((validation?.exactRequirements?.variables && validation.exactRequirements.variables.length > 0) || 
-                                  (validation?.exactRequirements?.mustContain && validation.exactRequirements.mustContain.some(item => item.includes('(') && !item.includes('='))) 
+                                  (validation?.exactRequirements?.mustContain && validation.exactRequirements.mustContain.some(item => item.includes('(') && !item.includes('='))) ||
+                                  (validation?.testCases?.find(tc => tc.id === 'function_declarations' || tc.id === 'function_declaration')?.expectedSymbols?.length > 0)
                                 ) && (
                                     <>
                                         <li style={{
@@ -310,38 +311,61 @@ const ChallengeView = ({
                                                 }}>{variable.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>({variable.type})</span>
                                             </li>
                                         ))}
-                                        {/* Display function declarations from mustContain (only if there are header function tests) */}
-                                        {validation?.testCases?.some(tc => 
+                                        {/* Display function declarations from function_declarations test case */}
+                                        {validation?.testCases?.find(tc => 
                                             tc.id === 'function_declarations' || tc.id === 'function_declaration'
-                                        ) && validation?.exactRequirements?.mustContain?.filter(item => 
-                                            item.includes('(') && !item.includes('=') && !item.includes('#') && !item.includes('printk')
-                                        ).map((funcDecl, idx) => (
-                                            <li key={`header-func-${idx}`} style={{ 
-                                                marginBottom: '12px',
-                                                position: 'relative',
-                                                paddingLeft: '20px'
-                                            }}>
-                                                <span style={{
-                                                    position: 'absolute',
-                                                    left: 0,
-                                                    top: '8px',
-                                                    width: '6px',
-                                                    height: '6px',
-                                                    borderRadius: '50%',
-                                                    background: '#007aff'
-                                                }} />
-                                                Declare function: <code style={{ 
-                                                    background: 'rgba(0, 122, 255, 0.15)',
-                                                    border: '1px solid rgba(0, 122, 255, 0.3)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                    color: '#007aff',
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: 500
-                                                }}>{funcDecl}</code>
-                                            </li>
-                                        ))}
+                                        )?.expectedSymbols?.map((funcDecl, idx) => {
+                                            // Parse function signature: "int add_numbers(int a, int b)" -> name: "add_numbers", params: "(int a, int b)"
+                                            const parseFunction = (signature) => {
+                                                const match = signature.match(/(\w+)\s+(\w+)\s*(\([^)]*\))/);
+                                                if (match) {
+                                                    return {
+                                                        name: match[2],
+                                                        params: match[3]
+                                                    };
+                                                }
+                                                // Fallback for other patterns
+                                                const parenIndex = signature.indexOf('(');
+                                                if (parenIndex > 0) {
+                                                    const beforeParen = signature.substring(0, parenIndex).trim();
+                                                    const words = beforeParen.split(/\s+/);
+                                                    const name = words[words.length - 1];
+                                                    const params = signature.substring(parenIndex);
+                                                    return { name, params };
+                                                }
+                                                return { name: signature, params: '' };
+                                            };
+                                            
+                                            const parsed = parseFunction(funcDecl);
+                                            
+                                            return (
+                                                <li key={`header-func-${idx}`} style={{ 
+                                                    marginBottom: '12px',
+                                                    position: 'relative',
+                                                    paddingLeft: '20px'
+                                                }}>
+                                                    <span style={{
+                                                        position: 'absolute',
+                                                        left: 0,
+                                                        top: '8px',
+                                                        width: '6px',
+                                                        height: '6px',
+                                                        borderRadius: '50%',
+                                                        background: '#ffcc02'
+                                                    }} />
+                                                    Declare function: <code style={{ 
+                                                        background: 'rgba(255, 204, 2, 0.15)',
+                                                        border: '1px solid rgba(255, 204, 2, 0.3)',
+                                                        padding: '4px 8px',
+                                                        borderRadius: '6px',
+                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        color: '#ffcc02',
+                                                        fontSize: '0.875rem',
+                                                        fontWeight: 500
+                                                    }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>{parsed.params}</span>
+                                                </li>
+                                            );
+                                        })}
                                         <li style={{
                                             marginBottom: '24px',
                                             paddingLeft: '0'
@@ -355,9 +379,9 @@ const ChallengeView = ({
                                         marginBottom: '16px',
                                         paddingLeft: '0',
                                         fontWeight: 600,
-                                        color: '#007aff',
+                                        color: '#ff9f0a',
                                         fontSize: '1rem',
-                                        borderBottom: '1px solid rgba(0, 122, 255, 0.2)',
+                                        borderBottom: '1px solid rgba(255, 159, 10, 0.2)',
                                         paddingBottom: '8px'
                                     }}>
                                         Source File Requirements
@@ -395,33 +419,67 @@ const ChallengeView = ({
                                         )}
                                     </li>
                                 ))}
-                                {validation?.exactRequirements?.functionNames?.map((fn, idx) => (
-                                    <li key={idx} style={{ 
-                                        marginBottom: '12px',
-                                        position: 'relative',
-                                        paddingLeft: '20px'
-                                    }}>
-                                        <span style={{
-                                            position: 'absolute',
-                                            left: 0,
-                                            top: '8px',
-                                            width: '6px',
-                                            height: '6px',
-                                            borderRadius: '50%',
-                                            background: '#007aff'
-                                        }} />
-                                        Implement function: <code style={{ 
-                                            background: 'rgba(0, 122, 255, 0.15)',
-                                            border: '1px solid rgba(0, 122, 255, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#007aff',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500
-                                        }}>{fn}</code>
-                                    </li>
-                                ))}
+                                {/* Display function signatures from function_signatures_source test case */}
+                                {validation?.testCases?.some(tc => tc.id === 'function_signatures_source') && 
+                                 validation?.testCases?.find(tc => tc.id === 'function_signatures_source')?.expectedSymbols
+                                 ?.filter((funcSig, idx, arr) => {
+                                     // Remove duplicates: prefer versions without __init/__exit for display
+                                     const withoutAttributes = funcSig.replace(/__init\s+|__exit\s+/g, '');
+                                     const hasSimpleVersion = arr.some(other => other === withoutAttributes && other !== funcSig);
+                                     return !hasSimpleVersion; // Keep this one only if there's no simpler version
+                                 })
+                                 ?.map((funcSig, idx) => {
+                                    // Parse function signature: "void print_student_info(void)" -> name: "print_student_info", params: "(void)"
+                                    const parseFunction = (signature) => {
+                                        const match = signature.match(/(\w+)\s+(\w+)\s*(\([^)]*\))/);
+                                        if (match) {
+                                            return {
+                                                name: match[2],
+                                                params: match[3]
+                                            };
+                                        }
+                                        // Fallback for other patterns
+                                        const parenIndex = signature.indexOf('(');
+                                        if (parenIndex > 0) {
+                                            const beforeParen = signature.substring(0, parenIndex).trim();
+                                            const words = beforeParen.split(/\s+/);
+                                            const name = words[words.length - 1];
+                                            const params = signature.substring(parenIndex);
+                                            return { name, params };
+                                        }
+                                        return { name: signature, params: '' };
+                                    };
+                                    
+                                    const parsed = parseFunction(funcSig);
+                                    
+                                    return (
+                                        <li key={idx} style={{ 
+                                            marginBottom: '12px',
+                                            position: 'relative',
+                                            paddingLeft: '20px'
+                                        }}>
+                                            <span style={{
+                                                position: 'absolute',
+                                                left: 0,
+                                                top: '8px',
+                                                width: '6px',
+                                                height: '6px',
+                                                borderRadius: '50%',
+                                                background: '#ffcc02'
+                                            }} />
+                                            Implement function: <code style={{ 
+                                                background: 'rgba(255, 204, 2, 0.15)',
+                                                border: '1px solid rgba(255, 204, 2, 0.3)',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                color: '#ffcc02',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500
+                                            }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>{parsed.params}</span>
+                                        </li>
+                                    );
+                                })}
                                 {validation?.exactRequirements?.outputMessages?.map((msg, idx) => (
                                     <li key={idx} style={{ 
                                         marginBottom: '12px',
