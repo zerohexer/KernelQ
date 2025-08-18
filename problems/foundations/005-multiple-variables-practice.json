@@ -1,0 +1,146 @@
+{
+  "id": 5,
+  "title": "Multiple Variables - Guided Practice",
+  "phase": "foundations", 
+  "difficulty": 3,
+  "xp": 35,
+  "description": "PART B (PRACTICE): Build on Problem 4 by completing a partially implemented solution. Fill in strategic gaps while working with module parameters for dynamic testing. This bridges complete examples to independent creation.",
+  "mainFile": "practice_vars.c",
+  "files": [
+    {
+      "name": "practice_vars.h",
+      "content": "#ifndef PRACTICE_VARS_H\n#define PRACTICE_VARS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n/* Variables for practice */\nextern int employee_id;\nextern char performance_grade;\nextern bool is_promoted;\n\n/* Function to complete */\nvoid print_employee_info(void);\n\n#endif /* PRACTICE_VARS_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "practice_vars.c",
+      "content": "#include \"practice_vars.h\"\n\n/* PART B (PRACTICE): Complete the strategic gaps below\n * Build on what you learned from Problem 4's complete example\n * This time YOU fill in the missing pieces!\n */\n\n/* TODO: Complete the variable definitions with these values:\n * employee_id = 67890\n * performance_grade = 'A'\n * is_promoted = true\n */\nint employee_id = _____;\nchar performance_grade = _____;\nbool is_promoted = _____;\n\n/* Module parameters for dynamic testing - DO NOT REMOVE! */\nmodule_param(employee_id, int, 0644);\nMODULE_PARM_DESC(employee_id, \"Employee ID for testing\");\n/* char and bool parameters handled separately */\n\nvoid print_employee_info(void)\n{\n    printk(KERN_INFO \"=== Employee Information ===\\n\");\n    \n    /* TODO: Complete these printk statements with correct format specifiers */\n    /* Hint: Use %d for int, %c for char, %d for bool */\n    printk(KERN_INFO \"Employee ID: %___, _____);    // Fill in format and variable\n    printk(KERN_INFO \"Grade: %___, _____);          // Fill in format and variable  \n    printk(KERN_INFO \"Promoted: %___, _____);       // Fill in format and variable\n}\n\nstatic int __init practice_vars_init(void)\n{\n    printk(KERN_INFO \"Practice variables module loaded\\n\");\n    print_employee_info();\n    return 0;\n}\n\nstatic void __exit practice_vars_exit(void)\n{\n    printk(KERN_INFO \"Practice variables module unloaded\\n\");\n}\n\nmodule_init(practice_vars_init);\nmodule_exit(practice_vars_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Guided practice with multiple variables and dynamic testing\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Practice variables module Makefile\nobj-m += practice_vars.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "guided practice",
+    "multiple data types",
+    "format specifier completion",
+    "variable initialization",
+    "pattern application"
+  ],
+  "skills": [
+    "Completing partial implementations",
+    "Applying learned patterns",
+    "Working with three data types",
+    "Format specifier selection",
+    "Code completion skills"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["practice_vars_init", "practice_vars_exit", "print_employee_info"],
+      "variables": [
+        { "name": "employee_id", "type": "int", "value": 67890 },
+        { "name": "performance_grade", "type": "char", "value": "'A'" },
+        { "name": "is_promoted", "type": "bool", "value": true }
+      ],
+      "outputMessages": [
+        "Practice variables module loaded",
+        "Employee Information",
+        "Employee ID: 67890",
+        "Grade: A",
+        "Promoted: 1"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/types.h"
+      ],
+      "mustContain": [
+        "extern int employee_id",
+        "extern char performance_grade",
+        "extern bool is_promoted",
+        "int employee_id = 67890",
+        "char performance_grade = 'A'",
+        "bool is_promoted = true"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "variable_completion",
+        "name": "Variable Value Completion",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["int employee_id = 67890", "char performance_grade = 'A'", "bool is_promoted = true"],
+        "prohibitedSymbols": ["_____"]
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void print_employee_info(void)",
+          "static int __init practice_vars_init(void)",
+          "static void __exit practice_vars_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Basic Output Messages",
+        "type": "output_match", 
+        "critical": true,
+        "expected": [
+          { "pattern": "Practice variables module loaded", "exact": true },
+          { "pattern": "Employee Information", "exact": true },
+          { "pattern": "Employee ID: 67890", "exact": true },
+          { "pattern": "Grade: A", "exact": true },
+          { "pattern": "Promoted: 1", "exact": true }
+        ]
+      },
+      {
+        "id": "guided_dynamic_testing",
+        "name": "Guided Dynamic Testing",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "practice_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n\\nint main() {\\n    printf(\"=== Part B Practice Test ===\\\\n\");\\n    printf(\"Testing guided completion with dynamic values\\\\n\");\\n    \\n    printf(\"Test: Loading with employee_id=88888\\\\n\");\\n    system(\"rmmod practice_vars 2>/dev/null\");\\n    system(\"insmod /lib/modules/practice_vars.ko employee_id=88888\");\\n    \\n    printf(\"SUCCESS: Practice test completed\\\\n\");\\n    printf(\"PASS: Variable completion works\\\\n\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting guided practice testing'"
+          ],
+          "testCommands": [
+            "/bin/practice_tester",
+            "echo 'Checking dynamic value'",
+            "dmesg | grep 'Employee ID: 88888' && echo 'PASS: Dynamic employee_id worked' || echo 'FAIL: Must use variables, not hardcoded values'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Practice variables module loaded",
+              "Employee ID: 88888"
+            ],
+            "stdout": [
+              "Part B Practice Test",
+              "SUCCESS: Practice test completed",
+              "PASS: Variable completion works"
+            ]
+          },
+          "timeout": 30
+        }
+      }
+    ]
+  }
+}

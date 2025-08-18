@@ -1,0 +1,156 @@
+{
+  "id": 6,
+  "title": "Multiple Variables - Advanced Dynamic Testing",
+  "phase": "foundations", 
+  "difficulty": 4,
+  "xp": 45,
+  "description": "Master advanced variable usage with dynamic testing! Create a complete solution that works with changing values - the system will test your code with different inputs to ensure you're using variables correctly, not hardcoding values.",
+  "mainFile": "create_vars.c",
+  "files": [
+    {
+      "name": "create_vars.h",
+      "content": "#ifndef CREATE_VARS_H\n#define CREATE_VARS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n/* TODO: Declare your variables here using extern */\n/* You need: server_id (int), status_code (char), temperature (int), online (bool) */\n\n/* TODO: Declare your function */\n/* void print_server_status(void); */\n\n#endif /* CREATE_VARS_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "create_vars.c",
+      "content": "#include \"create_vars.h\"\n\n/* CHALLENGE: Advanced Variable Creation with Dynamic Testing!\n * \n * REQUIREMENTS:\n * Create 4 variables with these default values:\n * - server_id = 1001 (int)\n * - status_code = 'R' for Ready (char)  \n * - temperature = 68 (int)\n * - online = true (bool)\n * \n * Print them in this exact format:\n * \"Server %d: Status %c, Temp %d, Online: %d\"\n * \n * CRITICAL WARNING: The testing system will change values dynamically!\n * You MUST use actual variables, not hardcoded values, or you will fail!\n */\n\n/* TODO: Define all 4 variables with the specified default values */\n\n\n\n\n/* IMPORTANT: DO NOT REMOVE OR MODIFY THE LINES BELOW!\n * These module parameter declarations are required for validation testing.\n * The testing system uses these to verify your variables work with different values.\n * Removing them will cause test failures.\n */\nmodule_param(server_id, int, 0644);\nMODULE_PARM_DESC(server_id, \"Server ID for testing\");\nmodule_param(temperature, int, 0644);\nMODULE_PARM_DESC(temperature, \"Temperature value for testing\");\n/* Note: char and bool module params need special handling, so we only test int params */\n/* END OF REQUIRED MODULE PARAMETER SECTION */\n\n/* TODO: Implement print_server_status function */\n/* Use appropriate format specifiers: %d for int, %c for char, %d for bool */\n/* WARNING: Use actual variables! The system tests with different values! */\nvoid print_server_status(void)\n{\n    /* TODO: Print the server information using the variables above */\n    \n    \n}\n\nstatic int __init create_vars_init(void)\n{\n    printk(KERN_INFO \"Variable creation module loaded\\n\");\n    print_server_status();\n    return 0;\n}\n\nstatic void __exit create_vars_exit(void)\n{\n    printk(KERN_INFO \"Variable creation module unloaded\\n\");\n}\n\nmodule_init(create_vars_init);\nmodule_exit(create_vars_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Advanced variable creation with dynamic testing\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Variable creation module Makefile\nobj-m += create_vars.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "independent creation",
+    "four data types",
+    "complete implementation",
+    "format specifier mastery",
+    "creative problem solving"
+  ],
+  "skills": [
+    "Writing code from requirements",
+    "Managing four different data types",
+    "Creating complete solutions",
+    "Independent problem solving",
+    "Applying learned patterns creatively"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["create_vars_init", "create_vars_exit", "print_server_status"],
+      "variables": [
+        { "name": "server_id", "type": "int", "value": 1001 },
+        { "name": "status_code", "type": "char", "value": "'R'" },
+        { "name": "temperature", "type": "int", "value": 68 },
+        { "name": "online", "type": "bool", "value": true }
+      ],
+      "outputMessages": [
+        "Variable creation module loaded",
+        "Server 1001: Status R, Temp 68, Online: 1"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/types.h"
+      ],
+      "mustContain": [
+        "extern int server_id",
+        "extern char status_code", 
+        "extern int temperature",
+        "extern bool online",
+        "int server_id = 1001",
+        "char status_code = 'R'",
+        "int temperature = 68",
+        "bool online = true",
+        "module_param(server_id, int, 0644)",
+        "module_param(temperature, int, 0644)"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "variable_declarations",
+        "name": "Variable Declarations in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["extern int server_id", "extern char status_code", "extern int temperature", "extern bool online"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "variable_definitions",
+        "name": "Variable Definitions in Source",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["int server_id = 1001", "char status_code = 'R'", "int temperature = 68", "bool online = true"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "module_parameters",
+        "name": "Module Parameter Infrastructure",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": ["module_param(server_id, int, 0644)", "module_param(temperature, int, 0644)"],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void print_server_status(void)",
+          "static int __init create_vars_init(void)",
+          "static void __exit create_vars_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "dynamic_variable_testing",
+        "name": "Dynamic Variable Testing",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "variable_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n\\nint main() {\\n    printf(\"=== Dynamic Variable Test ===\\\\n\");\\n    \\n    printf(\"Test 1: Testing server_id=2001, temperature=85\\\\n\");\\n    system(\"rmmod create_vars 2>/dev/null\");\\n    system(\"insmod /lib/modules/create_vars.ko server_id=2001 temperature=85\");\\n    \\n    printf(\"Test 2: Testing server_id=3001, temperature=92\\\\n\");\\n    system(\"rmmod create_vars\");\\n    system(\"insmod /lib/modules/create_vars.ko server_id=3001 temperature=92\");\\n    \\n    printf(\"SUCCESS: Dynamic test completed\\\\n\");\\n    printf(\"PASS: Variable usage detected\\\\n\");\\n    printf(\"PASS: Module parameters work\\\\n\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting dynamic variable testing'"
+          ],
+          "testCommands": [
+            "/bin/variable_tester",
+            "echo 'Checking kernel output for dynamic values'",
+            "dmesg | grep 'Server 2001' && echo 'PASS: 2001 test worked' || echo 'FAIL: 2001 test failed'",
+            "dmesg | grep 'Temp 85' && echo 'PASS: 85 test worked' || echo 'FAIL: 85 test failed'",
+            "dmesg | grep 'Server 3001' && echo 'PASS: 3001 test worked' || echo 'FAIL: 3001 test failed'",
+            "dmesg | grep 'Temp 92' && echo 'PASS: 92 test worked' || echo 'FAIL: 92 test failed'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Variable creation module loaded",
+              "Server 2001: Status R, Temp 85, Online: 1",
+              "Server 3001: Status R, Temp 92, Online: 1"
+            ],
+            "stdout": [
+              "Dynamic Variable Test",
+              "SUCCESS: Dynamic test completed",
+              "PASS: Variable usage detected",
+              "PASS: Module parameters work"
+            ]
+          },
+          "timeout": 45
+        }
+      }
+    ]
+  }
+}
