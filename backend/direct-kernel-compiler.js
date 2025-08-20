@@ -178,11 +178,34 @@ help:
             }
         }
 
+        // Add GCC development tools to QEMU environment for direct header validation
+        try {
+            await this.setupGccEnvironment(initramfsDir);
+        } catch (error) {
+            console.warn('⚠️  GCC setup failed, QEMU will run without development tools:', error.message);
+        }
+
         // Copy kernel module
         await this.copyFile(
             path.join(sessionDir, `${moduleName}.ko`),
             path.join(initramfsDir, 'lib/modules', `${moduleName}.ko`)
         );
+
+        // Copy header files for gcc compilation tests
+        try {
+            const headerFiles = await fs.readdir(sessionDir);
+            for (const file of headerFiles) {
+                if (file.endsWith('.h')) {
+                    await this.copyFile(
+                        path.join(sessionDir, file),
+                        path.join(initramfsDir, 'lib/modules', file)
+                    );
+                    console.log(`📄 Copied header file: ${file}`);
+                }
+            }
+        } catch (error) {
+            console.warn('Header file copy warning:', error.message);
+        }
 
         // NEW: Compile userspace applications if provided in testScenario
         if (testScenario?.userspaceApps) {
@@ -265,8 +288,7 @@ if /sbin/insmod /lib/modules/${moduleName}.ko 2>&1; then
     echo "=== Running Test Commands ==="
 `;
             for (const cmd of testScenario.testCommands) {
-                script += `    echo "-> Executing: ${cmd.replace(/"/g, '\\"')}"
-    ${cmd} || echo "⚠️ Command failed but continuing: ${cmd.replace(/"/g, '\\"')}"
+                script += `    ${cmd}
 `;
             }
         }
@@ -325,6 +347,63 @@ poweroff -f
             await fs.symlink(target, link);
         } catch (error) {
             // Ignore symlink errors - they're not critical
+        }
+    }
+
+    // Setup GCC environment with cc1 for direct header validation
+    async setupGccEnvironment(initramfsDir) {
+        try {
+            console.log('🔧 Setting up GCC environment for header validation...');
+
+            // Create necessary directories for development tools
+            const devDirs = [
+                'usr/bin',
+                'usr/lib64',
+                'usr/lib64/gcc',
+                'usr/lib64/gcc/x86_64-suse-linux',
+                'usr/lib64/gcc/x86_64-suse-linux/7',
+                'tmp'
+            ];
+            
+            for (const dir of devDirs) {
+                await fs.mkdir(path.join(initramfsDir, dir), { recursive: true });
+            }
+
+            // Copy TCC (Tiny C Compiler) - ultra fast, self-contained validation
+            try {
+                const tccPath = '/home/zerohexer/.local/bin/tcc';
+                await this.copyFile(tccPath, path.join(initramfsDir, 'usr/bin/tcc'));
+                await fs.chmod(path.join(initramfsDir, 'usr/bin/tcc'), 0o755);
+                console.log(`✅ Copied TCC (345KB self-contained binary) - ultra fast!`);
+                console.log('🎉 TCC-only environment setup completed (~20x faster than GCC)');
+            } catch (error) {
+                console.warn('⚠️  TCC setup failed, continuing without development tools:', error.message);
+            }
+            
+        } catch (error) {
+            console.warn('⚠️  TCC environment setup failed:', error.message);
+        }
+    }
+
+    // Helper method to copy directories recursively
+    async copyDirectoryRecursive(src, dest) {
+        try {
+            await fs.mkdir(dest, { recursive: true });
+            const entries = await fs.readdir(src, { withFileTypes: true });
+            
+            for (const entry of entries) {
+                const srcPath = path.join(src, entry.name);
+                const destPath = path.join(dest, entry.name);
+                
+                if (entry.isDirectory()) {
+                    await this.copyDirectoryRecursive(srcPath, destPath);
+                } else {
+                    await fs.copyFile(srcPath, destPath);
+                }
+            }
+        } catch (error) {
+            // Ignore errors in directory copying - not critical
+            console.warn(`Directory copy warning ${src} -> ${dest}: ${error.message}`);
         }
     }
 
@@ -483,7 +562,7 @@ poweroff -f
                         const baseQemuArgs = [
                             '-kernel', vmlinuzPath,
                             '-initrd', path.join(sessionDir, 'test.cpio.gz'),
-                            '-m', '256',
+                            '-m', '512',  // Increased memory for GCC compilation
                             '-nographic',
                             '-append', 'console=ttyS0 init=/init loglevel=7 printk.console_loglevel=7'
                         ];
