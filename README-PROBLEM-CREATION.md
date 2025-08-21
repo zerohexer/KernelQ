@@ -1191,3 +1191,86 @@ Each phase builds on the previous:
 - ✅ **Professional coding practices** enforcement
 
 This multi-phase validation architecture represents a significant advancement in educational kernel programming assessment, providing both robust cheat prevention and exceptional learning value through granular, context-aware feedback.
+
+## 🎯 **Cross-Validation Counting Issues and Solutions**
+
+### Problem: Multiple Function Calls Breaking Validation Counts
+
+**Issue Discovered**: When students implement functions correctly but call them multiple times per module load, cross-validation counts become inflated and cause false failures.
+
+**Example Scenario**:
+```c
+// Student's correct implementation calls function 3 times per load
+static int __init conditions_init(void) {
+    check_number_status(test_number);  // Dynamic value (99, -88, 0)
+    check_number_status(-15);          // Fixed negative test
+    check_number_status(0);            // Fixed zero test
+    return 0;
+}
+```
+
+**Validation Problem**:
+```bash
+# Multiple module loads create multiple dmesg entries
+# Load 1 (T121): 42 positive, -15 negative, 0 zero
+# Load 2 (T128): 99 positive, -15 negative, 0 zero  
+# Load 3 (T130): -88 negative, -15 negative, 0 zero
+# Load 4 (T133): 0 zero, -15 negative, 0 zero
+
+# Broken validation counts ALL instances
+POSITIVE_COUNT=$(dmesg | grep -c 'is positive')    # Counts 2 (expected 1)
+NEGATIVE_COUNT=$(dmesg | grep -c 'is negative')    # Counts 5 (expected 1)
+ZERO_COUNT=$(dmesg | grep -c 'is zero')           # Counts 5 (expected 1)
+
+# Result: FAIL - even though logic is correct!
+```
+
+### Solution: Specific Value Validation Instead of Generic Counting
+
+**❌ Broken Approach (Generic Counting)**:
+```bash
+# Counts ALL instances - breaks with multiple function calls
+POSITIVE_COUNT=$(dmesg | grep -c 'is positive')
+NEGATIVE_COUNT=$(dmesg | grep -c 'is negative') 
+ZERO_COUNT=$(dmesg | grep -c 'is zero')
+if [ $POSITIVE_COUNT -eq 1 ] && [ $NEGATIVE_COUNT -eq 1 ] && [ $ZERO_COUNT -eq 1 ]
+```
+
+**✅ Fixed Approach (Specific Value Validation)**:
+```bash
+# Counts only the specific dynamic test values
+TEST_99_POSITIVE=$(dmesg | grep -c 'Number 99 is positive')
+TEST_88_NEGATIVE=$(dmesg | grep -c 'Number -88 is negative')
+TEST_0_ZERO=$(dmesg | grep -c 'Number 0 is zero')
+
+# Flexible counting for values that may appear multiple times
+if [ $TEST_99_POSITIVE -eq 1 ] && [ $TEST_88_NEGATIVE -eq 1 ] && [ $TEST_0_ZERO -ge 1 ]
+```
+
+**Key Fixes Applied**:
+- ✅ **Specific value validation**: Check for exact test values (99, -88, 0) instead of generic patterns
+- ✅ **Flexible zero count**: `TEST_0_ZERO -ge 1` (at least 1, since 0 may appear multiple times)  
+- ✅ **Precise counting**: Only count the specific dynamic test values, not all instances
+- ✅ **Student-friendly**: Doesn't penalize correct implementations that call functions multiple times
+
+### Best Practice: Design Validation Around Student Implementation Patterns
+
+**Lesson Learned**: Validation logic must account for how students naturally implement solutions:
+
+1. **Students may call functions multiple times** - validation should handle this gracefully
+2. **Dynamic test values should be unique** - easier to validate specific occurrences  
+3. **Cross-validation should be precise** - count specific test results, not generic patterns
+4. **Flexible counting when appropriate** - use `≥` for values that may legitimately appear multiple times
+
+**Implementation Pattern**:
+```bash
+# For each dynamic test value, check for exactly one occurrence
+TEST_VALUE_1=$(dmesg | grep -c "Number $SPECIFIC_VALUE_1 is $EXPECTED_RESULT_1")
+TEST_VALUE_2=$(dmesg | grep -c "Number $SPECIFIC_VALUE_2 is $EXPECTED_RESULT_2")
+
+# Use flexible counting only when the value may legitimately appear multiple times
+TEST_COMMON_VALUE=$(dmesg | grep -c "Number $COMMON_VALUE is $EXPECTED_RESULT")
+if [ $TEST_COMMON_VALUE -ge 1 ]  # At least one occurrence is sufficient
+```
+
+This approach ensures that students with correct implementations don't get penalized due to validation counting issues, while still maintaining robust logical verification.
