@@ -417,9 +417,8 @@ const UnlimitedKernelAcademy = () => {
         let output = "=== Kernel Playground - Real Compilation ===\n";
 
         try {
-            output += "🔧 Compiling your kernel module with real GCC...\n";
-            output += "🖥️ Using direct host kernel compilation...\n";
-            output += "⏱️ This may take 10-30 seconds for real compilation and testing...\n\n";
+            output += "Compiling Kernel\n";
+            output += "May take 10-30 seconds\n\n";
 
             setPlayground(prev => ({ ...prev, output }));
 
@@ -437,18 +436,18 @@ const UnlimitedKernelAcademy = () => {
             const result = await response.json();
 
             if (result.success) {
-                output += "✅ REAL KERNEL MODULE COMPILATION SUCCESSFUL!\n\n";
+                output += "Kernel module compilation successful\n\n";
                 output += "=== Compilation Output ===\n";
                 output += result.compilation.output + "\n";
 
                 output += "\n=== QEMU Virtual Machine Testing ===\n";
                 if (result.testing) {
-                    output += "🖥️ Your module was tested in a real Linux VM!\n\n";
+                    output += "Start :\n\n";
 
                     if (result.testing.success) {
-                        output += "✅ QEMU Testing: SUCCESS\n\n";
+                        output += "QEMU Testing: Success\n\n";
                     } else {
-                        output += "❌ QEMU Testing: FAILED\n\n";
+                        output += "QEMU Testing: Failed\n\n";
                     }
 
                     output += "=== Complete QEMU Output ===\n";
@@ -465,7 +464,7 @@ const UnlimitedKernelAcademy = () => {
                     }
 
                 } else {
-                    output += "⚠️ No testing results received from backend\n";
+                    output += "No testing results received from backend\n";
                 }
 
                 setPlayground(prev => ({
