@@ -345,7 +345,8 @@ const CodeMirrorKernelEditor = ({
                     drawSelection(),
                     EditorState.allowMultipleSelections.of(true),
                     indentOnInput(),
-                    indentUnit.of('\t'), // Kernel style: tabs
+                    indentUnit.of('    '), // 4-space indentation (user preference)
+                    EditorState.tabSize.of(4), // Tab width: 4 spaces
                     syntaxHighlighting(kernelHighlightStyle, { fallback: true }),
                     bracketMatching(),
                     closeBrackets(),
@@ -362,7 +363,6 @@ const CodeMirrorKernelEditor = ({
                         ...completionKeymap,
                         ...lintKeymap,
                     ]),
-                    EditorState.tabSize.of(8), // Linux kernel uses 8-space tabs
                     cpp(), // C/C++ language support
                     ...autocompletionExtensions, // Conditional autocomplete
                     localLinter, // Always include local linting
