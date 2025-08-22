@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FileExplorer from './FileExplorer';
-import SemanticCodeEditor from './SemanticCodeEditor';
+import CodeMirrorKernelEditor from './CodeMirrorKernelEditor';
 import { Maximize2, Minimize2, FileText } from 'lucide-react';
 
 const MultiFileEditor = ({ 
@@ -246,18 +246,23 @@ const MultiFileEditor = ({
       {/* Main Editor Area */}
       <div style={{ 
         flex: 1, 
-        display: 'flex', 
-        flexDirection: 'column',
+        position: 'relative', // Create positioning context
         minWidth: 0 // Prevent flex item from overflowing
       }}>
         {/* Header with tabs and controls */}
         <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '49px', // Fixed header height
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '12px 16px',
           borderBottom: `1px solid ${premiumStyles.colors.border}`,
-          backgroundColor: premiumStyles.colors.backgroundSecondary
+          backgroundColor: premiumStyles.colors.backgroundSecondary,
+          zIndex: 10 // Above editor
         }}>
           <div style={{
             display: 'flex',
@@ -313,49 +318,27 @@ const MultiFileEditor = ({
           </button>
         </div>
 
-        {/* Editor */}
-        <div style={{ flex: 1 }}>
-          <SemanticCodeEditor
+        {/* Editor - Completely separated with absolute positioning */}
+        <div style={{ 
+          position: 'absolute',
+          top: '49px', // Start after header
+          left: 0,
+          right: 0,
+          bottom: 0, // Fill remaining space
+          overflow: 'hidden' // Constrain editor
+        }}>
+          <CodeMirrorKernelEditor
             key={activeFile}
             value={getCurrentFileContent()}
             onChange={handleCodeChange}
-            language={getLanguageFromFileName(activeFile)}
             readOnly={isCurrentFileReadOnly}
-            theme="vs-dark"
+            theme="dark"
             height="100%"
-            options={{
-              fontSize: 14,
-              lineHeight: 1.5,
-              padding: { top: 16, bottom: 16 },
-              scrollBeyondLastLine: false,
-              minimap: { enabled: false },
-              wordWrap: 'on',
-              automaticLayout: true,
-              tabSize: 4,
-              insertSpaces: true,
-              renderWhitespace: 'selection',
-              smoothScrolling: true,
-              cursorBlinking: 'smooth',
-              cursorSmoothCaretAnimation: true,
-              contextmenu: true,
-              selectOnLineNumbers: true,
-              lineNumbers: 'on',
-              rulers: [80, 120],
-              scrollbar: {
-                alwaysConsumeMouseWheel: false,
-                vertical: 'auto',
-                horizontal: 'auto',
-                verticalScrollbarSize: 17,
-                horizontalScrollbarSize: 17,
-                useShadows: false
-              },
-              folding: true,
-              foldingStrategy: 'indentation',
-              showFoldingControls: 'always',
-              bracketPairColorization: {
-                enabled: true
-              }
-            }}
+            enableLSP={true} // Enable LSP for clangd server
+            lspServerUri={'ws://localhost:3002/?stack=clangd11'} // Clangd WebSocket server
+            documentUri={`file:///kernel/${activeFile}`}
+            placeholder={`// Start coding in ${activeFile}...`}
+            className="multi-file-editor-codemirror"
           />
         </div>
       </div>

@@ -397,8 +397,8 @@ const SemanticCodeEditor = ({
                     lineNumbers: 'on',
                     glyphMargin: true,
                     folding: true,
-                    // Disable problematic visual elements that cause zoom issues
-                    renderValidationDecorations: 'off',
+                    // Enable error underlines for better validation feedback
+                    renderValidationDecorations: 'on',
                     renderFinalNewline: 'off',
                     renderControlCharacters: false,
                     renderIndentGuides: false,

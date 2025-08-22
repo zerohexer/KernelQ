@@ -3,19 +3,33 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@codemirror/autocomplete": "^6.18.6",
+    "@codemirror/commands": "^6.8.1",
+    "@codemirror/lang-cpp": "^6.0.3",
+    "@codemirror/language": "^6.11.3",
+    "@codemirror/legacy-modes": "^6.5.1",
+    "@codemirror/lint": "^6.8.5",
+    "@codemirror/search": "^6.5.11",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.1",
     "@monaco-editor/react": "^4.7.0",
+    "@open-rpc/client-js": "^1.8.1",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "ajv": "^8.17.1",
     "axios": "^1.10.0",
+    "codemirror-languageserver": "^1.17.0",
     "lucide-react": "^0.263.1",
+    "marked": "^16.2.0",
     "monaco-editor": "^0.52.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^10.1.0",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "vscode-languageserver-protocol": "^3.17.5",
+    "web-vitals": "^2.1.4",
+    "ws": "^8.18.3"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -36,7 +50,10 @@
     "migrate:examples": "node scripts/extract-problems.js examples",
     "migrate:instructions": "node scripts/extract-problems.js instructions",
     "migrate:validate-batch": "npm run problem:validate && echo 'Batch validation complete'",
-    "migrate:build-test": "npm run problem:build && echo 'Generation test complete'"
+    "migrate:build-test": "npm run problem:build && echo 'Generation test complete'",
+    "clangd:start": "node clangd-server/start-clangd.js",
+    "clangd:check": "clangd --version || echo 'Clangd not installed'",
+    "dev:with-lsp": "concurrently \"npm run clangd:start\" \"./start-kernelq.sh\" --names \"clangd,kernelq\" --prefix-colors \"blue,green\""
   },
   "eslintConfig": {
     "extends": [
@@ -59,6 +76,7 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",
+    "concurrently": "^9.2.0",
     "postcss": "^8.4.24",
     "tailwindcss": "^3.3.0"
   }
