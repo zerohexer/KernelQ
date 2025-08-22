@@ -9,6 +9,14 @@ const PlaygroundTab = ({
     runPlaygroundCode,
     premiumStyles
 }) => {
+    // Dynamic LSP server URL based on environment
+    const getLspServerUri = () => {
+        if (window.location.hostname === 'localhost') {
+            return 'ws://localhost:3002/?stack=clangd11';  // Local development
+        } else {
+            return 'wss://lsp.kernelq.com/?stack=clangd11';  // Production
+        }
+    };
     return (
         <div style={{
             ...premiumStyles.glassCard,
@@ -50,7 +58,7 @@ const PlaygroundTab = ({
                         height="100%"
                         theme="dark"
                         enableLSP={true}
-                        lspServerUri="ws://localhost:3002/?stack=clangd11"
+                        lspServerUri={getLspServerUri()}
                         documentUri="file:///kernel/playground.c"
                         placeholder="// Write your kernel code here..."
                     />

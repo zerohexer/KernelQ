@@ -15,6 +15,14 @@ const MultiFileEditor = ({
   allowFileCreation = false,
   allowFileDeletion = false
 }) => {
+  // Dynamic LSP server URL based on environment
+  const getLspServerUri = () => {
+    if (window.location.hostname === 'localhost') {
+      return 'ws://localhost:3002/?stack=clangd11';  // Local development
+    } else {
+      return 'wss://lsp.kernelq.com/?stack=clangd11';  // Production
+    }
+  };
   const [activeFile, setActiveFile] = useState(mainFile || (files && files[0] ? files[0].name : ''));
   const [fileContents, setFileContents] = useState({});
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -335,7 +343,7 @@ const MultiFileEditor = ({
             theme="dark"
             height="100%"
             enableLSP={true} // Enable LSP for clangd server
-            lspServerUri={'ws://localhost:3002/?stack=clangd11'} // Clangd WebSocket server
+            lspServerUri={getLspServerUri()} // Clangd WebSocket server
             documentUri={`file:///kernel/${activeFile}`}
             placeholder={`// Start coding in ${activeFile}...`}
             className="multi-file-editor-codemirror"

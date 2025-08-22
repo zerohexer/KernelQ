@@ -18,7 +18,7 @@ BACKEND_URL="https://kernelq.com/api"
 cleanup() {
     echo ""
     echo -e "${YELLOW}🛑 Stopping all services...${NC}"
-    kill $BACKEND_PID $FRONTEND_PID $TUNNEL_PID $MONITOR_PID 2>/dev/null
+    kill $BACKEND_PID $FRONTEND_PID $TUNNEL_PID $MONITOR_PID $CLANGD_PID 2>/dev/null
     rm -f .env.temp
     echo -e "${GREEN}Cleanup complete.${NC}"
     exit 0
@@ -30,6 +30,11 @@ trap cleanup INT
 echo -e "${BLUE}🔧 Updating backend CORS configuration...${NC}"
 # Add kernelq.com to CORS origins temporarily
 export CORS_ORIGIN="https://kernelq.com"
+
+# Start clangd LSP server
+echo -e "${BLUE}🧠 Starting clangd LSP server on port 3002...${NC}"
+CLANGD_PORT=3002 npm run clangd:start &
+CLANGD_PID=$!
 
 # Start backend
 echo -e "${BLUE}🔧 Starting backend on localhost:3001...${NC}"
@@ -47,6 +52,15 @@ if ! curl -s http://localhost:3001/api/health > /dev/null; then
 fi
 
 echo -e "${GREEN}✅ Backend running${NC}"
+
+# Check if clangd LSP server is running
+echo "⏳ Checking clangd LSP server..."
+sleep 2
+if netstat -tuln | grep -q ":3002 "; then
+    echo -e "${GREEN}✅ Clangd LSP server running on port 3002${NC}"
+else
+    echo -e "${YELLOW}⚠️ Clangd LSP server starting...${NC}"
+fi
 
 # Start frontend with backend URL
 echo -e "${BLUE}⚛️ Starting frontend with backend URL...${NC}"
@@ -133,10 +147,12 @@ echo ""
 echo -e "${YELLOW}🌐 Your custom domain URLs:${NC}"
 echo -e "   🌐 Frontend: ${GREEN}$FRONTEND_URL${NC}"
 echo -e "   🔧 Backend:  ${GREEN}$BACKEND_URL${NC}"
+echo -e "   🧠 Clangd LSP: ${GREEN}wss://lsp.kernelq.com${NC}"
 echo ""
 echo -e "${BLUE}💻 Local access:${NC}"
 echo -e "   🌐 Frontend: ${GREEN}http://localhost:3000${NC}"
 echo -e "   🔧 Backend:  ${GREEN}http://localhost:3001/api${NC}"
+echo -e "   🧠 Clangd LSP: ${GREEN}ws://localhost:3002${NC}"
 echo ""
 
 # Test the API endpoint specifically
@@ -151,9 +167,11 @@ fi
 cat > kernelq_urls.txt << EOF
 Frontend: $FRONTEND_URL
 Backend: $BACKEND_URL
+Clangd LSP: wss://lsp.kernelq.com
 Started: $(date)
 Local Frontend: http://localhost:3000
 Local Backend: http://localhost:3001/api
+Local Clangd LSP: ws://localhost:3002
 API Test: $BACKEND_URL/health
 EOF
 
