@@ -6,7 +6,7 @@ node_modules/
 build/
 dist/
 
-# Cross-platform build files
+# Cross-platform build files (but allow clangd-server/workspace)
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
@@ -17,6 +17,16 @@ Makefile
 *.mod.c
 modules.order
 Module.symvers
+
+# Allow clangd-server workspace but ignore build artifacts within it
+!clangd-server/
+!clangd-server/workspace/
+!clangd-server/workspace/CMakeLists.txt
+!clangd-server/workspace/kernel_macros.h
+!clangd-server/workspace/main.c
+clangd-server/workspace/build/
+clangd-server/workspace/compile_commands.json
+clangd-server/workspace/.cache/
 
 # Working directories (compilation artifacts)
 work/
