@@ -63,6 +63,7 @@ const CodeMirrorKernelEditor = ({
     enableLSP = false,
     lspServerUri = null,
     documentUri = 'file:///kernel/main.c',
+    sessionId = 'default',
     allFiles = [],
     fileContents = {}
 }) => {
@@ -105,7 +106,7 @@ const CodeMirrorKernelEditor = ({
         console.log('🔄 Syncing', sourceFiles.length, 'source files with clangd...');
         
         sourceFiles.forEach((file, index) => {
-            const fileUri = `file:///kernel/${file.name}`;
+            const fileUri = `file:///kernel-${sessionId}/${file.name}`;
             const content = fileContents[file.name] || file.content || '';
             
             try {
@@ -312,11 +313,11 @@ const CodeMirrorKernelEditor = ({
                         lspExtensions = languageServer({
                             serverUri: lspServerUri,
                             allowHTMLContent: true,
-                            rootUri: 'file:///kernel',
+                            rootUri: `file:///kernel-${sessionId}`,
                             workspaceFolders: [
                                 {
-                                    name: 'kernel',
-                                    uri: 'file:///kernel',
+                                    name: `kernel-${sessionId}`,
+                                    uri: `file:///kernel-${sessionId}`,
                                 },
                             ],
                             documentUri: documentUri,

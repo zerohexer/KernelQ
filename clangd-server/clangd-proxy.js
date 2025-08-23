@@ -27,10 +27,12 @@ class ClangdProxy {
             // Extract query parameters
             const url = new URL(req.url, `http://${req.headers.host}`);
             const stack = url.searchParams.get('stack') || 'clangd11';
+            const sessionId = url.searchParams.get('session') || 'default';
             
             console.log('📦 Requested stack:', stack);
+            console.log('🎯 Session ID:', sessionId);
             
-            this.handleClangdConnection(ws, stack);
+            this.handleClangdConnection(ws, stack, sessionId);
         });
 
         this.wss.on('error', (error) => {
@@ -38,17 +40,42 @@ class ClangdProxy {
         });
     }
 
-    handleClangdConnection(ws, stack) {
-        console.log('🚀 Starting clangd process...');
+    handleClangdConnection(ws, stack, sessionId) {
+        console.log('🚀 Starting clangd process for session:', sessionId);
         
-        // Create clangd working directory
-        const workingDir = path.join(__dirname, 'workspace');
+        // Create session-specific working directory
+        const workingDir = path.join(__dirname, `workspace-${sessionId}`);
+        const templateDir = path.join(__dirname, 'workspace');
+        
         if (!fs.existsSync(workingDir)) {
             fs.mkdirSync(workingDir, { recursive: true });
+            console.log('📁 Created session workspace:', workingDir);
+            
+            // Copy template files (CMakeLists.txt, etc.) from base workspace
+            try {
+                const templateFiles = ['CMakeLists.txt', 'kernel_macros.h'];
+                templateFiles.forEach(file => {
+                    const srcFile = path.join(templateDir, file);
+                    const destFile = path.join(workingDir, file);
+                    if (fs.existsSync(srcFile)) {
+                        fs.copyFileSync(srcFile, destFile);
+                        console.log('📋 Copied template file:', file);
+                    }
+                });
+                
+                // Create build directory
+                const buildDir = path.join(workingDir, 'build');
+                if (!fs.existsSync(buildDir)) {
+                    fs.mkdirSync(buildDir, { recursive: true });
+                }
+            } catch (copyError) {
+                console.warn('⚠️ Failed to copy template files:', copyError);
+            }
         }
         
-        // Store workingDir on the WebSocket instance so it's accessible in message handlers
+        // Store workingDir and sessionId on the WebSocket instance
         ws.workingDir = workingDir;
+        ws.sessionId = sessionId;
 
         // Generate compile_commands.json using CMake if available
         const compileCommandsPath = path.join(workingDir, 'compile_commands.json');
@@ -127,12 +154,25 @@ class ClangdProxy {
 
         // Handle client disconnect
         ws.on('close', () => {
-            console.log('🔌 Client disconnected, terminating clangd');
+            console.log('🔌 Client disconnected, terminating clangd for session:', ws.sessionId);
             clangd.kill('SIGTERM');
+            
+            // Optional: Clean up session workspace after delay (in case of reconnection)
+            setTimeout(() => {
+                try {
+                    if (fs.existsSync(ws.workingDir)) {
+                        // Only clean up if no other connections are using this session
+                        console.log('🧹 Scheduling cleanup for session workspace:', ws.sessionId);
+                        // Note: In production, you might want more sophisticated cleanup logic
+                    }
+                } catch (cleanupError) {
+                    console.warn('⚠️ Cleanup error:', cleanupError);
+                }
+            }, 30000); // 30 second delay for potential reconnections
         });
 
         ws.on('error', (error) => {
-            console.error('❌ WebSocket error:', error);
+            console.error('❌ WebSocket error for session:', ws.sessionId, error);
             clangd.kill('SIGTERM');
         });
     }

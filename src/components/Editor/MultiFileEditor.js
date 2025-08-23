@@ -15,13 +15,15 @@ const MultiFileEditor = ({
   allowFileCreation = false,
   allowFileDeletion = false
 }) => {
-  // Dynamic LSP server URL based on environment
+  // Generate unique session ID for this editor instance
+  const sessionId = useRef(crypto.randomUUID()).current;
+  
+  // Dynamic LSP server URL based on environment with session ID
   const getLspServerUri = () => {
-    if (window.location.hostname === 'localhost') {
-      return 'ws://localhost:3002/?stack=clangd11';  // Local development
-    } else {
-      return 'wss://lsp.kernelq.com/?stack=clangd11';  // Production
-    }
+    const baseUri = window.location.hostname === 'localhost' 
+      ? 'ws://localhost:3002' 
+      : 'wss://lsp.kernelq.com';
+    return `${baseUri}/?stack=clangd11&session=${sessionId}`;
   };
   const [activeFile, setActiveFile] = useState(mainFile || (files && files[0] ? files[0].name : ''));
   const [fileContents, setFileContents] = useState({});
@@ -344,7 +346,8 @@ const MultiFileEditor = ({
             height="100%"
             enableLSP={true} // Enable LSP for clangd server
             lspServerUri={getLspServerUri()} // Clangd WebSocket server
-            documentUri={`file:///kernel/${activeFile}`}
+            documentUri={`file:///kernel-${sessionId}/${activeFile}`}
+            sessionId={sessionId} // Pass session ID for isolation
             allFiles={files} // Pass all files for multi-file LSP support
             fileContents={fileContents} // Pass current file contents
             placeholder={`// Start coding in ${activeFile}...`}
