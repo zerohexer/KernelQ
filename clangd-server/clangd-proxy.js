@@ -157,16 +157,16 @@ class ClangdProxy {
             console.log('🔌 Client disconnected, terminating clangd for session:', ws.sessionId);
             clangd.kill('SIGTERM');
             
-            // Optional: Clean up session workspace after delay (in case of reconnection)
+            // Clean up session workspace after delay (in case of reconnection)
             setTimeout(() => {
                 try {
                     if (fs.existsSync(ws.workingDir)) {
-                        // Only clean up if no other connections are using this session
-                        console.log('🧹 Scheduling cleanup for session workspace:', ws.sessionId);
-                        // Note: In production, you might want more sophisticated cleanup logic
+                        console.log('🧹 Cleaning up session workspace:', ws.sessionId);
+                        fs.rmSync(ws.workingDir, { recursive: true, force: true });
+                        console.log('✅ Session workspace cleaned up:', ws.sessionId);
                     }
                 } catch (cleanupError) {
-                    console.warn('⚠️ Cleanup error:', cleanupError);
+                    console.warn('⚠️ Cleanup error for session', ws.sessionId + ':', cleanupError.message);
                 }
             }, 30000); // 30 second delay for potential reconnections
         });
@@ -385,7 +385,40 @@ class ClangdProxy {
         });
     }
 
+    cleanupOldWorkspaces() {
+        try {
+            console.log('🧹 Cleaning up old workspace directories...');
+            const workspacePattern = /^workspace-[a-f0-9\-]+$/;
+            
+            const entries = fs.readdirSync(__dirname);
+            let cleanedCount = 0;
+            
+            entries.forEach(entry => {
+                if (workspacePattern.test(entry)) {
+                    const workspacePath = path.join(__dirname, entry);
+                    try {
+                        fs.rmSync(workspacePath, { recursive: true, force: true });
+                        cleanedCount++;
+                    } catch (error) {
+                        console.warn(`⚠️ Failed to clean workspace ${entry}:`, error.message);
+                    }
+                }
+            });
+            
+            if (cleanedCount > 0) {
+                console.log(`✅ Cleaned up ${cleanedCount} old workspace directories`);
+            } else {
+                console.log('✅ No old workspaces to clean up');
+            }
+        } catch (error) {
+            console.warn('⚠️ Error during workspace cleanup:', error.message);
+        }
+    }
+
     start() {
+        // Clean up old workspace directories on startup
+        this.cleanupOldWorkspaces();
+        
         this.server.listen(PORT, () => {
             console.log(`🚀 Clangd WebSocket Proxy Server running on port ${PORT}`);
             console.log(`📡 Connect via: ws://localhost:${PORT}/?stack=clangd11`);
