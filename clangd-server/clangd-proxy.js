@@ -46,6 +46,9 @@ class ClangdProxy {
         if (!fs.existsSync(workingDir)) {
             fs.mkdirSync(workingDir, { recursive: true });
         }
+        
+        // Store workingDir on the WebSocket instance so it's accessible in message handlers
+        ws.workingDir = workingDir;
 
         // Generate compile_commands.json using CMake if available
         const compileCommandsPath = path.join(workingDir, 'compile_commands.json');
@@ -269,6 +272,67 @@ class ClangdProxy {
                 // Store request methods to know what responses to filter
                 if (message.method === 'textDocument/definition') {
                     ws.definitionRequestId = message.id;
+                }
+                
+                // Handle textDocument/didOpen to write files to workspace
+                if (message.method === 'textDocument/didOpen' && message.params && message.params.textDocument) {
+                    const doc = message.params.textDocument;
+                    const uri = doc.uri;
+                    const fileName = uri.split('/').pop();
+                    const filePath = path.join(ws.workingDir, fileName);
+                    
+                    // Write file content to workspace so clangd can access it
+                    try {
+                        fs.writeFileSync(filePath, doc.text);
+                        console.log('💾 Wrote file to workspace:', fileName);
+                    } catch (writeError) {
+                        console.warn('⚠️ Failed to write file to workspace:', fileName, writeError);
+                    }
+                }
+                
+                // Handle textDocument/didChange to update files in workspace  
+                if (message.method === 'textDocument/didChange' && message.params && message.params.textDocument) {
+                    const doc = message.params.textDocument;
+                    const uri = doc.uri;
+                    const fileName = uri.split('/').pop();
+                    const filePath = path.join(ws.workingDir, fileName);
+                    
+                    // Update file content in workspace
+                    if (message.params.contentChanges && message.params.contentChanges.length > 0) {
+                        const change = message.params.contentChanges[0];
+                        if (change.text !== undefined) {
+                            try {
+                                fs.writeFileSync(filePath, change.text);
+                                console.log('🔄 Updated file in workspace:', fileName);
+                            } catch (writeError) {
+                                console.warn('⚠️ Failed to update file in workspace:', fileName, writeError);
+                            }
+                        }
+                    }
+                }
+                
+                // Filter out requests for non-source files (like Makefile)
+                if (message.method && message.method.startsWith('textDocument/') && message.params && message.params.textDocument) {
+                    const uri = message.params.textDocument.uri;
+                    const fileName = uri.split('/').pop();
+                    const ext = fileName.split('.').pop().toLowerCase();
+                    const name = fileName.toLowerCase();
+                    
+                    // Skip Makefile and other build files
+                    if (name === 'makefile' || name.startsWith('makefile.') || 
+                        ['mk', 'make', 'cmake'].includes(ext)) {
+                        console.log('🚫 Skipping non-source file for clangd:', fileName);
+                        
+                        // Send empty response to avoid hanging the client
+                        if (message.id) {
+                            ws.send(JSON.stringify({
+                                jsonrpc: '2.0',
+                                id: message.id,
+                                result: null
+                            }));
+                        }
+                        return;
+                    }
                 }
                 
                 // Add LSP headers and send to clangd

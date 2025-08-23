@@ -345,6 +345,8 @@ const MultiFileEditor = ({
             enableLSP={true} // Enable LSP for clangd server
             lspServerUri={getLspServerUri()} // Clangd WebSocket server
             documentUri={`file:///kernel/${activeFile}`}
+            allFiles={files} // Pass all files for multi-file LSP support
+            fileContents={fileContents} // Pass current file contents
             placeholder={`// Start coding in ${activeFile}...`}
             className="multi-file-editor-codemirror"
           />

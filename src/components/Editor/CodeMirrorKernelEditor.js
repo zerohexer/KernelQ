@@ -62,15 +62,96 @@ const CodeMirrorKernelEditor = ({
     className = '',
     enableLSP = false,
     lspServerUri = null,
-    documentUri = 'file:///kernel/main.c'
+    documentUri = 'file:///kernel/main.c',
+    allFiles = [],
+    fileContents = {}
 }) => {
     const containerRef = useRef(null);
     const editorRef = useRef(null);
+    const lspClientRef = useRef(null);
+    const syncedFilesRef = useRef(new Set());
     const [status, setStatus] = useState('initializing');
     const [error, setError] = useState(null);
 
     // Theme compartment for dynamic theme switching
     const themeCompartment = new Compartment();
+
+    // Filter source files that should be sent to clangd (exclude Makefile and other non-source files)
+    const getSourceFiles = (files) => {
+        return files.filter(file => {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const name = file.name.toLowerCase();
+            
+            // Include C/C++ source and header files
+            if (['c', 'cpp', 'cc', 'cxx', 'h', 'hpp', 'hxx'].includes(ext)) {
+                return true;
+            }
+            
+            // Exclude Makefile and other build files
+            if (name === 'makefile' || name.startsWith('makefile.') || 
+                ['mk', 'make', 'cmake'].includes(ext)) {
+                return false;
+            }
+            
+            return false;
+        });
+    };
+
+    // Sync all source files with the LSP server via WebSocket
+    const syncAllFilesWithLSP = (ws, files, fileContents) => {
+        if (!ws || ws.readyState !== WebSocket.OPEN || !files || files.length === 0) return;
+        
+        const sourceFiles = getSourceFiles(files);
+        console.log('🔄 Syncing', sourceFiles.length, 'source files with clangd...');
+        
+        sourceFiles.forEach((file, index) => {
+            const fileUri = `file:///kernel/${file.name}`;
+            const content = fileContents[file.name] || file.content || '';
+            
+            try {
+                // Check if file is already synced
+                if (!syncedFilesRef.current.has(fileUri)) {
+                    // Send textDocument/didOpen via WebSocket
+                    console.log('📤 Opening file in LSP:', file.name);
+                    const didOpenMessage = {
+                        jsonrpc: '2.0',
+                        method: 'textDocument/didOpen',
+                        params: {
+                            textDocument: {
+                                uri: fileUri,
+                                languageId: 'c',
+                                version: 1,
+                                text: content
+                            }
+                        }
+                    };
+                    ws.send(JSON.stringify(didOpenMessage));
+                    syncedFilesRef.current.add(fileUri);
+                } else {
+                    // Send textDocument/didChange via WebSocket
+                    console.log('🔄 Updating file in LSP:', file.name);
+                    const didChangeMessage = {
+                        jsonrpc: '2.0',
+                        method: 'textDocument/didChange',
+                        params: {
+                            textDocument: {
+                                uri: fileUri,
+                                version: Date.now() // Use timestamp as version
+                            },
+                            contentChanges: [{
+                                text: content
+                            }]
+                        }
+                    };
+                    ws.send(JSON.stringify(didChangeMessage));
+                }
+            } catch (error) {
+                console.warn('⚠️ Failed to sync file with LSP:', file.name, error);
+            }
+        });
+        
+        console.log('✅ All files synced with clangd');
+    };
 
     // Create kernel-specific autocompletion source
     const createKernelCompletions = () => {
@@ -222,6 +303,12 @@ const CodeMirrorKernelEditor = ({
                         
                         console.log('🔗 Connecting to clangd server at:', lspServerUri);
                         
+                        // Prepare all source files for the LSP connection
+                        const sourceFiles = getSourceFiles(allFiles || []);
+                        const allDocumentUris = sourceFiles.map(file => `file:///kernel/${file.name}`);
+                        
+                        console.log('📁 Initializing LSP with documents:', allDocumentUris);
+                        
                         lspExtensions = languageServer({
                             serverUri: lspServerUri,
                             allowHTMLContent: true,
@@ -276,6 +363,32 @@ const CodeMirrorKernelEditor = ({
                                 }
                             }
                         });
+                        
+                        // Set up file synchronization after LSP is ready
+                        setTimeout(() => {
+                            console.log('🔧 Setting up multi-file synchronization');
+                            
+                            // Create WebSocket for file sync
+                            const syncWs = new WebSocket(lspServerUri);
+                            
+                            syncWs.onopen = () => {
+                                console.log('🔗 File sync WebSocket connected');
+                                lspClientRef.current = syncWs;
+                                
+                                // Sync all files immediately
+                                syncAllFilesWithLSP(syncWs, allFiles, fileContents);
+                            };
+                            
+                            syncWs.onerror = (error) => {
+                                console.warn('⚠️ File sync WebSocket error:', error);
+                            };
+                            
+                            syncWs.onclose = () => {
+                                console.log('🔌 File sync WebSocket closed');
+                                lspClientRef.current = null;
+                            };
+                        }, 1500); // Wait for main LSP to initialize
+                        
                         console.log('✅ Clangd LSP extensions loaded successfully');
                     } catch (lspError) {
                         console.warn('⚠️ Clangd LSP failed to load, falling back to local features:', lspError);
@@ -549,8 +662,30 @@ const CodeMirrorKernelEditor = ({
                 editorRef.current.destroy();
                 editorRef.current = null;
             }
+            if (lspClientRef.current && lspClientRef.current.close) {
+                lspClientRef.current.close();
+                lspClientRef.current = null;
+            }
         };
     }, [enableLSP, lspServerUri, documentUri]);
+
+    // Sync files with LSP when allFiles or fileContents change
+    useEffect(() => {
+        if (lspClientRef.current && lspClientRef.current.readyState === WebSocket.OPEN && allFiles && allFiles.length > 0) {
+            const syncFiles = () => {
+                try {
+                    syncAllFilesWithLSP(lspClientRef.current, allFiles, fileContents);
+                    console.log('🔄 Re-synced files with clangd due to file changes');
+                } catch (error) {
+                    console.warn('⚠️ Failed to re-sync files with clangd:', error);
+                }
+            };
+            
+            // Debounce the sync operation to avoid excessive calls
+            const timeoutId = setTimeout(syncFiles, 300);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [allFiles, fileContents]);
 
     // Update editor value when prop changes
     useEffect(() => {

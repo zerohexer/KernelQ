@@ -11,6 +11,8 @@ execute_process(COMMAND uname -r OUTPUT_VARIABLE KERNEL_VERSION OUTPUT_STRIP_TRA
 
 # Kernel include paths
 include_directories(
+        # Add current directory FIRST so local headers are found
+        ${CMAKE_CURRENT_SOURCE_DIR}
         /lib/modules/${KERNEL_VERSION}/build/include
         /lib/modules/${KERNEL_VERSION}/build/arch/x86/include
         /lib/modules/${KERNEL_VERSION}/build/arch/x86/include/generated
