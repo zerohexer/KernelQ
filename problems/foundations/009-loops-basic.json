@@ -1,0 +1,161 @@
+{
+  "id": 9,
+  "title": "Basic Loops - Study Loop Patterns",
+  "phase": "foundations",
+  "difficulty": 2,
+  "xp": 25,
+  "description": "Study complete working examples of for loops and iteration patterns. This demonstrates how loops are used in kernel development for processing data and implementing basic algorithms.",
+  "mainFile": "loops.c",
+  "files": [
+    {
+      "name": "loops.h",
+      "content": "#ifndef LOOPS_H\n#define LOOPS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\nextern int max_count;\nextern int sum_result;\n\n/* Function to print numbers from 1 to count */\nvoid print_numbers(int count);\n\n/* Function to calculate sum of numbers from 1 to n */\nint calculate_sum(int n);\n\n#endif /* LOOPS_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "loops.c",
+      "content": "#include \"loops.h\"\n\nint max_count = 5;\nint sum_result = 0;\n\n/* \n * Function to print numbers from 1 to count\n * Demonstrates basic for loop pattern for iteration\n */\nvoid print_numbers(int count) {\n    int i;\n    for (i = 1; i <= count; i++) {\n        printk(KERN_INFO \"Count: %d\\n\", i);\n    }\n}\n\n/* \n * Function to calculate sum of numbers from 1 to n\n * Demonstrates accumulation pattern using loops\n * Formula: sum = 1 + 2 + 3 + ... + n\n */\nint calculate_sum(int n) {\n    int i, sum = 0;\n    for (i = 1; i <= n; i++) {\n        sum += i;  // Accumulate each number into sum\n    }\n    return sum;\n}\n\nstatic int __init loops_init(void)\n{\n    printk(KERN_INFO \"Basic loops module loaded\\n\");\n    \n    // Demonstrate loop for printing sequential numbers\n    print_numbers(max_count);\n    \n    // Demonstrate loop for mathematical calculation\n    sum_result = calculate_sum(max_count);\n    printk(KERN_INFO \"Sum of 1 to %d is: %d\\n\", max_count, sum_result);\n    \n    return 0;\n}\n\nstatic void __exit loops_exit(void)\n{\n    printk(KERN_INFO \"Basic loops module unloaded\\n\");\n}\n\nmodule_init(loops_init);\nmodule_exit(loops_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Learning basic loops and iteration\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Basic loops module Makefile\nobj-m += loops.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "for loops",
+    "loop variables",
+    "iteration patterns",
+    "accumulation",
+    "loop-based calculations"
+  ],
+  "skills": [
+    "Writing for loops",
+    "Managing loop counters",
+    "Iterative algorithms",
+    "Accumulation patterns",
+    "Loop-based problem solving"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["loops_init", "loops_exit", "print_numbers", "calculate_sum"],
+      "variables": [
+        { "name": "max_count", "type": "int", "value": 5 },
+        { "name": "sum_result", "type": "int", "value": 0 }
+      ],
+      "outputMessages": [
+        "Basic loops module loaded",
+        "Count: 1",
+        "Count: 2", 
+        "Count: 3",
+        "Count: 4",
+        "Count: 5",
+        "Sum of 1 to 5 is: 15"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/types.h"
+      ],
+      "mustContain": [
+        "extern int max_count",
+        "extern int sum_result",
+        "int max_count = 5",
+        "int sum_result = 0",
+        "for (i = 1; i <= count; i++)",
+        "for (i = 1; i <= n; i++)"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_declarations",
+        "name": "Function Declarations in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void print_numbers(int count)",
+          "int calculate_sum(int n)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void print_numbers(int count)",
+          "int calculate_sum(int n)",
+          "static int __init loops_init(void)",
+          "static void __exit loops_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "advanced_loop_validation",
+        "name": "Advanced Loop Pattern Validation with TCC Header Validation",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "loop_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n\\nint main() {\\n    printf(\"=== Loop Pattern Test ===\\\\n\");\\n    printf(\"SUCCESS: Loop test completed\\\\n\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting loop pattern validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: Ultra-Fast TCC Header Validation'",
+            "echo 'Creating minimal kernel header stubs for TCC...'",
+            "mkdir -p /tmp/linux",
+            "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
+            "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
+            "echo '#define MODULE_AUTHOR(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_DESCRIPTION(x)' >> /tmp/linux/module.h",
+            "echo '#define module_init(x)' >> /tmp/linux/module.h",
+            "echo '#define module_exit(x)' >> /tmp/linux/module.h",
+            "echo '#define __init' > /tmp/linux/init.h",
+            "echo '#define __exit' >> /tmp/linux/init.h",
+            "echo 'typedef int bool;' > /tmp/linux/types.h",
+            "echo 'Creating test file that includes student header...'",
+            "echo '#include \"/lib/modules/loops.h\"' > /tmp/test.c",
+            "echo 'int main() { print_numbers(5); calculate_sum(5); return 0; }' >> /tmp/test.c",
+            "echo 'Running TCC validation...'",
+            "/usr/bin/tcc -I/tmp -Wimplicit-function-declaration -Werror -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
+            "TCC_EXIT_CODE=$?",
+            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Function declaration missing or commented in header'; echo 'TCC Error Details:'; cat /tmp/tcc_error.log; exit 1; fi",
+            "echo 'PASS: All function declarations found in header file'",
+            "echo 'Phase 2: Module Testing'",
+            "/bin/loop_tester"
+          ],
+          "expected": {
+            "dmesg": [
+              "Basic loops module loaded",
+              "Count: 1",
+              "Count: 2", 
+              "Count: 3",
+              "Count: 4",
+              "Count: 5",
+              "Sum of 1 to 5 is: 15"
+            ],
+            "stdout": [
+              "PASS: All function declarations found in header file",
+              "SUCCESS: Loop test completed"
+            ]
+          },
+          "timeout": 20
+        }
+      }
+    ]
+  }
+}
