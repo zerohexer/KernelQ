@@ -1,0 +1,208 @@
+{
+  "id": 13,
+  "title": "String Basics - Arrays of Characters (No Pointers!)",
+  "phase": "foundations",
+  "difficulty": 2,
+  "xp": 25,
+  "description": "Learn that strings are just arrays of characters! This builds directly on the arrays problem - instead of int arrays, we use char arrays. No pointers, no parameters, just simple array indexing like device_name[0], device_name[1], etc.",
+  "mainFile": "strings.c",
+  "files": [
+    {
+      "name": "strings.h",
+      "content": "#ifndef STRINGS_H\n#define STRINGS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/string.h>\n\n#define MAX_NAME_SIZE 32\n#define MAX_MESSAGE_SIZE 64\n\nextern char device_name[MAX_NAME_SIZE];\nextern char welcome_msg[MAX_MESSAGE_SIZE];\nextern int name_len;\n\n/* TODO: Declare your functions (no pointers!) */\n/* void show_device_info(void); */\n/* void count_device_name_length(void); */\n/* void update_to_new_device(void); */\n\n#endif /* STRINGS_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "strings.c",
+      "content": "#include \"strings.h\"\n\n/* TODO: Initialize your string arrays (just like int arrays!) */\n/* char device_name[MAX_NAME_SIZE] = \"my_device\"; */\n/* char welcome_msg[MAX_MESSAGE_SIZE] = \"Hello from kernel!\"; */\nint name_len = 0;\n\n/* IMPORTANT: DO NOT REMOVE OR MODIFY THE LINES BELOW!\n * These module parameter declarations are required for validation testing.\n * The testing system uses these to verify your string operations work\n * with different input values. Removing them will cause test failures.\n */\nmodule_param_string(device_name, device_name, MAX_NAME_SIZE, 0644);\nMODULE_PARM_DESC(device_name, \"Device name for testing string operations\");\nmodule_param_string(welcome_msg, welcome_msg, MAX_MESSAGE_SIZE, 0644);\nMODULE_PARM_DESC(welcome_msg, \"Welcome message for string operations\");\n/* END OF REQUIRED MODULE PARAMETER SECTION */\n\n/* TODO: Implement function to show device information */\n/* Print device name and its length using printk */\n/* Format: \"Device: [name], Length: [X]\" */\n\n/* TODO: Implement function to count device_name length manually */\n/* Count characters in device_name until you find '\\0' */\n/* Use a for loop like: for (i = 0; i < MAX_NAME_SIZE; i++) */\n/* Update the global name_len variable */\n\n/* TODO: Implement function to manually copy \"new_device\" */\n/* Copy each character one by one: device_name[0] = 'n', device_name[1] = 'e', etc. */\n/* Don't forget to add null terminator at the end: device_name[10] = '\\0' */\n/* Call count_device_name_length() to update name_len */\n\nstatic int __init strings_init(void)\n{\n    printk(KERN_INFO \"String basics module loaded\\n\");\n    \n    /* TODO: Calculate length of device name */\n    /* count_device_name_length(); */\n    \n    /* TODO: Show initial device info */\n    /* show_device_info(); */\n    \n    /* TODO: Print the welcome message */\n/* printk(KERN_INFO \"Message: %s\\n\", welcome_msg); */\n    \n    /* TODO: Update to new device name and show info */\n    /* update_to_new_device(); */\n    /* printk(KERN_INFO \"After name change:\\n\"); */\n    /* show_device_info(); */\n    \n    return 0;\n}\n\nstatic void __exit strings_exit(void)\n{\n    printk(KERN_INFO \"String basics module unloaded\\n\");\n}\n\nmodule_init(strings_init);\nmodule_exit(strings_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Learning strings as character arrays\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# String basics module Makefile\nobj-m += strings.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "char arrays (strings) vs int arrays",
+    "string initialization with literals",
+    "null terminator concept (\\0)",
+    "array indexing for characters",
+    "manual character counting",
+    "character-by-character assignment"
+  ],
+  "skills": [
+    "Treating strings like arrays",
+    "Using array indexing for characters",
+    "Understanding null termination",
+    "Manual character operations",
+    "No-pointer string manipulation"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["strings_init", "strings_exit", "show_device_info", "count_device_name_length", "update_to_new_device"],
+      "variables": [
+        { "name": "device_name", "type": "char[]", "value": "\"my_device\"" },
+        { "name": "welcome_msg", "type": "char[]", "value": "\"Hello from kernel!\"" },
+        { "name": "name_len", "type": "int", "value": " 0" }
+      ],
+      "outputMessages": [
+        "String basics module loaded",
+        "Device: my_device, Length: 9",
+        "Message: Hello from kernel!",
+        "After name change:",
+        "Device: new_device, Length: 10"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/string.h"
+      ],
+      "mustContain": [
+        "#define MAX_NAME_SIZE 32",
+        "#define MAX_MESSAGE_SIZE 64",
+        "char device_name[MAX_NAME_SIZE]",
+        "char welcome_msg[MAX_MESSAGE_SIZE]"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_declarations",
+        "name": "Function Declarations in Header (No Pointers)",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void show_device_info(void)",
+          "void count_device_name_length(void)",
+          "void update_to_new_device(void)"
+        ],
+        "prohibitedSymbols": ["const char \\*", "char \\*"]
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File (No Pointers)",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void show_device_info(void)",
+          "void count_device_name_length(void)",
+          "void update_to_new_device(void)",
+          "static int __init strings_init(void)",
+          "static void __exit strings_exit(void)"
+        ],
+        "prohibitedSymbols": ["const char \\*", "char \\*"]
+      },
+      {
+        "id": "exact_output",
+        "name": "Expected Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "String basics module loaded", "exact": true },
+          { "pattern": "Device: my_device, Length: 9", "exact": true },
+          { "pattern": "Message: Hello from kernel!", "exact": true },
+          { "pattern": "After name change:", "exact": true },
+          { "pattern": "Device: new_device, Length: 10", "exact": true }
+        ]
+      },
+      {
+        "id": "basic_string_implementation_validation",
+        "name": "Basic String Implementation with TCC Header Validation", 
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "string_dynamic_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <time.h>\\n#include <string.h>\\n\\nint main() {\\n    printf(\"=== Dynamic String Implementation Test ===\\\\n\");\\n    \\n    // Generate randomized test cases\\n    const char* device_names[] = {\\\"sensor\\\", \\\"device\\\", \\\"module\\\", \\\"driver\\\", \\\"kernel\\\", \\\"system\\\"};\\n    const char* messages[] = {\\\"Hello\\\", \\\"Greetings\\\", \\\"Welcome\\\", \\\"Status\\\", \\\"Testing\\\", \\\"Active\\\"};\\n    \\n    srand(time(NULL));\\n    int name_idx = rand() % 6;\\n    int msg_idx = rand() % 6;\\n    \\n    printf(\\\"Test 1: Testing with device_name='%s' and welcome_msg='%s'\\\\n\\\", device_names[name_idx], messages[msg_idx]);\\n    char cmd1[256];\\n    snprintf(cmd1, sizeof(cmd1), \\\"insmod /lib/modules/strings.ko device_name=%s welcome_msg=%s\\\", device_names[name_idx], messages[msg_idx]);\\n    system(\\\"rmmod strings 2>/dev/null\\\");\\n    system(cmd1);\\n    \\n    // Generate second test with different values\\n    int name_idx2 = (name_idx + 2) % 6;\\n    int msg_idx2 = (msg_idx + 3) % 6;\\n    \\n    printf(\\\"Test 2: Testing with device_name='%s' and welcome_msg='%s'\\\\n\\\", device_names[name_idx2], messages[msg_idx2]);\\n    char cmd2[256];\\n    snprintf(cmd2, sizeof(cmd2), \\\"insmod /lib/modules/strings.ko device_name=%s welcome_msg=%s\\\", device_names[name_idx2], messages[msg_idx2]);\\n    system(\\\"rmmod strings\\\");\\n    system(cmd2);\\n    \\n    printf(\\\"SUCCESS: Dynamic string test completed\\\\n\\\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting basic string implementation validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: Ultra-Fast TCC Header Validation'",
+            "echo 'Creating minimal kernel header stubs for TCC...'",
+            "mkdir -p /tmp/linux",
+            "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
+            "echo 'int printk(const char *fmt, ...);' >> /tmp/linux/kernel.h",
+            "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
+            "echo '#define MODULE_AUTHOR(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_DESCRIPTION(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_VERSION(x)' >> /tmp/linux/module.h",
+            "echo '#define module_init(x)' >> /tmp/linux/module.h",
+            "echo '#define module_exit(x)' >> /tmp/linux/module.h",
+            "echo '#define module_param_string(name, string, len, perm)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_PARM_DESC(var, desc)' >> /tmp/linux/module.h",
+            "echo '#define __init' > /tmp/linux/init.h",
+            "echo '#define __exit' >> /tmp/linux/init.h",
+            "echo 'typedef unsigned long size_t;' > /tmp/linux/string.h",
+            "echo 'size_t strlen(const char *s);' >> /tmp/linux/string.h",
+            "echo 'Creating test file that includes student header...'",
+            "echo '#include \"/lib/modules/strings.h\"' > /tmp/test.c",
+            "echo 'int main() { show_device_info(); count_device_name_length(); update_to_new_device(); return 0; }' >> /tmp/test.c",
+            "echo 'Running TCC validation...'",
+            "/usr/bin/tcc -I/tmp -Wimplicit-function-declaration -Werror -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
+            "TCC_EXIT_CODE=$?",
+            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Function declaration missing or commented in header'; echo 'TCC Error Details:'; cat /tmp/tcc_error.log; exit 1; fi",
+            "echo 'PASS: All function declarations found in header file'",
+            "echo 'Phase 2: Dynamic String Implementation Testing'",
+            "/bin/string_dynamic_tester > /tmp/test_output.log",
+            "cat /tmp/test_output.log",
+            "echo 'Phase 3: Dynamic Value Extraction and Validation'",
+            "echo 'Adding delay to ensure dmesg messages are written...'",
+            "sleep 1",
+            "echo 'Extracting random test values from output...'",
+            "TEST1_DEVICE=$(grep -o \"Test 1: Testing with device_name='[^']*'\" /tmp/test_output.log | cut -d\"'\" -f2)",
+            "TEST1_MESSAGE=$(grep -o \"Test 1: Testing with device_name='[^']*' and welcome_msg='[^']*'\" /tmp/test_output.log | cut -d\"'\" -f4)",
+            "TEST2_DEVICE=$(grep -o \"Test 2: Testing with device_name='[^']*'\" /tmp/test_output.log | cut -d\"'\" -f2)",
+            "TEST2_MESSAGE=$(grep -o \"Test 2: Testing with device_name='[^']*' and welcome_msg='[^']*'\" /tmp/test_output.log | cut -d\"'\" -f4)",
+            "echo \"Test 1 device: '$TEST1_DEVICE', message: '$TEST1_MESSAGE'\"",
+            "echo \"Test 2 device: '$TEST2_DEVICE', message: '$TEST2_MESSAGE'\"",
+            "echo 'Calculating expected string lengths...'",
+            "TEST1_EXPECTED_LEN=$(echo -n \"$TEST1_DEVICE\" | awk '{print length}')",
+            "TEST2_EXPECTED_LEN=$(echo -n \"$TEST2_DEVICE\" | awk '{print length}')",
+            "echo \"Expected: $TEST1_DEVICE = $TEST1_EXPECTED_LEN chars, $TEST2_DEVICE = $TEST2_EXPECTED_LEN chars\"",
+            "echo 'Validating Test 1 string operations'",
+            "dmesg | grep \"Device: $TEST1_DEVICE, Length: $TEST1_EXPECTED_LEN\" && echo 'PASS: Test 1 device name and length correct' || echo \"FAIL: Test 1 length wrong - expected $TEST1_EXPECTED_LEN for '$TEST1_DEVICE'\"",
+            "dmesg | grep \"Message: $TEST1_MESSAGE\" && echo 'PASS: Test 1 message correct' || echo 'FAIL: Test 1 message wrong'",
+            "echo 'Validating Test 2 string operations'", 
+            "dmesg | grep \"Device: $TEST2_DEVICE, Length: $TEST2_EXPECTED_LEN\" && echo 'PASS: Test 2 device name and length correct' || echo \"FAIL: Test 2 length wrong - expected $TEST2_EXPECTED_LEN for '$TEST2_DEVICE'\"",
+            "dmesg | grep \"Message: $TEST2_MESSAGE\" && echo 'PASS: Test 2 message correct' || echo 'FAIL: Test 2 message wrong'",
+            "echo 'Validating function behavior (new_device length should be 10)'",
+            "dmesg | grep 'Device: new_device, Length: 10' && echo 'PASS: new_device length calculation correct' || echo 'FAIL: new_device length wrong - expected 10'",
+            "dmesg | grep 'After name change:' && echo 'PASS: Name change function working' || echo 'FAIL: Name change function broken'",
+            "echo 'All dynamic string validations completed'"
+          ],
+          "expected": {
+            "dmesg": [
+              "String basics module loaded",
+              "Device: .* Length: .*",
+              "Message: .*",
+              "After name change:",
+              "Device: .* Length: .*"
+            ],
+            "stdout": [
+              "PASS: All function declarations found in header file",
+              "SUCCESS: Dynamic string test completed",
+              "PASS: Test 1 device name and length correct",
+              "PASS: Test 1 message correct",
+              "PASS: Test 2 device name and length correct", 
+              "PASS: Test 2 message correct",
+              "PASS: new_device length calculation correct",
+              "PASS: Name change function working"
+            ]
+          },
+          "timeout": 30
+        }
+      }
+    ]
+  }
+}
