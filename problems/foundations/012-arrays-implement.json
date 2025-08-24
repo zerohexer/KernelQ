@@ -1,0 +1,185 @@
+{
+  "id": 12,
+  "title": "Arrays and Collections - Implement Solutions",
+  "phase": "foundations", 
+  "difficulty": 4,
+  "xp": 40,
+  "description": "Implement your own array-based solutions for managing multiple values. Apply the patterns you studied in Problem 11 to create functions that process arrays, find maximum values, and calculate statistics. This builds on the complete examples you observed.",
+  "mainFile": "arrays.c",
+  "files": [
+    {
+      "name": "arrays.h",
+      "content": "#ifndef ARRAYS_H\n#define ARRAYS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n#define MAX_GRADES 5\n\nextern int student_grades[MAX_GRADES];\nextern int grade_count;\n\n/* TODO: Declare your functions */\n/* void print_all_grades(void); */\n/* int find_highest_grade(void); */\n/* int calculate_average(void); */\n\n#endif /* ARRAYS_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "arrays.c",
+      "content": "#include \"arrays.h\"\n\n/* TODO: Initialize array with grades: {85, 92, 78, 96, 88} */\n/* int student_grades[MAX_GRADES] = {85, 92, 78, 96, 88}; */\nint grade_count = MAX_GRADES;\n\n/* IMPORTANT: DO NOT REMOVE OR MODIFY THE LINES BELOW!\n * These module parameter declarations are required for validation testing.\n * The testing system uses these to verify your array operations work\n * with different input values. Removing them will cause test failures.\n */\nmodule_param_array(student_grades, int, &grade_count, 0644);\nMODULE_PARM_DESC(student_grades, \"Array of student grades for testing\");\n/* END OF REQUIRED MODULE PARAMETER SECTION */\n\n/* TODO: Implement function to print all grades */\n/* Use a for loop to iterate through the array */\n/* Print each grade with format: \"Grade X: Y\" */\n\n/* TODO: Implement function to find highest grade */\n/* Initialize with first element, then compare with rest */\n/* Return the maximum value found */\n\n/* TODO: Implement function to calculate average */\n/* Sum all grades using a loop, then divide by count */\n/* Return the calculated average */\n\nstatic int __init arrays_init(void)\n{\n    int highest, average;\n    \n    printk(KERN_INFO \"Arrays module loaded\\n\");\n    \n    /* TODO: Print all grades */\n    /* print_all_grades(); */\n    \n    /* TODO: Find and print highest grade */\n    /* highest = find_highest_grade(); */\n    /* printk(KERN_INFO \"Highest grade: %d\\n\", highest); */\n    \n    /* TODO: Calculate and print average */\n    /* average = calculate_average(); */\n    /* printk(KERN_INFO \"Average grade: %d\\n\", average); */\n    \n    return 0;\n}\n\nstatic void __exit arrays_exit(void)\n{\n    printk(KERN_INFO \"Arrays module unloaded\\n\");\n}\n\nmodule_init(arrays_init);\nmodule_exit(arrays_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Learning arrays and data collections\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Arrays module Makefile\nobj-m += arrays.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "array declaration",
+    "array initialization",
+    "array indexing",
+    "array iteration",
+    "data collection algorithms"
+  ],
+  "skills": [
+    "Working with arrays",
+    "Array traversal with loops",
+    "Finding maximum values",
+    "Calculating averages",
+    "Index-based data access"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["arrays_init", "arrays_exit", "print_all_grades", "find_highest_grade", "calculate_average"],
+      "variables": [
+        { "name": "student_grades", "type": "int[]", "value": "{85, 92, 78, 96, 88}" },
+        { "name": "grade_count", "type": "int", "value": 5 }
+      ],
+      "outputMessages": [
+        "Arrays module loaded",
+        "Student grades:",
+        "Grade 1: 85",
+        "Grade 2: 92",
+        "Grade 3: 78", 
+        "Grade 4: 96",
+        "Grade 5: 88",
+        "Highest grade: 96",
+        "Average grade: 87"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/types.h"
+      ],
+      "mustContain": [
+        "#define MAX_GRADES 5",
+        "extern int student_grades[MAX_GRADES]",
+        "extern int grade_count",
+        "int student_grades[MAX_GRADES] = {85, 92, 78, 96, 88}",
+        "int grade_count = MAX_GRADES"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_declarations",
+        "name": "Function Declarations in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void print_all_grades(void)",
+          "int find_highest_grade(void)",
+          "int calculate_average(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void print_all_grades(void)",
+          "int find_highest_grade(void)",
+          "int calculate_average(void)",
+          "static int __init arrays_init(void)",
+          "static void __exit arrays_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "advanced_array_implementation_validation",
+        "name": "Advanced Array Implementation with TCC Header Validation",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "array_impl_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <time.h>\\n\\nint main() {\\n    printf(\"=== Dynamic Array Implementation Test ===\\\\n\");\\n    \\n    // Seed random number generator\\n    srand(time(NULL));\\n    \\n    // Generate random test arrays\\n    int grades1[3] = {(rand() % 40) + 60, (rand() % 40) + 60, (rand() % 40) + 60};  // 60-99 range\\n    int grades2[4] = {(rand() % 30) + 70, (rand() % 30) + 70, (rand() % 30) + 70, (rand() % 30) + 70};  // 70-99 range\\n    \\n    printf(\"Test 1: Array with %d,%d,%d\\\\n\", grades1[0], grades1[1], grades1[2]);\\n    char cmd1[256];\\n    snprintf(cmd1, sizeof(cmd1), \"insmod /lib/modules/arrays.ko student_grades=%d,%d,%d\", grades1[0], grades1[1], grades1[2]);\\n    system(\"rmmod arrays 2>/dev/null\");\\n    system(cmd1);\\n    \\n    printf(\"Test 2: Array with %d,%d,%d,%d\\\\n\", grades2[0], grades2[1], grades2[2], grades2[3]);\\n    char cmd2[256];\\n    snprintf(cmd2, sizeof(cmd2), \"insmod /lib/modules/arrays.ko student_grades=%d,%d,%d,%d\", grades2[0], grades2[1], grades2[2], grades2[3]);\\n    system(\"rmmod arrays\");\\n    system(cmd2);\\n    \\n    printf(\"SUCCESS: Dynamic array test completed\\\\n\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting advanced array implementation validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: Ultra-Fast TCC Header Validation'",
+            "echo 'Creating minimal kernel header stubs for TCC...'",
+            "mkdir -p /tmp/linux",
+            "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
+            "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
+            "echo '#define MODULE_AUTHOR(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_DESCRIPTION(x)' >> /tmp/linux/module.h",
+            "echo '#define module_init(x)' >> /tmp/linux/module.h",
+            "echo '#define module_exit(x)' >> /tmp/linux/module.h",
+            "echo '#define module_param_array(name, type, nump, perm)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_PARM_DESC(var, desc)' >> /tmp/linux/module.h",
+            "echo '#define __init' > /tmp/linux/init.h",
+            "echo '#define __exit' >> /tmp/linux/init.h",
+            "echo 'typedef int bool;' > /tmp/linux/types.h",
+            "echo '#define true 1' >> /tmp/linux/types.h",
+            "echo '#define false 0' >> /tmp/linux/types.h",
+            "echo 'Creating test file that includes student header...'",
+            "echo '#include \"/lib/modules/arrays.h\"' > /tmp/test.c",
+            "echo 'int main() { print_all_grades(); find_highest_grade(); calculate_average(); return 0; }' >> /tmp/test.c",
+            "echo 'Running TCC validation...'",
+            "/usr/bin/tcc -I/tmp -Wimplicit-function-declaration -Werror -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
+            "TCC_EXIT_CODE=$?",
+            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Function declaration missing or commented in header'; echo 'TCC Error Details:'; cat /tmp/tcc_error.log; exit 1; fi",
+            "echo 'PASS: All function declarations found in header file'",
+            "echo 'Phase 2: Dynamic Array Implementation Testing'",
+            "/bin/array_impl_tester > /tmp/test_output.log",
+            "cat /tmp/test_output.log",
+            "echo 'Phase 3: Dynamic Value Extraction and Validation'",
+            "echo 'Adding delay to ensure dmesg messages are written...'",
+            "sleep 1",
+            "echo 'Extracting random test values from output...'",
+            "TEST1_LINE=$(grep 'Test 1: Array with' /tmp/test_output.log)",
+            "TEST2_LINE=$(grep 'Test 2: Array with' /tmp/test_output.log)",
+            "echo 'Test 1 values: '$TEST1_LINE",
+            "echo 'Test 2 values: '$TEST2_LINE",
+            "echo 'Validating array processing output'",
+            "dmesg | grep 'Student grades:' && echo 'PASS: Array output found' || echo 'FAIL: Array output missing'",
+            "dmesg | grep 'Grade.*:.*[0-9]' && echo 'PASS: Grade enumeration working' || echo 'FAIL: Grade enumeration broken'",
+            "dmesg | grep 'Highest grade:.*[0-9]' && echo 'PASS: Maximum finding working' || echo 'FAIL: Maximum finding broken'",
+            "dmesg | grep 'Average grade:.*[0-9]' && echo 'PASS: Average calculation working' || echo 'FAIL: Average calculation broken'",
+            "echo 'All dynamic validations completed'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Arrays module loaded",
+              "Student grades:",
+              "Grade .* .*",
+              "Highest grade: .*",
+              "Average grade: .*"
+            ],
+            "stdout": [
+              "PASS: All function declarations found in header file",
+              "SUCCESS: Dynamic array test completed",
+              "PASS: Array output found",
+              "PASS: Grade enumeration working",
+              "PASS: Maximum finding working",
+              "PASS: Average calculation working"
+            ]
+          },
+          "timeout": 30
+        }
+      }
+    ]
+  }
+}

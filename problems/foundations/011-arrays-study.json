@@ -1,0 +1,130 @@
+{
+  "id": 11,
+  "title": "Arrays and Collections - Study Complete Examples",
+  "phase": "foundations",
+  "difficulty": 2,
+  "xp": 25,
+  "description": "Study complete array implementations to understand how to store and manage multiple values. This introduces data collection patterns essential for kernel development where you often need to manage lists of devices, buffers, or other resources. Observe the patterns before implementing them yourself.",
+  "mainFile": "arrays_study.c",
+  "files": [
+    {
+      "name": "arrays_study.h",
+      "content": "#ifndef ARRAYS_STUDY_H\n#define ARRAYS_STUDY_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n/* Array size definition */\n#define MAX_DEVICES 6\n\n/* Array declarations */\nextern int device_ids[MAX_DEVICES];\nextern int device_count;\n\n/* Function declarations - study these patterns */\nvoid print_all_devices(void);\nint find_max_device_id(void);\nint calculate_id_sum(void);\nbool check_device_exists(int);\n\n#endif /* ARRAYS_STUDY_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "arrays_study.c", 
+      "content": "#include \"arrays_study.h\"\n\n/* Array initialization with device IDs */\nint device_ids[MAX_DEVICES] = {101, 205, 150, 320, 180, 275};\nint device_count = MAX_DEVICES;\n\n/* IMPORTANT: DO NOT REMOVE OR MODIFY THE LINES BELOW!\n * These module parameter declarations are required for validation testing.\n * The testing system uses these to verify array operations work\n * with different input values. Removing them will cause test failures.\n */\nmodule_param_array(device_ids, int, &device_count, 0644);\nMODULE_PARM_DESC(device_ids, \"Array of device IDs for testing\");\n/* END OF REQUIRED MODULE PARAMETER SECTION */\n\n/**\n * print_all_devices - Print all device IDs in the array\n * \n * This function demonstrates basic array traversal using a for loop.\n * Notice how we use the loop counter 'i' as an index to access\n * each array element with device_ids[i].\n */\nvoid print_all_devices(void)\n{\n    int i;\n    \n    printk(KERN_INFO \"Device listing:\\n\");\n    for (i = 0; i < device_count; i++) {\n        printk(KERN_INFO \"Device %d: ID %d\\n\", i + 1, device_ids[i]);\n    }\n}\n\n/**\n * find_max_device_id - Find the highest device ID in the array\n * Returns: The maximum device ID found\n * \n * This function shows the standard algorithm for finding maximum values:\n * 1. Start with first element as current maximum\n * 2. Compare each remaining element with current maximum\n * 3. Update maximum when a larger value is found\n */\nint find_max_device_id(void)\n{\n    int i, max_id;\n    \n    /* Initialize with first element */\n    max_id = device_ids[0];\n    \n    /* Compare with remaining elements */\n    for (i = 1; i < device_count; i++) {\n        if (device_ids[i] > max_id) {\n            max_id = device_ids[i];\n        }\n    }\n    \n    return max_id;\n}\n\n/**\n * calculate_id_sum - Calculate sum of all device IDs\n * Returns: Total sum of all device IDs\n * \n * This demonstrates the accumulation pattern:\n * 1. Initialize accumulator to 0\n * 2. Loop through array adding each element to accumulator\n * 3. Return final accumulated value\n */\nint calculate_id_sum(void)\n{\n    int i, sum = 0;\n    \n    for (i = 0; i < device_count; i++) {\n        sum += device_ids[i];\n    }\n    \n    return sum;\n}\n\n/**\n * check_device_exists - Check if a specific device ID exists in array\n * @target_id: The device ID to search for\n * Returns: true if found, false if not found\n * \n * This shows the search pattern:\n * 1. Loop through array comparing each element with target\n * 2. Return true immediately when match is found\n * 3. Return false if loop completes without finding match\n */\nbool check_device_exists(int target_id)\n{\n    int i;\n    \n    for (i = 0; i < device_count; i++) {\n        if (device_ids[i] == target_id) {\n            return true;\n        }\n    }\n    \n    return false;\n}\n\nstatic int __init arrays_study_init(void)\n{\n    int max_id, total_sum;\n    bool device_found;\n    \n    printk(KERN_INFO \"Arrays study module loaded\\n\");\n    printk(KERN_INFO \"Studying array operations with %d devices\\n\", device_count);\n    \n    /* Demonstrate array traversal */\n    print_all_devices();\n    \n    /* Demonstrate maximum finding */\n    max_id = find_max_device_id();\n    printk(KERN_INFO \"Highest device ID: %d\\n\", max_id);\n    \n    /* Demonstrate accumulation */\n    total_sum = calculate_id_sum();\n    printk(KERN_INFO \"Total sum of device IDs: %d\\n\", total_sum);\n    \n    /* Demonstrate search */\n    device_found = check_device_exists(205);\n    printk(KERN_INFO \"Device 205 found: %s\\n\", device_found ? \"Yes\" : \"No\");\n    \n    device_found = check_device_exists(999);\n    printk(KERN_INFO \"Device 999 found: %s\\n\", device_found ? \"Yes\" : \"No\");\n    \n    return 0;\n}\n\nstatic void __exit arrays_study_exit(void)\n{\n    printk(KERN_INFO \"Arrays study module unloaded\\n\");\n}\n\nmodule_init(arrays_study_init);\nmodule_exit(arrays_study_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"KernelOne Educational System\");\nMODULE_DESCRIPTION(\"Study complete array implementations and patterns\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Arrays study module Makefile\nobj-m += arrays_study.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "array declaration with #define",
+    "array initialization with literal values", 
+    "array indexing with []",
+    "array traversal with for loops",
+    "maximum finding algorithms",
+    "accumulation patterns",
+    "linear search algorithms"
+  ],
+  "skills": [
+    "Understanding array syntax",
+    "Recognizing traversal patterns", 
+    "Learning search algorithms",
+    "Understanding index-based access",
+    "Observing accumulation patterns"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["arrays_study_init", "arrays_study_exit", "print_all_devices", "find_max_device_id", "calculate_id_sum", "check_device_exists"],
+      "variables": [
+        { "name": "device_ids", "type": "int[]", "value": "{101, 205, 150, 320, 180, 275}" },
+        { "name": "device_count", "type": "int", "value": 6 }
+      ],
+      "outputMessages": [
+        "Arrays study module loaded",
+        "Studying array operations with 6 devices",
+        "Device listing:",
+        "Device 1: ID 101",
+        "Device 2: ID 205", 
+        "Device 3: ID 150",
+        "Device 4: ID 320",
+        "Device 5: ID 180",
+        "Device 6: ID 275",
+        "Highest device ID: 320",
+        "Total sum of device IDs: 1231",
+        "Device 205 found: Yes",
+        "Device 999 found: No"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h", 
+        "linux/init.h",
+        "linux/types.h"
+      ],
+      "mustContain": [
+        "#define MAX_DEVICES 6",
+        "int device_ids[MAX_DEVICES]",
+        "module_param_array(device_ids, int, &device_count, 0644)"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_declarations",
+        "name": "Function Declarations in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void print_all_devices(void)",
+          "int find_max_device_id(void)",
+          "int calculate_id_sum(void)",
+          "bool check_device_exists(int)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void print_all_devices(void)",
+          "int find_max_device_id(void)",
+          "int calculate_id_sum(void)",
+          "bool check_device_exists(int target_id)",
+          "static int __init arrays_study_init(void)",
+          "static void __exit arrays_study_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Expected Study Output",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Arrays study module loaded", "exact": true },
+          { "pattern": "Studying array operations with 6 devices", "exact": true },
+          { "pattern": "Device listing:", "exact": true },
+          { "pattern": "Device 1: ID 101", "exact": true },
+          { "pattern": "Device 6: ID 275", "exact": true },
+          { "pattern": "Highest device ID: 320", "exact": true },
+          { "pattern": "Total sum of device IDs: 1231", "exact": true },
+          { "pattern": "Device 205 found: Yes", "exact": true },
+          { "pattern": "Device 999 found: No", "exact": true }
+        ]
+      }
+    ]
+  }
+}
