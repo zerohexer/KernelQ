@@ -1,0 +1,196 @@
+{
+  "id": 79,
+  "title": "Secure String Handling - Modern Kernel Text Operations",
+  "phase": "foundations",
+  "difficulty": 4,
+  "xp": 40,
+  "description": "Learn modern, secure string handling in kernel space using current best practices. Master strscpy(), snprintf(), and safe string operations essential for handling device names, user messages, and configuration data in kernel modules.",
+  "mainFile": "strings.c",
+  "files": [
+    {
+      "name": "strings.h",
+      "content": "#ifndef STRINGS_H\n#define STRINGS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n#include <linux/string.h>\n#include <linux/errno.h>\n\n#define MAX_DEVICE_NAME 32\n#define MAX_STATUS_MSG 64\n#define MAX_BUFFER_SIZE 128\n\nextern char device_name[MAX_DEVICE_NAME];\nextern char status_message[MAX_STATUS_MSG];\nextern int name_length;\n\n/* TODO: Declare your functions */\n/* void display_device_info(void); */\n/* ssize_t update_device_name(const char *new_name); */\n/* int format_status_message(const char *status); */\n/* int validate_string_input(const char *input); */\n\n#endif /* STRINGS_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "strings.c",
+      "content": "#include \"strings.h\"\n\n/* TODO: Initialize device name and status message */\n/* char device_name[MAX_DEVICE_NAME] = \"sensor_001\"; */\n/* char status_message[MAX_STATUS_MSG] = \"initializing\"; */\nint name_length = 0;\n\n/* IMPORTANT: DO NOT REMOVE OR MODIFY THE LINES BELOW!\n * These module parameter declarations are required for validation testing.\n * The testing system uses these to verify your string operations work\n * with different input values. Removing them will cause test failures.\n */\nmodule_param_string(device_name, device_name, MAX_DEVICE_NAME, 0644);\nMODULE_PARM_DESC(device_name, \"Device name for testing string operations\");\nmodule_param_string(status_message, status_message, MAX_STATUS_MSG, 0644);\nMODULE_PARM_DESC(status_message, \"Status message for string formatting tests\");\n/* END OF REQUIRED MODULE PARAMETER SECTION */\n\n/* TODO: Implement function to display device information */\n/* Use printk with KERN_INFO to display device name, length, and status */\n/* Format: \"Device: [name] (Length: [X])\" and \"Status: [status]\" */\n\n/* TODO: Implement function to safely update device name using strscpy() */\n/* Use strscpy() instead of manual copying for security */\n/* Return the number of characters copied, or negative on error */\n/* Update name_length after successful copy */\n\n/* TODO: Implement function to format status message using snprintf() */\n/* Use snprintf() to safely format: \"Device [name] is [status]\" */\n/* Return 0 on success, negative on error */\n/* Check for truncation and log warning if needed */\n\n/* TODO: Implement function to validate string input */\n/* Check if input is not NULL and length is reasonable */\n/* Use strlen() to get length, return length or -EINVAL on error */\n/* Reject empty strings and strings that are too long */\n\nstatic int __init strings_init(void)\n{\n    printk(KERN_INFO \"Secure string handling module loaded\\n\");\n    \n    /* TODO: Validate and calculate initial name length */\n    /* name_length = validate_string_input(device_name); */\n    /* if (name_length < 0) { */\n    /*     printk(KERN_ERR \"Invalid device name\\n\"); */\n    /*     return name_length; */\n    /* } */\n    \n    /* TODO: Display initial device information */\n    /* display_device_info(); */\n    \n    /* TODO: Update device name and display results */\n    /* ssize_t result = update_device_name(\"updated_sensor\"); */\n    /* if (result < 0) { */\n    /*     printk(KERN_WARNING \"Device name update failed: %zd\\n\", result); */\n    /* } else { */\n    /*     printk(KERN_INFO \"Device name updated successfully\\n\"); */\n    /*     display_device_info(); */\n    /* } */\n    \n    /* TODO: Format and display status message */\n    /* int fmt_result = format_status_message(\"active\"); */\n    /* if (fmt_result < 0) { */\n    /*     printk(KERN_WARNING \"Status formatting failed: %d\\n\", fmt_result); */\n    /* } */\n    \n    return 0;\n}\n\nstatic void __exit strings_exit(void)\n{\n    printk(KERN_INFO \"Secure string handling module unloaded\\n\");\n}\n\nmodule_init(strings_init);\nmodule_exit(strings_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Learning secure string handling in kernel space\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# String handling module Makefile\nobj-m += strings.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "secure string copying with strscpy()",
+    "safe string formatting with snprintf()",
+    "string validation and error handling",
+    "module parameter strings",
+    "kernel logging best practices",
+    "buffer overflow prevention"
+  ],
+  "skills": [
+    "Using modern kernel string functions",
+    "Implementing secure string operations", 
+    "Error handling in string operations",
+    "Input validation and sanitization",
+    "Safe buffer management in kernel space",
+    "Professional kernel logging patterns"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["strings_init", "strings_exit", "display_device_info", "update_device_name", "format_status_message", "validate_string_input"],
+      "variables": [
+        { "name": "device_name", "type": "char[]", "value": "\"sensor_001\"" },
+        { "name": "status_message", "type": "char[]", "value": "\"initializing\"" },
+        { "name": "name_length", "type": "int", "value": 0 }
+      ],
+      "outputMessages": [
+        "Secure string handling module loaded",
+        "Device: sensor_001 (Length: 10)",
+        "Status: initializing",
+        "Device name updated successfully",
+        "Device: updated_sensor (Length: 14)",
+        "Status: Device updated_sensor is active"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/types.h",
+        "linux/string.h"
+      ],
+      "mustContain": [
+        "#define MAX_DEVICE_NAME 32",
+        "#define MAX_STATUS_MSG 64", 
+        "extern char device_name[MAX_DEVICE_NAME]",
+        "extern char status_message[MAX_STATUS_MSG]",
+        "module_param_string(device_name, device_name, MAX_DEVICE_NAME, 0644)",
+        "module_param_string(status_message, status_message, MAX_STATUS_MSG, 0644)"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_declarations",
+        "name": "Function Declarations in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void display_device_info(void)",
+          "ssize_t update_device_name(const char *new_name)",
+          "int format_status_message(const char *status)",
+          "int validate_string_input(const char *input)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void display_device_info(void)",
+          "ssize_t update_device_name(const char *new_name)",
+          "int format_status_message(const char *status)",
+          "int validate_string_input(const char *input)",
+          "static int __init strings_init(void)",
+          "static void __exit strings_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "advanced_string_implementation_validation",
+        "name": "Advanced String Implementation with TCC Header Validation",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "string_impl_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <time.h>\\n#include <string.h>\\n\\nint main() {\\n    printf(\"=== Dynamic String Implementation Test ===\\\\n\");\\n    \\n    // Seed random number generator\\n    srand(time(NULL));\\n    \\n    // Generate random device names and statuses\\n    const char* device_prefixes[] = {\"sensor\", \"actuator\", \"controller\", \"monitor\"};\\n    const char* statuses[] = {\"active\", \"idle\", \"error\", \"maintenance\", \"ready\"};\\n    \\n    int device_idx = rand() % 4;\\n    int device_num = (rand() % 100) + 1;\\n    int status_idx = rand() % 5;\\n    \\n    char device_name[32];\\n    snprintf(device_name, sizeof(device_name), \"%s_%03d\", device_prefixes[device_idx], device_num);\\n    \\n    printf(\"Test 1: Device name '%s' with status '%s'\\\\n\", device_name, statuses[status_idx]);\\n    char cmd1[256];\\n    snprintf(cmd1, sizeof(cmd1), \"insmod /lib/modules/strings.ko device_name=%s status_message=%s\", device_name, statuses[status_idx]);\\n    system(\"rmmod strings 2>/dev/null\");\\n    system(cmd1);\\n    \\n    // Second test with different values\\n    device_idx = rand() % 4;\\n    device_num = (rand() % 100) + 1;\\n    status_idx = rand() % 5;\\n    snprintf(device_name, sizeof(device_name), \"%s_%03d\", device_prefixes[device_idx], device_num);\\n    \\n    printf(\"Test 2: Device name '%s' with status '%s'\\\\n\", device_name, statuses[status_idx]);\\n    char cmd2[256];\\n    snprintf(cmd2, sizeof(cmd2), \"insmod /lib/modules/strings.ko device_name=%s status_message=%s\", device_name, statuses[status_idx]);\\n    system(\"rmmod strings\");\\n    system(cmd2);\\n    \\n    printf(\"SUCCESS: Dynamic string test completed\\\\n\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting advanced string implementation validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: Ultra-Fast TCC Header Validation'",
+            "echo 'Creating minimal kernel header stubs for TCC...'",
+            "mkdir -p /tmp/linux",
+            "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
+            "echo '#define KERN_ERR' >> /tmp/linux/kernel.h",
+            "echo '#define KERN_WARNING' >> /tmp/linux/kernel.h",
+            "echo 'int printk(const char *fmt, ...);' >> /tmp/linux/kernel.h",
+            "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
+            "echo '#define MODULE_AUTHOR(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_DESCRIPTION(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_VERSION(x)' >> /tmp/linux/module.h",
+            "echo '#define module_init(x)' >> /tmp/linux/module.h",
+            "echo '#define module_exit(x)' >> /tmp/linux/module.h",
+            "echo '#define module_param_string(name, string, len, perm)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_PARM_DESC(var, desc)' >> /tmp/linux/module.h",
+            "echo '#define __init' > /tmp/linux/init.h",
+            "echo '#define __exit' >> /tmp/linux/init.h",
+            "echo 'typedef long ssize_t;' > /tmp/linux/types.h",
+            "echo 'typedef unsigned long size_t;' >> /tmp/linux/types.h",
+            "echo 'ssize_t strscpy(char *dest, const char *src, size_t count);' > /tmp/linux/string.h",
+            "echo 'int snprintf(char *buf, size_t size, const char *fmt, ...);' >> /tmp/linux/string.h",
+            "echo 'size_t strlen(const char *s);' >> /tmp/linux/string.h",
+            "echo '#define EINVAL 22' > /tmp/linux/errno.h",
+            "echo '#define E2BIG 7' >> /tmp/linux/errno.h",
+            "echo 'Creating test file that includes student header...'",
+            "echo '#include \"/lib/modules/strings.h\"' > /tmp/test.c",
+            "echo 'int main() { display_device_info(); update_device_name(\"test\"); format_status_message(\"active\"); validate_string_input(\"input\"); return 0; }' >> /tmp/test.c",
+            "echo 'Running TCC validation...'",
+            "/usr/bin/tcc -I/tmp -Wimplicit-function-declaration -Werror -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
+            "TCC_EXIT_CODE=$?",
+            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Function declaration missing or commented in header'; echo 'TCC Error Details:'; cat /tmp/tcc_error.log; exit 1; fi",
+            "echo 'PASS: All function declarations found in header file'",
+            "echo 'Phase 2: Dynamic String Implementation Testing'",
+            "/bin/string_impl_tester > /tmp/test_output.log",
+            "cat /tmp/test_output.log",
+            "echo 'Phase 3: Dynamic Value Extraction and Validation'",
+            "echo 'Adding delay to ensure dmesg messages are written...'",
+            "sleep 1",
+            "echo 'Extracting random test values from output...'",
+            "TEST1_LINE=$(grep 'Test 1: Device name' /tmp/test_output.log)",
+            "TEST2_LINE=$(grep 'Test 2: Device name' /tmp/test_output.log)",
+            "echo 'Test 1 values: '$TEST1_LINE",
+            "echo 'Test 2 values: '$TEST2_LINE",
+            "echo 'Validating string operation output'",
+            "dmesg | grep 'Secure string handling module loaded' && echo 'PASS: Module loaded correctly' || echo 'FAIL: Module loading issue'",
+            "dmesg | grep 'Device:.*Length:' && echo 'PASS: Device info display working' || echo 'FAIL: Device info display broken'",
+            "dmesg | grep 'Status:' && echo 'PASS: Status message working' || echo 'FAIL: Status message broken'",
+            "dmesg | grep 'Device name updated successfully' && echo 'PASS: String update working' || echo 'FAIL: String update broken'",
+            "echo 'All dynamic string validations completed'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Secure string handling module loaded",
+              "Device: .* \\(Length: .*\\)",
+              "Status: .*",
+              "Device name updated successfully"
+            ],
+            "stdout": [
+              "PASS: All function declarations found in header file",
+              "SUCCESS: Dynamic string test completed",
+              "PASS: Module loaded correctly",
+              "PASS: Device info display working",
+              "PASS: Status message working",
+              "PASS: String update working"
+            ]
+          },
+          "timeout": 35
+        }
+      }
+    ]
+  }
+}
