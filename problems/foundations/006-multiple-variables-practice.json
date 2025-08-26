@@ -96,15 +96,15 @@
       },
       {
         "id": "exact_output",
-        "name": "Basic Output Messages",
+        "name": "Function-Linked Output Messages",
         "type": "output_match", 
         "critical": true,
         "expected": [
-          { "pattern": "Practice variables module loaded", "exact": true },
-          { "pattern": "Employee Information", "exact": true },
-          { "pattern": "Employee ID: 67890", "exact": true },
-          { "pattern": "Grade: A", "exact": true },
-          { "pattern": "Promoted: 1", "exact": true }
+          { "pattern": "Practice variables module loaded", "exact": true, "linkedFunction": "static int __init practice_vars_init(void)" },
+          { "pattern": "Employee Information", "exact": true, "linkedFunction": "void print_employee_info(void)" },
+          { "pattern": "Employee ID: 67890", "exact": true, "linkedFunction": "void print_employee_info(void)" },
+          { "pattern": "Grade: A", "exact": true, "linkedFunction": "void print_employee_info(void)" },
+          { "pattern": "Promoted: 1", "exact": true, "linkedFunction": "void print_employee_info(void)" }
         ]
       },
       {

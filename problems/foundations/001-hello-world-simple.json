@@ -74,12 +74,12 @@
       },
       {
         "id": "exact_output",
-        "name": "Expected Output Messages",
+        "name": "Function-Linked Output Messages",
         "type": "output_match",
         "critical": true,
         "expected": [
-          { "pattern": "Hello World from kernel!", "exact": true },
-          { "pattern": "Goodbye from kernel!", "exact": true }
+          { "pattern": "Hello World from kernel!", "exact": true, "linkedFunction": "static int __init hello_init(void)" },
+          { "pattern": "Goodbye from kernel!", "exact": true, "linkedFunction": "static void __exit hello_exit(void)" }
         ]
       }
     ]

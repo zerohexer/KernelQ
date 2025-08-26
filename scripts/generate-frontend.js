@@ -119,13 +119,39 @@ class FrontendGenerator {
             }
         }
         
+        // Extract function-linked outputs from test cases
+        let functionLinkedOutputs = [];
+        if (testCases) {
+            const outputMatchTests = testCases.filter(tc => tc.type === 'output_match');
+            for (const test of outputMatchTests) {
+                if (test.expected && Array.isArray(test.expected)) {
+                    for (const expectedItem of test.expected) {
+                        if (typeof expectedItem === 'object' && expectedItem.pattern && expectedItem.linkedFunction) {
+                            functionLinkedOutputs.push({
+                                pattern: expectedItem.pattern,
+                                linkedFunction: expectedItem.linkedFunction,
+                                exact: expectedItem.exact
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
         // Return a combined inputOutput object if there are any requirements or expected outputs
         const expectedOutput = problem.validation?.exactRequirements?.outputMessages || problem.inputOutput?.expectedOutput || [];
-        if (requirements.length > 0 || expectedOutput.length > 0) {
-            return {
+        if (requirements.length > 0 || expectedOutput.length > 0 || functionLinkedOutputs.length > 0) {
+            const result = {
                 expectedOutput,
                 requirements
             };
+            
+            // Add function-linked outputs if available
+            if (functionLinkedOutputs.length > 0) {
+                result.functionLinkedOutputs = functionLinkedOutputs;
+            }
+            
+            return result;
         }
         
         return null;

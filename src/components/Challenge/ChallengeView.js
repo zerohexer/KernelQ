@@ -21,6 +21,13 @@ const ChallengeView = ({
 }) => {
     const [activeTab, setActiveTab] = useState('code');
     const [leftPanelWidth, setLeftPanelWidth] = useState(40); // Initial width as percentage - splitter moved left for more code space
+
+    // Helper function to extract function name from signature
+    const extractFunctionName = (signature) => {
+        // Handle patterns like "void print_employee_info(void)", "static int __init practice_vars_init(void)", etc.
+        const match = signature.match(/(?:static\s+)?(?:\w+\s+)?(?:__init\s+|__exit\s+)?(\w+)\s*\(/);
+        return match ? match[1] : signature;
+    };
     
     if (!challenge) {
         return (
@@ -436,16 +443,17 @@ const ChallengeView = ({
                                 {/* Display function signatures from function_signatures_source test case */}
                                 {validation?.testCases?.some(tc => tc.id === 'function_signatures_source') && 
                                  validation?.testCases?.find(tc => tc.id === 'function_signatures_source')?.expectedSymbols?.map((funcSig, idx) => {
-                                    // Parse function signature: "static int __init hello_init(void)" -> attributes: "__init", returnType: "int", name: "hello_init", params: "(void)"
+                                    // Parse function signature: "static int __init hello_init(void)" -> static: "static", returnType: "int", attribute: "__init", name: "hello_init", params: "(void)"
                                     const parseFunction = (signature) => {
                                         // Match pattern: [static] [returnType] [__init/__exit] functionName(params)
-                                        const fullMatch = signature.match(/(?:static\s+)?(\w+)\s+(?:(__init|__exit)\s+)?(\w+)\s*(\([^)]*\))/);
+                                        const fullMatch = signature.match(/(static\s+)?(\w+)\s+(?:(__init|__exit)\s+)?(\w+)\s*(\([^)]*\))/);
                                         if (fullMatch) {
                                             return {
-                                                returnType: fullMatch[1],
-                                                attribute: fullMatch[2] || '',  // __init, __exit, or empty
-                                                name: fullMatch[3],
-                                                params: fullMatch[4]
+                                                static: fullMatch[1] ? fullMatch[1].trim() : '',  // "static" or empty
+                                                returnType: fullMatch[2],
+                                                attribute: fullMatch[3] || '',  // __init, __exit, or empty
+                                                name: fullMatch[4],
+                                                params: fullMatch[5]
                                             };
                                         }
                                         
@@ -453,6 +461,7 @@ const ChallengeView = ({
                                         const simpleMatch = signature.match(/(\w+)\s+(\w+)\s*(\([^)]*\))/);
                                         if (simpleMatch) {
                                             return {
+                                                static: '',
                                                 returnType: simpleMatch[1],
                                                 attribute: '',
                                                 name: simpleMatch[2],
@@ -468,6 +477,7 @@ const ChallengeView = ({
                                             const name = words[words.length - 1];
                                             const params = signature.substring(parenIndex);
                                             return { 
+                                                static: '',
                                                 returnType: '',
                                                 attribute: '', 
                                                 name, 
@@ -475,6 +485,7 @@ const ChallengeView = ({
                                             };
                                         }
                                         return { 
+                                            static: '',
                                             returnType: '',
                                             attribute: '', 
                                             name: signature, 
@@ -500,7 +511,17 @@ const ChallengeView = ({
                                                 background: '#ffcc02'
                                             }} />
                                             Implement function: {' '}
-                                            {parsed.attribute && <span style={{ color: 'rgba(255, 204, 2, 0.8)', marginRight: '6px' }}>{parsed.attribute}</span>}
+                                            {parsed.static && <code style={{ 
+                                                background: 'rgba(255, 204, 2, 0.15)',
+                                                border: '1px solid rgba(255, 204, 2, 0.3)',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                color: '#ffcc02',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500,
+                                                marginRight: '6px'
+                                            }}>{parsed.static}</code>}
                                             {parsed.returnType && <code style={{ 
                                                 background: 'rgba(255, 204, 2, 0.15)',
                                                 border: '1px solid rgba(255, 204, 2, 0.3)',
@@ -512,6 +533,7 @@ const ChallengeView = ({
                                                 fontWeight: 500,
                                                 marginRight: '6px'
                                             }}>{parsed.returnType}</code>}
+                                            {parsed.attribute && <span style={{ color: 'rgba(255, 204, 2, 0.8)', marginRight: '6px' }}>{parsed.attribute}</span>}
                                             <code style={{ 
                                                 background: 'rgba(255, 204, 2, 0.15)',
                                                 border: '1px solid rgba(255, 204, 2, 0.3)',
@@ -525,7 +547,45 @@ const ChallengeView = ({
                                         </li>
                                     );
                                 })}
-                                {validation?.exactRequirements?.outputMessages?.map((msg, idx) => (
+                                {/* Function-linked outputs */}
+                                {inputOutput?.functionLinkedOutputs?.map((output, idx) => (
+                                    <li key={`linked-${idx}`} style={{ 
+                                        marginBottom: '12px',
+                                        position: 'relative',
+                                        paddingLeft: '20px'
+                                    }}>
+                                        <span style={{
+                                            position: 'absolute',
+                                            left: 0,
+                                            top: '8px',
+                                            width: '6px',
+                                            height: '6px',
+                                            borderRadius: '50%',
+                                            background: '#30d158'
+                                        }} />
+                                        Output: <code style={{ 
+                                            background: 'rgba(48, 209, 88, 0.15)',
+                                            border: '1px solid rgba(48, 209, 88, 0.3)',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                            color: '#30d158',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500
+                                        }}>"{output.pattern}"</code> → <code style={{ 
+                                            background: 'rgba(255, 204, 2, 0.15)',
+                                            border: '1px solid rgba(255, 204, 2, 0.3)',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                            color: '#ffcc02',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500
+                                        }}>{output.linkedFunction}</code>
+                                    </li>
+                                ))}
+                                {/* Regular output messages (fallback for non-linked outputs) */}
+                                {!inputOutput?.functionLinkedOutputs?.length && validation?.exactRequirements?.outputMessages?.map((msg, idx) => (
                                     <li key={idx} style={{ 
                                         marginBottom: '12px',
                                         position: 'relative',

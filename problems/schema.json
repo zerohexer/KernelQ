@@ -195,7 +195,27 @@
               },
               "expected": {
                 "type": "array",
-                "description": "Expected values for test"
+                "description": "Expected values for test",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "pattern": { "type": "string" },
+                        "exact": { "type": "boolean" },
+                        "regex": { "type": "boolean" },
+                        "linkedFunction": { 
+                          "type": "string",
+                          "description": "Name of function that should produce this output"
+                        }
+                      },
+                      "required": ["pattern"]
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
               },
               "expectedSymbols": {
                 "type": "array",
