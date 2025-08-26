@@ -274,7 +274,7 @@ const ChallengeView = ({
                                 listStyleType: 'none'
                             }}>
                                 {/* Header Requirements Section */}
-                                {((validation?.exactRequirements?.variables && validation.exactRequirements.variables.length > 0) || 
+                                {((validation?.exactRequirements?.variables_declarations && validation.exactRequirements.variables_declarations.length > 0) || 
                                   (validation?.exactRequirements?.mustContain && validation.exactRequirements.mustContain.some(item => item.includes('(') && !item.includes('='))) ||
                                   (validation?.testCases?.find(tc => tc.id === 'function_declarations' || tc.id === 'function_declaration')?.expectedSymbols?.length > 0)
                                 ) && (
@@ -290,8 +290,8 @@ const ChallengeView = ({
                                         }}>
                                             Header File Requirements
                                         </li>
-                                        {/* Display variables */}
-                                        {validation?.exactRequirements?.variables?.map((variable, idx) => (
+                                        {/* Display header variable declarations (no values) */}
+                                        {validation?.exactRequirements?.variables_declarations?.map((variable, idx) => (
                                             <li key={`header-var-${idx}`} style={{ 
                                                 marginBottom: '12px',
                                                 position: 'relative',
@@ -445,11 +445,12 @@ const ChallengeView = ({
                                  validation?.testCases?.find(tc => tc.id === 'function_signatures_source')?.expectedSymbols?.map((funcSig, idx) => {
                                     // Parse function signature: "static int __init hello_init(void)" -> static: "static", returnType: "int", attribute: "__init", name: "hello_init", params: "(void)"
                                     const parseFunction = (signature) => {
-                                        // Match pattern: [static] [returnType] [__init/__exit] functionName(params)
-                                        const fullMatch = signature.match(/(static\s+)?(\w+)\s+(?:(__init|__exit)\s+)?(\w+)\s*(\([^)]*\))/);
+                                        // Match pattern: [storage_class] [returnType] [__init/__exit] functionName(params)
+                                        // Storage classes: static, extern, auto, register, inline
+                                        const fullMatch = signature.match(/((?:static|extern|auto|register|inline)\s+)?(\w+)\s+(?:(__init|__exit)\s+)?(\w+)\s*(\([^)]*\))/);
                                         if (fullMatch) {
                                             return {
-                                                static: fullMatch[1] ? fullMatch[1].trim() : '',  // "static" or empty
+                                                storageClass: fullMatch[1] ? fullMatch[1].trim() : '',  // storage class specifier or empty
                                                 returnType: fullMatch[2],
                                                 attribute: fullMatch[3] || '',  // __init, __exit, or empty
                                                 name: fullMatch[4],
@@ -457,11 +458,11 @@ const ChallengeView = ({
                                             };
                                         }
                                         
-                                        // Fallback for simpler patterns without static
+                                        // Fallback for simpler patterns without storage class
                                         const simpleMatch = signature.match(/(\w+)\s+(\w+)\s*(\([^)]*\))/);
                                         if (simpleMatch) {
                                             return {
-                                                static: '',
+                                                storageClass: '',
                                                 returnType: simpleMatch[1],
                                                 attribute: '',
                                                 name: simpleMatch[2],
@@ -477,7 +478,7 @@ const ChallengeView = ({
                                             const name = words[words.length - 1];
                                             const params = signature.substring(parenIndex);
                                             return { 
-                                                static: '',
+                                                storageClass: '',
                                                 returnType: '',
                                                 attribute: '', 
                                                 name, 
@@ -485,7 +486,7 @@ const ChallengeView = ({
                                             };
                                         }
                                         return { 
-                                            static: '',
+                                            storageClass: '',
                                             returnType: '',
                                             attribute: '', 
                                             name: signature, 
@@ -511,7 +512,7 @@ const ChallengeView = ({
                                                 background: '#ffcc02'
                                             }} />
                                             Implement function: {' '}
-                                            {parsed.static && <code style={{ 
+                                            {parsed.storageClass && <code style={{ 
                                                 background: 'rgba(255, 204, 2, 0.15)',
                                                 border: '1px solid rgba(255, 204, 2, 0.3)',
                                                 padding: '4px 8px',
@@ -521,7 +522,7 @@ const ChallengeView = ({
                                                 fontSize: '0.875rem',
                                                 fontWeight: 500,
                                                 marginRight: '6px'
-                                            }}>{parsed.static}</code>}
+                                            }}>{parsed.storageClass}</code>}
                                             {parsed.returnType && <code style={{ 
                                                 background: 'rgba(255, 204, 2, 0.15)',
                                                 border: '1px solid rgba(255, 204, 2, 0.3)',

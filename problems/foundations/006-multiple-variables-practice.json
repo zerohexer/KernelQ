@@ -43,6 +43,11 @@
   "validation": {
     "exactRequirements": {
       "functionNames": ["practice_vars_init", "practice_vars_exit", "print_employee_info"],
+      "variables_declarations": [
+        { "name": "employee_id", "type": "int" },
+        { "name": "performance_grade", "type": "char" },
+        { "name": "is_promoted", "type": "bool" }
+      ],
       "variables": [
         { "name": "employee_id", "type": "int", "value": 67890 },
         { "name": "performance_grade", "type": "char", "value": "'A'" },

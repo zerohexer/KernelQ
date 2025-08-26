@@ -137,7 +137,19 @@
                 },
                 "required": ["name", "type"]
               },
-              "description": "Required variables"
+              "description": "Required variables with values (for source files)"
+            },
+            "variables_declarations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "type": { "type": "string" }
+                },
+                "required": ["name", "type"]
+              },
+              "description": "Required variable declarations only (for header files, no values)"
             },
             "outputMessages": {
               "type": "array",
