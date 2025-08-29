@@ -68,7 +68,7 @@
           "userspaceApps": [
             {
               "name": "hello_tester",
-              "source": "#include <stdio.h>\n#include <stdlib.h>\n\nint main() {\n    printf(\"=== Hello World Module Test ===\\n\");\n    \n    printf(\"Test: Loading hello module...\\n\");\n    system(\"insmod /lib/modules/hello.ko\");\n    \n    printf(\"Test: Unloading hello module...\\n\");\n    system(\"rmmod hello\");\n    \n    printf(\"SUCCESS: Module load/unload completed\\n\");\n    return 0;\n}"
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n\\nint main() {\\n    printf(\\\"=== Hello World Module Test ===\\\\n\\\");\\n    \\n    printf(\\\"Test: Loading hello module...\\\\n\\\");\\n    system(\\\"insmod /lib/modules/hello.ko\\\");\\n    \\n    printf(\\\"Test: Unloading hello module...\\\\n\\\");\\n    system(\\\"rmmod hello\\\");\\n    \\n    printf(\\\"SUCCESS: Module load/unload completed\\\\n\\\");\\n    return 0;\\n}"
             }
           ],
           "testCommands": [
@@ -92,7 +92,7 @@
               "PASS: All kernel functionality tests completed"
             ]
           },
-          "timeout": 30
+          "timeout": 10
         }
       },
       {
