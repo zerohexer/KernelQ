@@ -318,7 +318,21 @@ const ChallengeView = ({
                                                     borderRadius: '50%',
                                                     background: '#ff9f0a'
                                                 }} />
-                                                Declare variable: <code style={{ 
+                                                Declare variable: {' '}
+                                                {variable.storageClass && variable.storageClass !== 'none' && (
+                                                    <code style={{ 
+                                                        background: 'rgba(255, 159, 10, 0.15)',
+                                                        border: '1px solid rgba(255, 159, 10, 0.3)',
+                                                        padding: '4px 8px',
+                                                        borderRadius: '6px',
+                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        color: '#ff9f0a',
+                                                        fontSize: '0.875rem',
+                                                        fontWeight: 500,
+                                                        marginRight: '6px'
+                                                    }}>{variable.storageClass}</code>
+                                                )}
+                                                <code style={{ 
                                                     background: 'rgba(255, 159, 10, 0.15)',
                                                     border: '1px solid rgba(255, 159, 10, 0.3)',
                                                     padding: '4px 8px',
@@ -327,7 +341,16 @@ const ChallengeView = ({
                                                     color: '#ff9f0a',
                                                     fontSize: '0.875rem',
                                                     fontWeight: 500
-                                                }}>{variable.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>({variable.type})</span>
+                                                }}>{variable.type}</code> <code style={{ 
+                                                    background: 'rgba(255, 159, 10, 0.15)',
+                                                    border: '1px solid rgba(255, 159, 10, 0.3)',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
+                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    color: '#ff9f0a',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 500
+                                                }}>{variable.name}</code>
                                             </li>
                                         ))}
                                         {/* Display function declarations from function_declarations test case */}
@@ -437,7 +460,21 @@ const ChallengeView = ({
                                             borderRadius: '50%',
                                             background: '#ff9f0a'
                                         }} />
-                                        Define variable: <code style={{ 
+                                        Define variable: {' '}
+                                        {variable.storageClass && variable.storageClass !== 'none' && (
+                                            <code style={{ 
+                                                background: 'rgba(255, 159, 10, 0.15)',
+                                                border: '1px solid rgba(255, 159, 10, 0.3)',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                color: '#ff9f0a',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500,
+                                                marginRight: '6px'
+                                            }}>{variable.storageClass}</code>
+                                        )}
+                                        <code style={{ 
                                             background: 'rgba(255, 159, 10, 0.15)',
                                             border: '1px solid rgba(255, 159, 10, 0.3)',
                                             padding: '4px 8px',
@@ -446,7 +483,16 @@ const ChallengeView = ({
                                             color: '#ff9f0a',
                                             fontSize: '0.875rem',
                                             fontWeight: 500
-                                        }}>{variable.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>({variable.type})</span>
+                                        }}>{variable.type}</code> <code style={{ 
+                                            background: 'rgba(255, 159, 10, 0.15)',
+                                            border: '1px solid rgba(255, 159, 10, 0.3)',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                            color: '#ff9f0a',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500
+                                        }}>{variable.name}</code>
                                         {variable.value && (
                                             <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}> = {variable.value}</span>
                                         )}

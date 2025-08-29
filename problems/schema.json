@@ -133,7 +133,12 @@
                 "properties": {
                   "name": { "type": "string" },
                   "type": { "type": "string" },
-                  "value": { "type": ["string", "number", "boolean"] }
+                  "value": { "type": ["string", "number", "boolean"] },
+                  "storageClass": { 
+                    "type": "string",
+                    "enum": ["extern", "static", "auto", "register", "inline", "none"],
+                    "description": "Optional storage class specifier for frontend display"
+                  }
                 },
                 "required": ["name", "type"]
               },
@@ -145,7 +150,12 @@
                 "type": "object",
                 "properties": {
                   "name": { "type": "string" },
-                  "type": { "type": "string" }
+                  "type": { "type": "string" },
+                  "storageClass": { 
+                    "type": "string",
+                    "enum": ["extern", "static", "auto", "register", "inline", "none"],
+                    "description": "Optional storage class specifier for frontend display"
+                  }
                 },
                 "required": ["name", "type"]
               },

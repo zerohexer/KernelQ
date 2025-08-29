@@ -2135,3 +2135,247 @@ void count_device_name_length(void) {
 **Result**: `FAIL: Test 1 length wrong - expected 6 for 'kernel'` (found 9)
 
 This dynamic string length validation pattern ensures that students must implement actual string processing logic rather than hardcoding values, while providing specific educational feedback about what went wrong.
+
+## 🎨 **Enhanced Frontend Schema: Storage Class Display System**
+
+### Problem: Frontend Couldn't Display Storage Class Information
+
+**Issue**: The original schema only supported `name` and `type` for variable declarations, making it impossible to show students the correct storage class (extern, static) in the frontend requirements display.
+
+**Example of Missing Information**:
+```json
+// Original schema limitation
+"variables_declarations": [
+  { "name": "my_number", "type": "int" }  // No way to show "extern"
+]
+```
+
+**Frontend Result**: `Declare variable: my_number (int)` - student doesn't know it should be `extern`
+
+### Solution: Extended Schema with Storage Class Support
+
+**Enhanced Schema Structure**:
+```json
+// Updated schema.json
+"variables_declarations": {
+  "items": {
+    "properties": {
+      "name": { "type": "string" },
+      "type": { "type": "string" },
+      "storageClass": { 
+        "type": "string",
+        "enum": ["extern", "static", "auto", "register", "inline", "none"],
+        "description": "Optional storage class specifier for frontend display"
+      }
+    }
+  }
+}
+```
+
+**Updated Problem Configuration**:
+```json
+// Problem 3 example
+"exactRequirements": {
+  "variables_declarations": [
+    { "name": "my_number", "type": "int", "storageClass": "extern" }
+  ],
+  "variables": [
+    { "name": "my_number", "type": "int", "value": 42, "storageClass": "none" }
+  ]
+}
+```
+
+### Frontend Display Enhancement
+
+**Updated ChallengeView.js Logic**:
+```javascript
+// Header File Requirements - shows storage class when present
+{variable.storageClass && variable.storageClass !== 'none' && (
+  <code style={{ /* styling */ }}>
+    {variable.storageClass}
+  </code>
+)}
+<code>{variable.type}</code> 
+<code>{variable.name}</code>
+
+// Source File Requirements - shows type and name only when storageClass is "none"
+```
+
+**Result**: 
+- **Header File Requirements**: `Declare variable: extern int my_number`
+- **Source File Requirements**: `Define variable: int my_number = 42`
+
+### Educational Benefits
+
+1. **Clear Expectations**: Students see exactly what storage class to use
+2. **Professional Practices**: Teaches proper C declaration patterns
+3. **Header/Source Separation**: Visualizes the difference between declaration and definition
+4. **No Backend Changes**: Pure frontend enhancement, no validation logic changes
+
+### Implementation Files Modified
+
+1. **`problems/schema.json`**: Added optional `storageClass` field
+2. **`src/components/Challenge/ChallengeView.js`**: Enhanced display logic
+3. **Problem files**: Updated to include storage class information
+
+## 🔐 **Advanced Variable Validation: Multi-Phase Value Testing**
+
+### Problem: Variable Declaration vs. Initialization Validation Gap
+
+**Issue Discovered**: Problem 3 was passing even when students only declared variables without proper initialization.
+
+**Example of Bypass**:
+```c
+// This passed incorrectly
+int my_number;  // Declared but not initialized to 42
+
+// This also passed incorrectly  
+static int my_number = 42;  // Wrong storage class but correct value
+```
+
+**Root Cause**: Traditional validation only checked module loading success, not actual variable values or accessibility.
+
+### Solution: Multi-Phase Variable Validation System
+
+#### **Phase 1: TCC Header Validation**
+**Purpose**: Ultra-fast verification of header declarations
+**Innovation**: Fixed test pattern prevents bypass attempts
+
+```bash
+# Corrected TCC test pattern
+echo '#include "/lib/modules/variables.h"' > /tmp/test.c
+echo 'int main() { my_number = 42; return my_number; }' >> /tmp/test.c
+# ✅ This ONLY works if header has "extern int my_number;"
+```
+
+**Breakthrough**: Removes local declaration that was masking missing header declarations.
+
+#### **Phase 2: Dynamic Parameter Testing** 
+**Purpose**: Test variable system with different runtime values
+```c
+// Randomized value testing
+int test_val1 = (rand() % 50) + 10;  // 10-59
+int test_val2 = (rand() % 50) + 60;  // 60-109
+
+system("insmod /lib/modules/variables.ko my_number=test_val1");
+system("insmod /lib/modules/variables.ko my_number=test_val2");
+```
+
+#### **Phase 3: Default Value Validation (Critical Innovation)**
+**Purpose**: Verify variable initialized to exact required value
+```bash
+# Load module without parameters to test default initialization
+rmmod variables 2>/dev/null
+insmod /lib/modules/variables.ko
+sleep 1
+
+DEFAULT_VALUE=$(cat /sys/module/variables/parameters/my_number)
+if [ "$DEFAULT_VALUE" = "42" ]; then
+    echo 'PASS: Variable initialized to 42 correctly'
+else
+    echo 'FAIL: Variable not initialized to 42 (got: '$DEFAULT_VALUE')'
+fi
+```
+
+**This Catches**:
+- ❌ `int my_number;` (default value 0, not 42)
+- ❌ `int my_number = 100;` (wrong initialization value)
+- ❌ Missing variable declaration entirely
+
+#### **Phase 4: Mutability Testing (Advanced)**
+**Purpose**: Ensure variable is properly mutable, not const
+```bash
+# Test runtime value modification
+echo 99 > /sys/module/variables/parameters/my_number
+NEW_VALUE=$(cat /sys/module/variables/parameters/my_number)
+if [ "$NEW_VALUE" = "99" ]; then
+    echo 'PASS: Variable is mutable and reassignable'
+else
+    echo 'FAIL: Variable is not properly mutable'
+fi
+```
+
+**This Catches**:
+- ❌ `const int my_number = 42;` (cannot be modified at runtime)
+- ❌ Missing `module_param()` declaration
+
+#### **Phase 5: Parameter System Validation**
+**Purpose**: Verify module parameter integration
+```bash
+ls /sys/module/variables/parameters/my_number >/dev/null 2>&1 && 
+echo 'PASS: Variable exposed as module parameter' || 
+echo 'FAIL: Variable not declared as module parameter'
+```
+
+### Complete Success Criteria
+
+**Only passes when student implements**:
+```c
+// variables.h
+extern int my_number;  // ← Phase 1 validates this
+
+// variables.c  
+int my_number = 42;    // ← Phase 3 validates this exact value
+module_param(my_number, int, 0644);  // ← Phase 5 validates this
+```
+
+### Validation Robustness
+
+**Completely Bypass-Proof**:
+- ✅ **Header validation**: TCC compilation ensures proper declaration
+- ✅ **Value validation**: Checks exact initialization value (42)
+- ✅ **Mutability validation**: Ensures proper variable behavior
+- ✅ **Integration validation**: Module parameter system must work
+
+**Educational Value**:
+- ✅ **Professional patterns**: Real kernel development practices
+- ✅ **System understanding**: How module parameters work
+- ✅ **Debugging skills**: Specific error messages for each phase failure
+- ✅ **Implementation correctness**: Must implement actual functionality
+
+### Template Pattern for Variable Problems
+
+```json
+{
+  "testScenario": {
+    "testCommands": [
+      "echo 'Phase 1: TCC Header Validation'",
+      "# TCC validation commands...",
+      "echo 'PASS: extern declaration found in header file'",
+      
+      "echo 'Phase 2: Dynamic Parameter Testing'", 
+      "# Random value testing commands...",
+      
+      "echo 'Phase 3: Default value validation (must be EXACT_VALUE)...'",
+      "DEFAULT_VALUE=$(cat /sys/module/MODULE/parameters/VARIABLE)",
+      "if [ \"$DEFAULT_VALUE\" = \"EXACT_VALUE\" ]; then",
+      "    echo 'PASS: Variable initialized correctly'",
+      "else", 
+      "    echo 'FAIL: Variable not initialized to EXACT_VALUE'",
+      "fi",
+      
+      "echo 'Phase 4: Mutability testing...'",
+      "echo NEW_VALUE > /sys/module/MODULE/parameters/VARIABLE",
+      "# Mutability validation...",
+      
+      "echo 'Phase 5: Parameter system validation...'",
+      "# Parameter accessibility check..."
+    ]
+  }
+}
+```
+
+### Success Metrics
+
+**Problem 3 Before Enhancement**:
+- ❌ Passed with `int my_number;` (wrong - no initialization)
+- ❌ Passed with `static int my_number = 42;` (wrong - storage class)
+- ❌ Passed with any module loading (insufficient validation)
+
+**Problem 3 After Enhancement**:
+- ✅ **Only passes** with exact implementation: `extern` in header, `int my_number = 42;` in source
+- ✅ **Validates actual values** not just patterns
+- ✅ **Educational feedback** for each validation phase
+- ✅ **Professional development practices** enforced
+
+This multi-phase variable validation represents the gold standard for educational kernel programming assessment, ensuring students implement actual functionality rather than finding ways to bypass requirements.

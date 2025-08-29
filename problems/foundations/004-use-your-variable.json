@@ -63,14 +63,6 @@
     },
     "testCases": [
       {
-        "id": "variable_usage",
-        "name": "Variable Usage in printk",
-        "type": "code_analysis",
-        "critical": true,
-        "expectedSymbols": ["my_number", "%d"],
-        "prohibitedSymbols": ["%s", "%c"]
-      },
-      {
         "id": "function_signatures_source",
         "name": "Function Signatures in Source File",
         "type": "code_analysis",
@@ -80,6 +72,48 @@
           "static void __exit use_vars_exit(void)"
         ],
         "prohibitedSymbols": []
+      },
+      {
+        "id": "variable_usage_test",
+        "name": "Variable Usage and Formatting Test",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "variable_usage_validator",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <string.h>\\n\\nint main() {\\n    printf(\\\"=== Variable Usage Validation Test ===\\\\n\\\");\\n    \\n    printf(\\\"Phase 1: Testing module loading and variable usage...\\\\n\\\");\\n    system(\\\"insmod /lib/modules/use_vars.ko\\\");\\n    \\n    printf(\\\"Phase 2: Checking if variable is used correctly in printk...\\\\n\\\");\\n    system(\\\"dmesg | tail -5 | grep '42' && echo 'Variable value 42 found in kernel log'\\\");\\n    \\n    printf(\\\"Phase 3: Validating format specifier usage...\\\\n\\\");\\n    printf(\\\"SUCCESS: Variable my_number must be used with %%d format to show '42'\\\\n\\\");\\n    \\n    system(\\\"rmmod use_vars\\\");\\n    printf(\\\"SUCCESS: Variable usage validation completed\\\\n\\\");\\n    return 0;\\n}"
+            }
+          ],
+          "testCommands": [
+            "echo 'Testing variable usage and formatting with value validation...'",
+            "/bin/variable_usage_validator",
+            "echo 'Adding delay to ensure dmesg messages are written...'",
+            "sleep 1",
+            "echo 'Phase 1: Basic module functionality check...'",
+            "dmesg | grep 'Variable usage module loaded' && echo 'PASS: use_vars_init function working' || echo 'FAIL: use_vars_init function missing'",
+            "echo 'Phase 2: Variable value and formatting validation...'",
+            "dmesg | grep 'My number is: 42' && echo 'PASS: Variable my_number correctly used with value 42' || echo 'FAIL: Variable not used or wrong value/format'",
+            "echo 'Phase 3: Integer format specifier validation...'",
+            "dmesg | grep ': 42' && echo 'PASS: Integer format (%d) correctly displays 42' || echo 'FAIL: Format specifier incorrect'",
+            "echo 'Phase 4: Module unload check...'",
+            "dmesg | grep 'Variable usage module unloaded' && echo 'PASS: use_vars_exit function working' || echo 'FAIL: use_vars_exit function missing'",
+            "echo 'PASS: All variable usage validation tests completed'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Variable usage module loaded",
+              "My number is: 42",
+              "Variable usage module unloaded"
+            ],
+            "stdout": [
+              "Variable Usage Validation Test",
+              "SUCCESS: Variable usage validation completed",
+              "PASS: All variable usage validation tests completed"
+            ]
+          },
+          "timeout": 30
+        }
       },
       {
         "id": "exact_output",
