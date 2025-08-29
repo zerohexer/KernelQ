@@ -26,10 +26,23 @@ cleanup() {
 
 trap cleanup INT
 
-# Update backend CORS to allow kernelq.com domain
-echo -e "${BLUE}🔧 Updating backend CORS configuration...${NC}"
-# Add kernelq.com to CORS origins temporarily
+# Load OAuth configuration
+echo -e "${BLUE}🔧 Loading OAuth configuration...${NC}"
+if [ -f .env.kernelq ]; then
+    echo "📁 Loading .env.kernelq configuration file..."
+    export $(grep -v '^#' .env.kernelq | xargs)
+    echo "✅ OAuth configuration loaded from .env.kernelq"
+else
+    echo "⚠️  .env.kernelq not found, Google SSO will not work"
+fi
+
+# Set CORS origin
 export CORS_ORIGIN="https://kernelq.com"
+
+echo "🌐 Using URLs:"
+echo "   Frontend: $FRONTEND_URL"
+echo "   Backend:  $BACKEND_URL"
+echo "   CORS Origin: $CORS_ORIGIN"
 
 # Start clangd LSP server
 echo -e "${BLUE}🧠 Starting clangd LSP server on port 3002...${NC}"

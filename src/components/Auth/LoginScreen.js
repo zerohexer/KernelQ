@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { premiumStyles } from '../../styles/PremiumStyles.js';
 import PremiumStyles from '../../styles/PremiumStyles.js';
+import GoogleSSOButton from './GoogleSSOButton.js';
+import { OAuthCallbackHandler } from '../../utils/oauth-callback.js';
 
 const LoginScreen = ({ onLogin, onSwitchToRegister, premiumStyles: styles }) => {
     const [formData, setFormData] = useState({
@@ -9,6 +11,39 @@ const LoginScreen = ({ onLogin, onSwitchToRegister, premiumStyles: styles }) => 
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [oauthLoading, setOauthLoading] = useState(false);
+
+    // Handle OAuth callback on component mount
+    useEffect(() => {
+        const handleOAuthCallback = async () => {
+            const oauthData = OAuthCallbackHandler.checkForOAuthCallback();
+            
+            if (oauthData) {
+                if (oauthData.success) {
+                    // Validate OAuth data
+                    if (OAuthCallbackHandler.validateOAuthData(oauthData)) {
+                        console.log('✅ Processing OAuth login success');
+                        setOauthLoading(true);
+                        
+                        // Call onLogin with OAuth data
+                        onLogin(
+                            oauthData.userData,
+                            oauthData.progressData,
+                            oauthData.accessToken,
+                            oauthData.refreshToken
+                        );
+                    } else {
+                        setError('Authentication data incomplete. Please try again.');
+                    }
+                } else {
+                    // OAuth error
+                    setError(oauthData.error || 'Google Sign-In failed. Please try again.');
+                }
+            }
+        };
+
+        handleOAuthCallback();
+    }, [onLogin]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -63,6 +98,17 @@ const LoginScreen = ({ onLogin, onSwitchToRegister, premiumStyles: styles }) => 
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleGoogleSSOSuccess = (oauthData) => {
+        console.log('🎉 Google SSO success:', oauthData);
+        // This will be handled by the OAuth callback effect
+    };
+
+    const handleGoogleSSOError = (error) => {
+        console.error('❌ Google SSO error:', error);
+        setError(error);
+        setOauthLoading(false);
     };
 
     return (
@@ -156,6 +202,35 @@ const LoginScreen = ({ onLogin, onSwitchToRegister, premiumStyles: styles }) => 
 
                 {/* Login Form */}
                 <form onSubmit={handleSubmit}>
+                    {/* Google SSO Button */}
+                    <GoogleSSOButton
+                        onSuccess={handleGoogleSSOSuccess}
+                        onError={handleGoogleSSOError}
+                        disabled={isLoading || oauthLoading}
+                        variant="signin"
+                    />
+
+                    {/* Divider */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        marginBottom: '1.5rem',
+                        color: PremiumStyles.colors.textSecondary,
+                        fontSize: PremiumStyles.typography.sizes.sm
+                    }}>
+                        <div style={{
+                            flex: 1,
+                            height: '1px',
+                            background: PremiumStyles.colors.border
+                        }} />
+                        <span style={{ padding: '0 1rem' }}>or</span>
+                        <div style={{
+                            flex: 1,
+                            height: '1px',
+                            background: PremiumStyles.colors.border
+                        }} />
+                    </div>
+
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label style={{
                             display: 'block',

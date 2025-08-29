@@ -13,6 +13,9 @@ const {
     authLimiter
 } = require('./middleware/jwt-auth');
 
+// Google OAuth integration
+const { initializeGoogleOAuth, googleAuthRoutes } = require('./middleware/google-oauth');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -34,6 +37,7 @@ app.use(cors({
     origin: [
         'http://localhost:3000',
         'https://kernel-frontend.tunnel.com',
+        'https://kernelq.com',  // Production domain
         /\.tunnel\.com$/,  // Allow any cloudflared tunnel domain
         /\.trycloudflare\.com$/  // Allow temporary cloudflared domains
     ],
@@ -42,6 +46,9 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(express.json({ limit: '10mb' }));
+
+// Initialize Google OAuth (must be after CORS and before routes)
+initializeGoogleOAuth(app);
 
 // 🔒 SECURITY: JWT Authentication for User Endpoints
 app.use((req, res, next) => {
@@ -759,6 +766,11 @@ app.post('/api/auth/refresh', async (req, res) => {
         });
     }
 });
+
+// Google OAuth Authentication Endpoints
+app.get('/api/auth/google', googleAuthRoutes.initiateAuth);
+
+app.get('/api/auth/google/callback', googleAuthRoutes.handleCallback);
 
 // User Progress Endpoints
 app.get('/api/user/:userId/progress', async (req, res) => {
