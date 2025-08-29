@@ -24,7 +24,7 @@ const GOOGLE_OAUTH_CONFIG = {
     CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || 'your-google-client-secret-here',
     
     // Callback URLs
-    CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL || 'https://kernelq.com/api/auth/google/callback',
+    CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3001/api/auth/google/callback',
     
     // Frontend redirect URLs (after successful OAuth)
     SUCCESS_REDIRECT: process.env.FRONTEND_URL || 'http://localhost:3000',

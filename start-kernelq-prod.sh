@@ -52,7 +52,7 @@ CLANGD_PID=$!
 
 # Start backend
 echo -e "${BLUE}🔧 Starting backend on localhost:3001...${NC}"
-(cd backend && npm start) &
+(cd backend && FRONTEND_URL="$FRONTEND_URL" CORS_ORIGIN="$CORS_ORIGIN" npm start) &
 BACKEND_PID=$!
 
 # Wait for backend to start

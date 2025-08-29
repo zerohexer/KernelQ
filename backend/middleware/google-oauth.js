@@ -9,12 +9,8 @@ const OAUTH_CONFIG = require('../config/oauth');
  * Handles Google SSO authentication and user creation/login
  */
 
-// Initialize Google OAuth Strategy
-passport.use(new GoogleStrategy({
-    clientID: OAUTH_CONFIG.CLIENT_ID,
-    clientSecret: OAUTH_CONFIG.CLIENT_SECRET,
-    callbackURL: OAUTH_CONFIG.CALLBACK_URL
-}, async (accessToken, refreshToken, profile, done) => {
+// OAuth callback handler function (shared between strategies)
+const oauthCallbackHandler = async (accessToken, refreshToken, profile, done) => {
     try {
         console.log('🔐 Google OAuth callback received');
         console.log('👤 Google Profile:', {
@@ -100,7 +96,45 @@ passport.use(new GoogleStrategy({
         console.error('❌ Google OAuth error:', error);
         return done(error, null);
     }
-}));
+};
+
+// Function to create dynamic Google strategy based on request
+const createGoogleStrategy = (req) => {
+    const host = req.get('host');
+    const origin = req.get('origin');
+    const referer = req.get('referer');
+    let callbackURL;
+    
+    console.log('🔧 Dynamic strategy detection:');
+    console.log('   Request Host:', host);
+    console.log('   Request Origin:', origin);
+    console.log('   Request Referer:', referer);
+    console.log('   GOOGLE_CALLBACK_URL env:', process.env.GOOGLE_CALLBACK_URL);
+    
+    // Check if the request came from localhost (host, origin, or referer)
+    const isLocalhost = (host && host.includes('localhost')) ||
+                       (origin && origin.includes('localhost')) || 
+                       (referer && referer.includes('localhost'));
+    
+    console.log('   Is localhost request?', isLocalhost);
+    
+    if (isLocalhost) {
+        callbackURL = 'http://localhost:3001/api/auth/google/callback';
+        console.log('   ✅ Using localhost callback');
+    } else {
+        // Use environment variable or default to kernelq.com
+        callbackURL = process.env.GOOGLE_CALLBACK_URL || 'https://kernelq.com/api/auth/google/callback';
+        console.log('   ✅ Using production/env callback');
+    }
+    
+    console.log('🔧 Final callback URL:', callbackURL);
+    
+    return new GoogleStrategy({
+        clientID: OAUTH_CONFIG.CLIENT_ID,
+        clientSecret: OAUTH_CONFIG.CLIENT_SECRET,
+        callbackURL: callbackURL
+    }, oauthCallbackHandler);
+};
 
 // Serialize user for session
 passport.serializeUser((userData, done) => {
@@ -136,12 +170,45 @@ const initializeGoogleOAuth = (app) => {
     console.log('✅ Google OAuth middleware initialized');
 };
 
+// Helper function to detect frontend URL from request
+const getFrontendUrlFromRequest = (req) => {
+    // Get FRONTEND_URL from environment (set by shell script)
+    const envFrontendUrl = process.env.FRONTEND_URL || OAUTH_CONFIG.SUCCESS_REDIRECT;
+    
+    // Check the Host header to detect if request came from localhost
+    const host = req.get('host');
+    let frontendUrl = envFrontendUrl; // default to environment
+    
+    if (host && host.includes('localhost')) {
+        // If request came to localhost backend, redirect to localhost frontend
+        frontendUrl = 'http://localhost:3000';
+    } else {
+        // For all other domains, use FRONTEND_URL from environment
+        frontendUrl = envFrontendUrl;
+    }
+    
+    console.log('🔄 OAuth redirect detection:');
+    console.log('   Environment FRONTEND_URL:', envFrontendUrl);
+    console.log('   Request Host:', host);
+    console.log('   Final Frontend URL:', frontendUrl);
+    
+    return frontendUrl;
+};
+
 // Route handlers for Google OAuth
 const googleAuthRoutes = {
     // Start Google OAuth flow
     initiateAuth: (req, res, next) => {
         console.log('🚀 Starting Google OAuth flow');
-        passport.authenticate('google', {
+        
+        // Create dynamic strategy based on request
+        const strategy = createGoogleStrategy(req);
+        const strategyName = `google-${req.get('host') || 'default'}`;
+        
+        // Register the dynamic strategy
+        passport.use(strategyName, strategy);
+        
+        passport.authenticate(strategyName, {
             scope: OAUTH_CONFIG.SCOPES
         })(req, res, next);
     },
@@ -149,17 +216,26 @@ const googleAuthRoutes = {
     // Handle Google OAuth callback
     handleCallback: (req, res, next) => {
         console.log('📨 Handling Google OAuth callback');
-        passport.authenticate('google', {
-            failureRedirect: OAUTH_CONFIG.FAILURE_REDIRECT + '?error=oauth_failed'
+        const frontendUrl = getFrontendUrlFromRequest(req);
+        
+        // Create the same dynamic strategy for callback (in case it doesn't exist)
+        const strategy = createGoogleStrategy(req);
+        const strategyName = `google-${req.get('host') || 'default'}`;
+        
+        // Ensure the strategy is registered for callback
+        passport.use(strategyName, strategy);
+        
+        passport.authenticate(strategyName, {
+            failureRedirect: frontendUrl + '?error=oauth_failed'
         }, (err, userData) => {
             if (err) {
                 console.error('❌ OAuth callback error:', err);
-                return res.redirect(OAUTH_CONFIG.FAILURE_REDIRECT + '?error=oauth_error');
+                return res.redirect(frontendUrl + '?error=oauth_error');
             }
             
             if (!userData) {
                 console.log('❌ OAuth callback: no user data');
-                return res.redirect(OAUTH_CONFIG.FAILURE_REDIRECT + '?error=no_user_data');
+                return res.redirect(frontendUrl + '?error=no_user_data');
             }
             
             try {
@@ -171,7 +247,7 @@ const googleAuthRoutes = {
                 
                 // Create success redirect URL with tokens as query params
                 // Note: In production, consider using secure httpOnly cookies instead
-                const successUrl = new URL(OAUTH_CONFIG.SUCCESS_REDIRECT);
+                const successUrl = new URL(frontendUrl);
                 successUrl.searchParams.append('oauth_success', 'true');
                 successUrl.searchParams.append('access_token', accessToken);
                 successUrl.searchParams.append('refresh_token', refreshToken);
@@ -184,7 +260,7 @@ const googleAuthRoutes = {
                 
             } catch (tokenError) {
                 console.error('❌ JWT token generation error:', tokenError);
-                res.redirect(OAUTH_CONFIG.FAILURE_REDIRECT + '?error=token_generation_failed');
+                res.redirect(frontendUrl + '?error=token_generation_failed');
             }
         })(req, res, next);
     }
