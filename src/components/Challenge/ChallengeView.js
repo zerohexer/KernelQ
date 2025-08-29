@@ -21,12 +21,24 @@ const ChallengeView = ({
 }) => {
     const [activeTab, setActiveTab] = useState('code');
     const [leftPanelWidth, setLeftPanelWidth] = useState(40); // Initial width as percentage - splitter moved left for more code space
+    const [expandedFunctionLinks, setExpandedFunctionLinks] = useState(new Set()); // Track which function links are expanded
 
     // Helper function to extract function name from signature
     const extractFunctionName = (signature) => {
         // Handle patterns like "void print_employee_info(void)", "static int __init practice_vars_init(void)", etc.
         const match = signature.match(/(?:static\s+)?(?:\w+\s+)?(?:__init\s+|__exit\s+)?(\w+)\s*\(/);
         return match ? match[1] : signature;
+    };
+
+    // Toggle function link expansion
+    const toggleFunctionLink = (outputIndex) => {
+        const newExpanded = new Set(expandedFunctionLinks);
+        if (newExpanded.has(outputIndex)) {
+            newExpanded.delete(outputIndex);
+        } else {
+            newExpanded.add(outputIndex);
+        }
+        setExpandedFunctionLinks(newExpanded);
     };
     
     if (!challenge) {
@@ -548,10 +560,10 @@ const ChallengeView = ({
                                         </li>
                                     );
                                 })}
-                                {/* Function-linked outputs */}
+                                {/* Function-linked outputs with collapsible function details */}
                                 {inputOutput?.functionLinkedOutputs?.map((output, idx) => (
                                     <li key={`linked-${idx}`} style={{ 
-                                        marginBottom: '12px',
+                                        marginBottom: expandedFunctionLinks.has(idx) ? '8px' : '16px',
                                         position: 'relative',
                                         paddingLeft: '20px'
                                     }}>
@@ -564,25 +576,74 @@ const ChallengeView = ({
                                             borderRadius: '50%',
                                             background: '#30d158'
                                         }} />
-                                        Output: <code style={{ 
-                                            background: 'rgba(48, 209, 88, 0.15)',
-                                            border: '1px solid rgba(48, 209, 88, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#30d158',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500
-                                        }}>"{output.pattern}"</code> → <code style={{ 
-                                            background: 'rgba(255, 204, 2, 0.15)',
-                                            border: '1px solid rgba(255, 204, 2, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#ffcc02',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500
-                                        }}>{output.linkedFunction}</code>
+                                        <div>
+                                            Output: <code style={{ 
+                                                background: 'rgba(48, 209, 88, 0.15)',
+                                                border: '1px solid rgba(48, 209, 88, 0.3)',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                color: '#30d158',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500
+                                            }}>"{output.pattern}"</code>
+                                        </div>
+                                        <div style={{ 
+                                            marginTop: '8px',
+                                            marginLeft: '4px',
+                                            marginBottom: '-6px'
+                                        }}>
+                                            <button
+                                                onClick={() => toggleFunctionLink(idx)}
+                                                style={{
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    color: '#B0B0FF',
+                                                    fontSize: '0.8rem',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    padding: '0px',
+                                                    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif',
+                                                    transition: 'color 0.2s ease'
+                                                }}
+                                                onMouseEnter={(e) => e.target.style.color = '#ffcc02'}
+                                                onMouseLeave={(e) => e.target.style.color = '#B0B0FF'}
+                                            >
+                                                <span style={{
+                                                    fontSize: '0.7rem',
+                                                    transform: expandedFunctionLinks.has(idx) ? 'rotate(90deg)' : 'rotate(0deg)',
+                                                    transition: 'transform 0.2s ease'
+                                                }}>▶</span>
+                                                View linked function
+                                            </button>
+                                            {expandedFunctionLinks.has(idx) && (
+                                                <div style={{
+                                                    marginTop: '-7px',
+                                                    paddingLeft: '16px',
+                                                    padding: '10px 4px',
+                                                    borderRadius: '6px'
+                                                }}>
+                                                    <code style={{ 
+                                                        background: 'rgba(255, 204, 2, 0.15)',
+                                                        border: '0px solid rgba(255, 204, 2, 0.3)',
+                                                        padding: '8px 8px',
+                                                        borderRadius: '6px',
+                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        color: '#ffcc02',
+                                                        fontSize: '0.85rem',
+                                                        fontWeight: 500,
+                                                        display: 'inline-block',
+                                                        maxWidth: '100%',
+                                                        wordBreak: 'break-word',
+                                                        overflowWrap: 'break-word'
+                                                    }}>
+                                                        {output.linkedFunction}
+                                                    </code>
+                                                </div>
+                                            )}
+                                        </div>
                                     </li>
                                 ))}
                                 {/* Regular output messages (fallback for non-linked outputs) */}
