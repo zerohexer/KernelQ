@@ -104,6 +104,24 @@
         "prohibitedSymbols": []
       },
       {
+        "id": "exact_output",
+        "name": "Basic Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Loop implementation module loaded", "exact": true, "linkedFunction": "static int __init loops_impl_init(void)" },
+          { "pattern": "Array in reverse order:", "exact": true, "linkedFunction": "static int __init loops_impl_init(void)" },
+          { "pattern": "Position 5: 12", "exact": true, "linkedFunction": "void print_reverse(int arr[], int size)" },
+          { "pattern": "Position 4: 10", "exact": true, "linkedFunction": "void print_reverse(int arr[], int size)" },
+          { "pattern": "Position 3: 8", "exact": true, "linkedFunction": "void print_reverse(int arr[], int size)" },
+          { "pattern": "Position 2: 6", "exact": true, "linkedFunction": "void print_reverse(int arr[], int size)" },
+          { "pattern": "Position 1: 4", "exact": true, "linkedFunction": "void print_reverse(int arr[], int size)" },
+          { "pattern": "Position 0: 2", "exact": true, "linkedFunction": "void print_reverse(int arr[], int size)" },
+          { "pattern": "Factorial of 5: 120", "exact": true, "linkedFunction": "static int __init loops_impl_init(void)" },
+          { "pattern": "Product of array: 46080", "exact": true, "linkedFunction": "static int __init loops_impl_init(void)" }
+        ]
+      },
+      {
         "id": "advanced_loop_implementation_validation",
         "name": "Advanced Loop Implementation with TCC Header Validation",
         "type": "kernel_project_test",

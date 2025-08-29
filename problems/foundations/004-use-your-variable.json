@@ -27,21 +27,21 @@
     }
   ],
   "concepts": [
+    "variable usage",
     "printk formatting",
     "format specifiers",
-    "function declarations",
-    "function definitions",
-    "function calls"
+    "integer printing",
+    "debugging output"
   ],
   "skills": [
-    "Using variables in functions",
+    "Using variables in printk",
     "printk with format specifiers", 
-    "Function implementation",
+    "Variable access in kernel modules",
     "Debugging output"
   ],
   "validation": {
     "exactRequirements": {
-      "functionNames": ["use_vars_init", "use_vars_exit", "print_my_number"],
+      "functionNames": ["use_vars_init", "use_vars_exit"],
       "variables": [
         { "name": "my_number", "type": "int", "value": 42 }
       ],
@@ -55,9 +55,7 @@
         "linux/init.h"
       ],
       "mustContain": [
-        "void print_my_number(void)",
-        "printk(KERN_INFO \"My number is: %d\\n\", my_number)",
-        "print_my_number()"
+        "printk(KERN_INFO \"My number is: %d\\n\", my_number)"
       ],
       "moduleInfo": {
         "license": "GPL"
@@ -65,28 +63,12 @@
     },
     "testCases": [
       {
-        "id": "function_implementation",
-        "name": "Function Implementation",
+        "id": "variable_usage",
+        "name": "Variable Usage in printk",
         "type": "code_analysis",
         "critical": true,
-        "expectedSymbols": ["void print_my_number(void)"],
-        "prohibitedSymbols": []
-      },
-      {
-        "id": "format_specifier",
-        "name": "Correct Format Specifier Usage",
-        "type": "code_analysis",
-        "critical": true,
-        "expectedSymbols": ["%d", "my_number"],
+        "expectedSymbols": ["my_number", "%d"],
         "prohibitedSymbols": ["%s", "%c"]
-      },
-      {
-        "id": "function_call",
-        "name": "Function Call in Init",
-        "type": "code_analysis", 
-        "critical": true,
-        "expectedSymbols": ["print_my_number()"],
-        "prohibitedSymbols": []
       },
       {
         "id": "function_signatures_source",
@@ -94,7 +76,6 @@
         "type": "code_analysis",
         "critical": true,
         "expectedSymbols": [
-          "void print_my_number(void)",
           "static int __init use_vars_init(void)",
           "static void __exit use_vars_exit(void)"
         ],
@@ -106,8 +87,8 @@
         "type": "output_match",
         "critical": true,
         "expected": [
-          { "pattern": "Variable usage module loaded", "exact": true },
-          { "pattern": "My number is: 42", "exact": true }
+          { "pattern": "Variable usage module loaded", "exact": true, "linkedFunction": "static int __init use_vars_init(void)" },
+          { "pattern": "My number is: 42", "exact": true, "linkedFunction": "void print_my_number(void)" }
         ]
       }
     ]

@@ -132,9 +132,9 @@
         "type": "output_match",
         "critical": true,
         "expected": [
-          { "pattern": "Function parameters module loaded", "exact": true },
-          { "pattern": "15 + 25 = 40", "exact": true },
-          { "pattern": "Sum is even: 1", "exact": true }
+          { "pattern": "Function parameters module loaded", "exact": true, "linkedFunction": "static int __init functions_init(void)" },
+          { "pattern": "15 + 25 = 40", "exact": true, "linkedFunction": "void print_calculation(int num1, int num2, int result)" },
+          { "pattern": "Sum is even: 1", "exact": true, "linkedFunction": "static int __init functions_init(void)" }
         ]
       },
       {

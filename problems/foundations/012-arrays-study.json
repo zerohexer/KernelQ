@@ -114,15 +114,15 @@
         "type": "output_match",
         "critical": true,
         "expected": [
-          { "pattern": "Arrays study module loaded", "exact": true },
-          { "pattern": "Studying array operations with 6 devices", "exact": true },
-          { "pattern": "Device listing:", "exact": true },
-          { "pattern": "Device 1: ID 101", "exact": true },
-          { "pattern": "Device 6: ID 275", "exact": true },
-          { "pattern": "Highest device ID: 320", "exact": true },
-          { "pattern": "Total sum of device IDs: 1231", "exact": true },
-          { "pattern": "Device 205 found: Yes", "exact": true },
-          { "pattern": "Device 999 found: No", "exact": true }
+          { "pattern": "Arrays study module loaded", "exact": true, "linkedFunction": "static int __init arrays_study_init(void)" },
+          { "pattern": "Studying array operations with 6 devices", "exact": true, "linkedFunction": "static int __init arrays_study_init(void)" },
+          { "pattern": "Device listing:", "exact": true, "linkedFunction": "void print_all_devices(void)" },
+          { "pattern": "Device 1: ID 101", "exact": true, "linkedFunction": "void print_all_devices(void)" },
+          { "pattern": "Device 6: ID 275", "exact": true, "linkedFunction": "void print_all_devices(void)" },
+          { "pattern": "Highest device ID: 320", "exact": true, "linkedFunction": "static int __init arrays_study_init(void)" },
+          { "pattern": "Total sum of device IDs: 1231", "exact": true, "linkedFunction": "static int __init arrays_study_init(void)" },
+          { "pattern": "Device 205 found: Yes", "exact": true, "linkedFunction": "static int __init arrays_study_init(void)" },
+          { "pattern": "Device 999 found: No", "exact": true, "linkedFunction": "static int __init arrays_study_init(void)" }
         ]
       }
     ]

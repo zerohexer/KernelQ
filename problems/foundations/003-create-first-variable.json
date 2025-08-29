@@ -114,7 +114,7 @@
         "type": "output_match",
         "critical": true,
         "expected": [
-          { "pattern": "Variables module loaded", "exact": true }
+          { "pattern": "Variables module loaded", "exact": true, "linkedFunction": "static int __init variables_init(void)" }
         ]
       }
     ]

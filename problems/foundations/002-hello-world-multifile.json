@@ -84,12 +84,12 @@
       },
       {
         "id": "exact_output",
-        "name": "Exact Output Messages",
+        "name": "Function-Linked Output Messages",
         "type": "output_match",
         "critical": true,
         "expected": [
-          { "pattern": "Hello from multi-file kernel module!", "exact": true },
-          { "pattern": "Goodbye from multi-file kernel module!", "exact": true }
+          { "pattern": "Hello from multi-file kernel module!", "exact": true, "linkedFunction": "static int __init hello_init(void)" },
+          { "pattern": "Goodbye from multi-file kernel module!", "exact": true, "linkedFunction": "static void __exit hello_exit(void)" }
         ]
       },
       {

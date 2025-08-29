@@ -93,6 +93,18 @@
         "prohibitedSymbols": []
       },
       {
+        "id": "exact_output",
+        "name": "Basic Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Conditional logic module loaded", "exact": true, "linkedFunction": "static int __init conditions_init(void)" },
+          { "pattern": "Number 42 is positive", "exact": true, "linkedFunction": "void check_number_status(int number)" },
+          { "pattern": "Number -15 is negative", "exact": true, "linkedFunction": "void check_number_status(int number)" },
+          { "pattern": "Number 0 is zero", "exact": true, "linkedFunction": "void check_number_status(int number)" }
+        ]
+      },
+      {
         "id": "advanced_conditional_testing",
         "name": "Advanced Conditional Logic with TCC Header Validation",
         "type": "kernel_project_test",

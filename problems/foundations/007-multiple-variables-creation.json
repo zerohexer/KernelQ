@@ -113,6 +113,16 @@
         "prohibitedSymbols": []
       },
       {
+        "id": "exact_output",
+        "name": "Basic Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Variable creation module loaded", "exact": true, "linkedFunction": "static int __init create_vars_init(void)" },
+          { "pattern": "Server 1001: Status R, Temp 68, Online: 1", "exact": true, "linkedFunction": "void print_server_status(void)" }
+        ]
+      },
+      {
         "id": "dynamic_variable_testing",
         "name": "Dynamic Variable Testing",
         "type": "kernel_project_test",

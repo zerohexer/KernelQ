@@ -103,6 +103,23 @@
         "prohibitedSymbols": []
       },
       {
+        "id": "exact_output",
+        "name": "Basic Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Arrays module loaded", "exact": true, "linkedFunction": "static int __init arrays_init(void)" },
+          { "pattern": "Student grades:", "exact": true, "linkedFunction": "void print_all_grades(void)" },
+          { "pattern": "Grade 1: 85", "exact": true, "linkedFunction": "void print_all_grades(void)" },
+          { "pattern": "Grade 2: 92", "exact": true, "linkedFunction": "void print_all_grades(void)" },
+          { "pattern": "Grade 3: 78", "exact": true, "linkedFunction": "void print_all_grades(void)" },
+          { "pattern": "Grade 4: 96", "exact": true, "linkedFunction": "void print_all_grades(void)" },
+          { "pattern": "Grade 5: 88", "exact": true, "linkedFunction": "void print_all_grades(void)" },
+          { "pattern": "Highest grade: 96", "exact": true, "linkedFunction": "static int __init arrays_init(void)" },
+          { "pattern": "Average grade: 87", "exact": true, "linkedFunction": "static int __init arrays_init(void)" }
+        ]
+      },
+      {
         "id": "advanced_array_implementation_validation",
         "name": "Advanced Array Implementation with TCC Header Validation",
         "type": "kernel_project_test",

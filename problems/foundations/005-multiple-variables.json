@@ -114,11 +114,11 @@
         "type": "output_match",
         "critical": true,
         "expected": [
-          { "pattern": "Multi-variable module loaded", "exact": true },
-          { "pattern": "Student Information", "exact": true },
-          { "pattern": "Student ID: 12345", "exact": true },
-          { "pattern": "Student Grade: A", "exact": true },
-          { "pattern": "Student Passed: 1", "exact": true }
+          { "pattern": "Multi-variable module loaded", "exact": true, "linkedFunction": "static int __init multi_vars_init(void)" },
+          { "pattern": "Student Information", "exact": true, "linkedFunction": "void print_student_info(void)" },
+          { "pattern": "Student ID: 12345", "exact": true, "linkedFunction": "void print_student_info(void)" },
+          { "pattern": "Student Grade: A", "exact": true, "linkedFunction": "void print_student_info(void)" },
+          { "pattern": "Student Passed: 1", "exact": true, "linkedFunction": "void print_student_info(void)" }
         ]
       },
       {

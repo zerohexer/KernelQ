@@ -105,11 +105,11 @@
         "type": "output_match",
         "critical": true,
         "expected": [
-          { "pattern": "String basics module loaded", "exact": true },
-          { "pattern": "Device: my_device, Length: 9", "exact": true },
-          { "pattern": "Message: Hello from kernel!", "exact": true },
-          { "pattern": "After name change:", "exact": true },
-          { "pattern": "Device: new_device, Length: 10", "exact": true }
+          { "pattern": "String basics module loaded", "exact": true, "linkedFunction": "static int __init strings_init(void)" },
+          { "pattern": "Device: my_device, Length: 9", "exact": true, "linkedFunction": "void show_device_info(void)" },
+          { "pattern": "Message: Hello from kernel!", "exact": true, "linkedFunction": "static int __init strings_init(void)" },
+          { "pattern": "After name change:", "exact": true, "linkedFunction": "static int __init strings_init(void)" },
+          { "pattern": "Device: new_device, Length: 10", "exact": true, "linkedFunction": "void show_device_info(void)" }
         ]
       },
       {
