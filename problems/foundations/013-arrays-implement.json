@@ -44,7 +44,7 @@
     "exactRequirements": {
       "functionNames": ["arrays_init", "arrays_exit", "print_all_grades", "find_highest_grade", "calculate_average"],
       "variables": [
-        { "name": "student_grades", "type": "int[]", "value": "{85, 92, 78, 96, 88}" },
+        { "name": "student_grades[]", "type": "int", "value": "{85, 92, 78, 96, 88}" },
         { "name": "grade_count", "type": "int", "value": 5 }
       ],
       "outputMessages": [

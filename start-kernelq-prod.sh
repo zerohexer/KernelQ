@@ -78,6 +78,7 @@ fi
 
 # Build production frontend (removes console.log automatically)
 echo -e "${BLUE}📦 Building production frontend...${NC}"
+export REACT_APP_BACKEND_URL="$BACKEND_URL"
 npm run build
 
 # Inject console override into built index.html
@@ -86,7 +87,6 @@ sed -i 's/<head>/<head><script>if(typeof console!=="undefined"){console.log=func
 
 # Serve production build
 echo -e "${BLUE}⚛️ Starting production frontend server...${NC}"
-export REACT_APP_BACKEND_URL="$BACKEND_URL"
 npx serve -s build -l 3000 &
 FRONTEND_PID=$!
 

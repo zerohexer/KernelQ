@@ -2218,6 +2218,80 @@ This dynamic string length validation pattern ensures that students must impleme
 2. **`src/components/Challenge/ChallengeView.js`**: Enhanced display logic
 3. **Problem files**: Updated to include storage class information
 
+## 🔗 **Function-Linked Output Messages: Tracing Output to Source**
+
+### Problem: Output Messages Lacked Function Context
+
+**Issue**: Students couldn't see which function was responsible for each expected output message, making debugging difficult.
+
+**Example Before Enhancement**:
+```json
+"expected": [
+  { "pattern": "Student ID: 12345", "exact": true },
+  { "pattern": "Student Status: Passed", "exact": true }
+]
+```
+
+**Problem**: Students seeing test failures couldn't determine if the issue was in `print_student_info()` or `check_student_status()`.
+
+### Solution: LinkedFunction Attribution System
+
+**Enhanced Pattern**:
+```json
+"expected": [
+  { "pattern": "Basic structures module loaded", "exact": true, "linkedFunction": "static int __init structures_init(void)" },
+  { "pattern": "Student ID: 12345", "exact": true, "linkedFunction": "void print_student_info(void)" },
+  { "pattern": "Student Name: Alice Smith", "exact": true, "linkedFunction": "void print_student_info(void)" },
+  { "pattern": "Student Grade: 85", "exact": true, "linkedFunction": "void print_student_info(void)" },
+  { "pattern": "Student Status: Passed", "exact": true, "linkedFunction": "void check_student_status(void)" }
+]
+```
+
+### Educational Benefits
+
+1. **Function Traceability**: Each output message is linked to its generating function
+2. **Targeted Debugging**: Students know exactly which function needs attention
+3. **Code Organization**: Reinforces the relationship between functions and their outputs
+4. **Learning Enhancement**: Students understand code flow and responsibility separation
+
+### Comprehensive Variable Declaration System
+
+**Full Pattern for Structure Problems**:
+```json
+"variables_declarations": [
+  // Struct type definition for header
+  { 
+    "name": "student", 
+    "type": "struct", 
+    "value": "{int id; char name[MAX_NAME_LEN]; int grade; bool passed;}", 
+    "storageClass": "none" 
+  },
+  // External variable declaration for header
+  { 
+    "name": "my_student", 
+    "type": "struct student", 
+    "storageClass": "extern" 
+  }
+]
+```
+
+**Frontend Display Result**:
+- **Header File Requirements**:
+  - Define struct: `struct student {int id; char name[MAX_NAME_LEN]; int grade; bool passed;}`
+  - Declare variable: `extern struct student my_student`
+- **Source File Requirements**:
+  - Define variable: `struct student my_student = {.id = 12345, .name = "Alice Smith", .grade = 85, .passed = true}`
+
+### Implementation Pattern for Complex Types
+
+**Use Cases**:
+1. **Simple Variables**: `{ "name": "my_number", "type": "int", "storageClass": "extern" }`
+2. **Structure Types**: Include `value` field with member definitions
+3. **Function Linkage**: Every output message gets `linkedFunction` attribution
+4. **Mixed Requirements**: Combine variable declarations, function declarations, and linked outputs
+
+This comprehensive system ensures students understand both what to implement and where each piece belongs in their code architecture.
+
 ## 🔐 **Advanced Variable Validation: Multi-Phase Value Testing**
 
 ### Problem: Variable Declaration vs. Initialization Validation Gap
@@ -2379,3 +2453,110 @@ module_param(my_number, int, 0644);  // ← Phase 5 validates this
 - ✅ **Professional development practices** enforced
 
 This multi-phase variable validation represents the gold standard for educational kernel programming assessment, ensuring students implement actual functionality rather than finding ways to bypass requirements.
+
+## Advanced Structure Validation with Dynamic Member Testing
+
+Building on the variable validation patterns, structure-based problems require additional validation techniques for struct definitions, member access, and dynamic parameter testing.
+
+### Structure Definition Validation Requirements
+
+For problems involving C structures (like Problem 15), the validation must verify:
+
+1. **Header Structure Definition**: Struct type is properly defined in header
+2. **External Variable Declaration**: `extern struct student my_student;` in header  
+3. **Source Variable Definition**: `struct student my_student = {...};` in source
+4. **Function Declarations**: All structure-related functions declared in header
+5. **Dynamic Member Testing**: Module parameters directly modify struct members
+
+### Structure Module Parameter Pattern
+
+**Critical Pattern**: Module parameters should point **directly to struct members**, not separate variables:
+
+```c
+// ✅ CORRECT: Direct struct member parameters
+module_param_named(student_id, my_student.id, int, 0644);
+module_param_named(student_grade, my_student.grade, int, 0644);
+
+// ❌ WRONG: Separate parameter variables (won't work for dynamic testing)  
+static int student_id_param = 12345;
+module_param_named(student_id, student_id_param, int, 0644);
+```
+
+**Why Direct Member Parameters Work**:
+- Kernel directly updates struct members at module load time
+- `insmod structures.ko student_id=12345` updates `my_student.id = 12345`
+- Functions using struct members automatically use updated values
+- Enables true dynamic testing without code changes
+
+### Structure Validation JSON Configuration
+
+```json
+{
+  "validation": {
+    "exactRequirements": {
+      "variables_declarations": [
+        { "name": "student", "type": "struct", "value": "{int id; char name[MAX_NAME_LEN]; int grade; bool passed;}", "storageClass": "none" },
+        { "name": "my_student", "type": "struct student", "storageClass": "extern" }
+      ],
+      "function_declarations": [
+        { "name": "print_student_info", "returnType": "void", "parameters": [] },
+        { "name": "check_student_status", "returnType": "void", "parameters": [] }
+      ],
+      "mustContain": [
+        "struct student {",
+        "extern struct student my_student", 
+        "struct student my_student = {",
+        "module_param_named(student_id, my_student.id, int, 0644)",
+        "module_param_named(student_grade, my_student.grade, int, 0644)"
+      ]
+    }
+  }
+}
+```
+
+### Dynamic Structure Testing Implementation
+
+The `kernel_project_test` for structures includes:
+
+**Phase 1**: TCC Header Validation
+```bash
+# Test that includes both struct access AND function calls
+echo 'int main() { my_student.id = 999; print_student_info(); check_student_status(); return 0; }'
+```
+
+**Phase 2**: Dynamic Parameter Testing  
+```bash
+# Generate random values and test with module parameters
+insmod structures.ko student_id=12345 student_grade=87
+# Verify struct members reflect the parameter values
+```
+
+**Phase 3**: Member Access Validation
+```bash
+# Extract dynamic values from test output
+TEST_ID=$(grep -o 'student_id=[0-9]*' /tmp/output.log | cut -d'=' -f2)
+# Verify dmesg shows the dynamic values
+dmesg | grep 'Student ID: '$TEST_ID
+```
+
+### Structure Validation Best Practices
+
+1. **Avoid Complex Regex**: Remove problematic `code_analysis` tests with complex regex patterns for structure definitions
+2. **Use Direct TCC Testing**: TCC validation catches missing declarations more reliably than regex
+3. **Test Struct Member Access**: Include `my_student.id = 999;` in TCC test to verify both struct definition and extern declaration work together
+4. **Dynamic Value Extraction**: Use simple `grep` and `cut` commands to extract test values from userspace app output
+5. **Bash Command Escaping**: Use `'Student ID: '$VAR` instead of `\"Student ID: $VAR\"` to avoid escaping issues
+
+### Frontend Structure Display
+
+The frontend automatically displays structure validation requirements:
+
+**Header File Requirements**:
+- Define struct: `struct student {int id; char name[MAX_NAME_LEN]; int grade; bool passed;}`
+- Declare variable: `extern struct student my_student`
+- Declare functions: `void print_student_info(void)`, `void check_student_status(void)`
+
+**Source File Requirements**:
+- Define variable: `struct student my_student = {.id = 12345, .name = "Alice Smith", .grade = 85, .passed = true}`
+
+This is achieved by properly configuring `variables_declarations` with struct definition values and storage classes.

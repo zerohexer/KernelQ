@@ -351,6 +351,9 @@ const ChallengeView = ({
                                                     fontSize: '0.875rem',
                                                     fontWeight: 500
                                                 }}>{variable.name}</code>
+                                                {variable.value && (
+                                                    <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}> {variable.value}</span>
+                                                )}
                                             </li>
                                         ))}
                                         {/* Display function declarations from function_declarations test case */}

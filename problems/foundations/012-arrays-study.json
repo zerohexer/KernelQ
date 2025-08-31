@@ -46,7 +46,7 @@
     "exactRequirements": {
       "functionNames": ["arrays_study_init", "arrays_study_exit", "print_all_devices", "find_max_device_id", "calculate_id_sum", "check_device_exists"],
       "variables": [
-        { "name": "device_ids", "type": "int[]", "value": "{101, 205, 150, 320, 180, 275}" },
+        { "name": "device_ids[]", "type": "int", "value": "{101, 205, 150, 320, 180, 275}" },
         { "name": "device_count", "type": "int", "value": 6 }
       ],
       "outputMessages": [
