@@ -102,6 +102,16 @@
         "prohibitedSymbols": []
       },
       {
+        "id": "function_declarations",
+        "name": "Function Declarations in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void print_server_status(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
         "id": "exact_output",
         "name": "Basic Output Messages",
         "type": "output_match",
