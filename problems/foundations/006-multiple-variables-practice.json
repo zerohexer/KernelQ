@@ -9,7 +9,7 @@
   "files": [
     {
       "name": "practice_vars.h",
-      "content": "#ifndef PRACTICE_VARS_H\n#define PRACTICE_VARS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n/* Variables for practice */\nextern int employee_id;\nextern char performance_grade;\nextern bool is_promoted;\n\n/* Function to complete */\nvoid print_employee_info(void);\n\n#endif /* PRACTICE_VARS_H */",
+      "content": "#ifndef PRACTICE_VARS_H\n#define PRACTICE_VARS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n/* Function to complete */\nvoid print_employee_info(void);\n\n#endif /* PRACTICE_VARS_H */",
       "readOnly": false,
       "language": "h"
     },
@@ -43,11 +43,6 @@
   "validation": {
     "exactRequirements": {
       "functionNames": ["practice_vars_init", "practice_vars_exit", "print_employee_info"],
-      "variables_declarations": [
-        { "name": "employee_id", "type": "int" },
-        { "name": "performance_grade", "type": "char" },
-        { "name": "is_promoted", "type": "bool" }
-      ],
       "variables": [
         { "name": "employee_id", "type": "int", "value": 67890 },
         { "name": "performance_grade", "type": "char", "value": "'A'" },
@@ -67,12 +62,10 @@
         "linux/types.h"
       ],
       "mustContain": [
-        "extern int employee_id",
-        "extern char performance_grade",
-        "extern bool is_promoted",
         "int employee_id = 67890",
         "char performance_grade = 'A'",
-        "bool is_promoted = true"
+        "bool is_promoted = true",
+        "void print_employee_info(void)"
       ],
       "moduleInfo": {
         "license": "GPL"

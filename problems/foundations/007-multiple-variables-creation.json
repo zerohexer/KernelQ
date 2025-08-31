@@ -9,7 +9,7 @@
   "files": [
     {
       "name": "create_vars.h",
-      "content": "#ifndef CREATE_VARS_H\n#define CREATE_VARS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n/* TODO: Declare your variables here using extern */\n/* You need: server_id (int), status_code (char), temperature (int), online (bool) */\n\n/* TODO: Declare your function */\n/* void print_server_status(void); */\n\n#endif /* CREATE_VARS_H */",
+      "content": "#ifndef CREATE_VARS_H\n#define CREATE_VARS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n/* TODO: Declare your function */\n/* void print_server_status(void); */\n\n#endif /* CREATE_VARS_H */",
       "readOnly": false,
       "language": "h"
     },
@@ -60,14 +60,11 @@
         "linux/types.h"
       ],
       "mustContain": [
-        "extern int server_id",
-        "extern char status_code", 
-        "extern int temperature",
-        "extern bool online",
         "int server_id = 1001",
         "char status_code = 'R'",
         "int temperature = 68",
         "bool online = true",
+        "void print_server_status(void)",
         "module_param(server_id, int, 0644)",
         "module_param(temperature, int, 0644)"
       ],
@@ -76,14 +73,6 @@
       }
     },
     "testCases": [
-      {
-        "id": "variable_declarations",
-        "name": "Variable Declarations in Header",
-        "type": "code_analysis",
-        "critical": true,
-        "expectedSymbols": ["extern int server_id", "extern char status_code", "extern int temperature", "extern bool online"],
-        "prohibitedSymbols": []
-      },
       {
         "id": "variable_definitions",
         "name": "Variable Definitions in Source",

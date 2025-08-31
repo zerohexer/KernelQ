@@ -9,7 +9,7 @@
   "files": [
     {
       "name": "multi_vars.h",
-      "content": "#ifndef MULTI_VARS_H\n#define MULTI_VARS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n/* Complete working example - study these declarations */\nextern int student_id;\nextern char student_grade;\nextern bool student_passed;\n\n/* Function to print student information */\nvoid print_student_info(void);\n\n#endif /* MULTI_VARS_H */",
+      "content": "#ifndef MULTI_VARS_H\n#define MULTI_VARS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n/* Function to print student information */\nvoid print_student_info(void);\n\n#endif /* MULTI_VARS_H */",
       "readOnly": false,
       "language": "h"
     },
@@ -60,26 +60,16 @@
         "linux/types.h"
       ],
       "mustContain": [
-        "extern int student_id",
-        "extern char student_grade", 
-        "extern bool student_passed",
         "int student_id = 12345",
         "char student_grade = 'A'",
-        "bool student_passed = true"
+        "bool student_passed = true",
+        "void print_student_info(void)"
       ],
       "moduleInfo": {
         "license": "GPL"
       }
     },
     "testCases": [
-      {
-        "id": "multiple_declarations",
-        "name": "Multiple Variable Declarations",
-        "type": "code_analysis",
-        "critical": true,
-        "expectedSymbols": ["extern int student_id", "extern char student_grade", "extern bool student_passed"],
-        "prohibitedSymbols": []
-      },
       {
         "id": "multiple_definitions", 
         "name": "Multiple Variable Definitions",
