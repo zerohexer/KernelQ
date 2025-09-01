@@ -1031,7 +1031,12 @@ class LeetCodeStyleValidator {
         // Check exact variable names
         if (requirements.variables) {
             for (const variable of requirements.variables) {
-                const regex = new RegExp(`\\b${variable.name}\\b`);
+                // Escape regex metacharacters in variable name to handle arrays like student_grades[MAX_GRADES]
+                const escapedName = variable.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                // For array names, use word boundary before the name but not after (since ] is not a word char)
+                const regex = variable.name.includes('[') 
+                    ? new RegExp(`\\b${escapedName}`)
+                    : new RegExp(`\\b${escapedName}\\b`);
                 const found = regex.test(code);
                 
                 results.tests.push({
