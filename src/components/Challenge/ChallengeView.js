@@ -857,14 +857,17 @@ const ChallengeView = ({
                                 border: 'none',
                                 borderRadius: '8px',
                                 color: '#f5f5f7',
-                                padding: '8px',
+                                padding: '8px 12px',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center'
+                                gap: '6px',
+                                fontSize: '0.875rem',
+                                fontWeight: 500
                             }}
                             title="Show problem details"
                         >
+                            <span>Show problem details</span>
                             <HelpCircle size={16} />
                         </button>
 
