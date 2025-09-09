@@ -992,6 +992,7 @@ const ChallengeView = ({
                                                     requiredFiles={challenge.requiredFiles || []}
                                                     allowFileCreation={challenge.requiredFiles && challenge.requiredFiles.length > 0}
                                                     allowFileDeletion={challenge.requiredFiles && challenge.requiredFiles.length > 0}
+                                                    parentFullScreen={true}
                                                 />
                                             ) : (
                                                 <SemanticCodeEditor
@@ -2008,6 +2009,7 @@ const ChallengeView = ({
                                                 requiredFiles={challenge.requiredFiles || []}
                                                 allowFileCreation={challenge.requiredFiles && challenge.requiredFiles.length > 0}
                                                 allowFileDeletion={challenge.requiredFiles && challenge.requiredFiles.length > 0}
+                                                parentFullScreen={false}
                                             />
                                         ) : (
                                             /* Legacy single-file editor */

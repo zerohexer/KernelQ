@@ -13,7 +13,8 @@ const MultiFileEditor = ({
   height = '500px',
   requiredFiles = [],
   allowFileCreation = false,
-  allowFileDeletion = false
+  allowFileDeletion = false,
+  parentFullScreen = false
 }) => {
   // Generate unique session ID for this editor instance
   const sessionId = useRef(crypto.randomUUID()).current;
@@ -302,26 +303,32 @@ const MultiFileEditor = ({
           </div>
 
           <button
-            onClick={() => setIsFullScreen(!isFullScreen)}
+            onClick={parentFullScreen ? () => setIsFullScreen(!isFullScreen) : undefined}
+            disabled={!parentFullScreen}
             style={{
               background: 'none',
               border: 'none',
-              color: premiumStyles.colors.textSecondary,
-              cursor: 'pointer',
+              color: parentFullScreen ? premiumStyles.colors.textSecondary : 'rgba(245, 245, 247, 0.3)',
+              cursor: parentFullScreen ? 'pointer' : 'not-allowed',
               padding: '4px',
               borderRadius: '4px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              opacity: parentFullScreen ? 1 : 0.5
             }}
             onMouseEnter={(e) => {
-              e.target.style.backgroundColor = premiumStyles.colors.surfaceHover;
-              e.target.style.color = premiumStyles.colors.text;
+              if (parentFullScreen) {
+                e.target.style.backgroundColor = premiumStyles.colors.surfaceHover;
+                e.target.style.color = premiumStyles.colors.text;
+              }
             }}
             onMouseLeave={(e) => {
-              e.target.style.backgroundColor = 'transparent';
-              e.target.style.color = premiumStyles.colors.textSecondary;
+              if (parentFullScreen) {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.color = premiumStyles.colors.textSecondary;
+              }
             }}
           >
             {isFullScreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
