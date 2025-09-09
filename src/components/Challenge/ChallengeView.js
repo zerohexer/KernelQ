@@ -638,15 +638,19 @@ const ChallengeView = ({
                                                 borderRadius: '6px'
                                             }}>
                                                 <code style={{ 
-                                                    background: 'rgba(48, 209, 88, 0.15)',
-                                                    border: '1px solid rgba(48, 209, 88, 0.3)',
-                                                    padding: '4px 8px',
+                                                    background: 'rgba(255, 204, 2, 0.15)',
+                                                    border: '0px solid rgba(255, 204, 2, 0.3)',
+                                                    padding: '8px 8px',
                                                     borderRadius: '6px',
                                                     fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                    color: '#30d158',
-                                                    fontSize: '0.8rem',
-                                                    fontWeight: 500
-                                                }}>{output.linkedFunctions?.join?.(', ') || 'functions'}</code>
+                                                    color: '#ffcc02',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: 500,
+                                                    display: 'inline-block',
+                                                    maxWidth: '100%',
+                                                    wordBreak: 'break-word',
+                                                    overflowWrap: 'break-word'
+                                                }}>{output.linkedFunction}</code>
                                             </div>
                                         )}
                                     </div>
