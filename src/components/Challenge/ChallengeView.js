@@ -114,14 +114,18 @@ const ChallengeView = ({
                 <div style={{
                     background: 'rgba(29, 29, 31, 0.95)',
                     backdropFilter: 'blur(40px)',
-                    borderRadius: '24px',
+                    borderRadius: '12px',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
                     boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
-                    padding: '32px',
-                    maxWidth: '800px',
-                    maxHeight: '80vh',
-                    overflow: 'auto',
-                    position: 'relative'
+                    padding: '40px',
+                    width: '90vw',
+                    maxWidth: '1200px',
+                    height: '85vh',
+                    maxHeight: '85vh',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column'
                 }}>
                     {/* Close Button */}
                     <button
@@ -144,18 +148,25 @@ const ChallengeView = ({
                         <X size={20} />
                     </button>
 
-                    {/* Challenge Header */}
-                    <div style={{ marginBottom: '24px' }}>
-                        <h2 style={{ 
-                            fontSize: '1.875rem',
-                            fontWeight: 700,
-                            color: '#f5f5f7',
-                            margin: 0,
-                            marginBottom: '16px',
-                            letterSpacing: '-0.025em'
-                        }}>
-                            {challenge.id ? `#${challenge.id}: ${title}` : title}
-                        </h2>
+                    {/* Scrollable Content Container */}
+                    <div style={{ 
+                        flex: 1, 
+                        overflow: 'auto', 
+                        paddingRight: '10px',
+                        marginRight: '-10px'
+                    }}>
+                        {/* Challenge Header */}
+                        <div style={{ marginBottom: '24px' }}>
+                            <h2 style={{ 
+                                fontSize: '1.875rem',
+                                fontWeight: 700,
+                                color: '#f5f5f7',
+                                margin: 0,
+                                marginBottom: '16px',
+                                letterSpacing: '-0.025em'
+                            }}>
+                                {challenge.id ? `#${challenge.id}: ${title}` : title}
+                            </h2>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                             <span style={{
                                 background: difficulty <= 3 ? 
@@ -721,6 +732,7 @@ const ChallengeView = ({
                             </div>
                         </div>
                     )}
+                    </div>
                 </div>
             </div>
         );
