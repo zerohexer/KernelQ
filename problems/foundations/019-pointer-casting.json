@@ -1,0 +1,260 @@
+{
+  "id": 19,
+  "title": "Pointer Casting - Multi-Level Type Conversion Mastery",
+  "phase": "foundations", 
+  "difficulty": 7,
+  "xp": 60,
+  "description": "Master multi-level pointer casting chains: void* → generic_record* → sensor_record*. Learn the exact patterns used in production kernel parsers for safe type conversion and record processing.",
+  "mainFile": "pointer_casting.c",
+  "files": [
+    {
+      "name": "pointer_casting.h",
+      "content": "#ifndef POINTER_CASTING_H\n#define POINTER_CASTING_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n#define MAX_NAME_LEN 32\n\n/* Record type constants */\n#define SENSOR_RECORD 1\n#define DEVICE_RECORD 2\n\n/* Base record header (like rec_header) */\ntypedef struct {\n    uint8_t rec_type;\n    uint8_t rec_subtype;\n    uint16_t rec_length;\n} record_header;\n\n/* Generic record (like rec_unknown) */\ntypedef struct {\n    record_header header;\n    void* data;\n} generic_record;\n\n/* Specific record types (like rec_ptr, rec_mpr) */\ntypedef struct {\n    record_header header;\n    uint32_t sensor_id;\n    char sensor_name[MAX_NAME_LEN];\n    uint32_t measurement_value;\n} sensor_record;\n\ntypedef struct {\n    record_header header;\n    uint32_t device_id;\n    char device_status[MAX_NAME_LEN];\n    bool is_active;\n} device_record;\n\n/* Global record pointers for testing */\nextern generic_record *current_record;\nextern sensor_record *sensor_data;\nextern device_record *device_data;\n\n/* TODO: Declare your functions */\n/* void process_generic_record(void *raw_record); */\n/* void extract_sensor_data(generic_record *rec); */\n/* void extract_device_data(generic_record *rec); */\n/* void print_record_info(void); */\n\n#endif /* POINTER_CASTING_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "pointer_casting.c", 
+      "content": "#include \"pointer_casting.h\"\n\n/* Global record pointers initialized to NULL */\ngeneric_record *current_record = NULL;\nsensor_record *sensor_data = NULL;\ndevice_record *device_data = NULL;\n\nint test_record_type = SENSOR_RECORD;\nint test_sensor_id = 1001;\nint test_measurement = 257;\nint test_device_id = 2001;\n\n/* IMPORTANT: DO NOT REMOVE OR MODIFY THE LINES BELOW!\n * These module parameter declarations are required for validation testing.\n * The testing system uses these to verify your casting logic works\n * with different input values. Removing them will cause test failures.\n */\nmodule_param(test_record_type, int, 0644);\nMODULE_PARM_DESC(test_record_type, \"Record type for testing casting logic\");\nmodule_param(test_sensor_id, int, 0644);\nMODULE_PARM_DESC(test_sensor_id, \"Sensor ID for anti-hardcoding testing\");\nmodule_param(test_measurement, int, 0644);\nMODULE_PARM_DESC(test_measurement, \"Measurement value for anti-hardcoding testing\");\nmodule_param(test_device_id, int, 0644);\nMODULE_PARM_DESC(test_device_id, \"Device ID for anti-hardcoding testing\");\n/* END OF REQUIRED MODULE PARAMETER SECTION */\n\n/* PATTERN SCAFFOLDING: How multi-level pointer casting works in C */\n/* Basic pattern for casting pointers step by step:\n *\n * void *raw_ptr = get_generic_pointer();\n * generic_record *rec = (generic_record *)raw_ptr;  // Cast void* to generic type\n * sensor_record *sensor = (sensor_record *)rec;      // Cast generic to specific type\n *\n * This is like: void* → generic_record* → sensor_record*\n */\n\n/* CASTING OPERATORS: */\n/* (type_name *)pointer means \"treat this pointer as type_name*\" */\n/* Example: (sensor_record *)rec means \"treat rec as sensor_record*\" */\n\n/* Predefined sensor record for testing */\nstatic sensor_record test_sensor = {\n    .header = { .rec_type = SENSOR_RECORD, .rec_subtype = 1, .rec_length = 48 },\n    .sensor_id = 1001,\n    .sensor_name = \"temperature_01\",\n    .measurement_value = 257\n};\n\n/* Predefined device record for testing */\nstatic device_record test_device = {\n    .header = { .rec_type = DEVICE_RECORD, .rec_subtype = 1, .rec_length = 52 },\n    .device_id = 2001,\n    .device_status = \"operational\",\n    .is_active = true\n};\n\n/* TODO: Implement multi-level casting function */\n/* Use the pattern above: void* → generic_record* → specific_record* */\nvoid process_generic_record(void *raw_record) {\n    // Step 1: Cast void* to generic_record*\n    // Step 2: Check header.rec_type\n    // Step 3: Cast to sensor_record* or device_record*\n    // Your implementation here\n}\n\n/* TODO: Implement sensor data extraction */\nvoid extract_sensor_data(generic_record *rec) {\n    // Cast generic_record* to sensor_record*\n    // Store sensor data and print information\n    // Your implementation here\n}\n\n/* TODO: Implement device data extraction */\nvoid extract_device_data(generic_record *rec) {\n    // Cast generic_record* to device_record*\n    // Store device data and print information\n    // Your implementation here\n}\n\nvoid print_record_info(void) {\n    if (!current_record) {\n        printk(KERN_ERR \"No current record available\\n\");\n        return;\n    }\n    \n    printk(KERN_INFO \"Current Record Info:\\n\");\n    printk(KERN_INFO \"Record Type: %u\\n\", current_record->header.rec_type);\n    printk(KERN_INFO \"Record Length: %u\\n\", current_record->header.rec_length);\n}\n\nstatic int __init pointer_casting_init(void)\n{\n    void *test_record;\n    \n    printk(KERN_INFO \"Pointer casting module loaded\\n\");\n    \n    /* Create test records dynamically with runtime parameter values */\n    if (test_record_type == SENSOR_RECORD) {\n        /* Update sensor record with dynamic parameter values */\n        test_sensor.sensor_id = test_sensor_id;\n        test_sensor.measurement_value = test_measurement;\n        test_record = (void *)&test_sensor;\n    } else {\n        /* Update device record with dynamic parameter values */\n        test_device.device_id = test_device_id;\n        test_record = (void *)&test_device;\n    }\n    \n    /* Process the record using multi-level casting */\n    process_generic_record(test_record);\n    \n    /* Print record information */\n    print_record_info();\n    \n    return 0;\n}\n\nstatic void __exit pointer_casting_exit(void)\n{\n    printk(KERN_INFO \"Pointer casting module unloaded\\n\");\n    \n    /* Reset pointers */\n    current_record = NULL;\n    sensor_data = NULL;\n    device_data = NULL;\n}\n\nmodule_init(pointer_casting_init);\nmodule_exit(pointer_casting_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Learning multi-level pointer casting and type conversion\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Pointer casting module Makefile\nobj-m += pointer_casting.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "multi-level pointer casting",
+    "void* generic pointers",
+    "type-safe casting patterns", 
+    "polymorphic C structures",
+    "record header patterns",
+    "production parsing techniques"
+  ],
+  "skills": [
+    "Casting void* to specific types safely",
+    "Understanding pointer type conversion",
+    "Implementing polymorphic C patterns",
+    "Using casting chains like libstdf",
+    "Professional kernel development practices",
+    "Type safety validation"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["pointer_casting_init", "pointer_casting_exit", "process_generic_record", "extract_sensor_data", "extract_device_data", "print_record_info"],
+      "function_declarations": [
+        { "name": "process_generic_record", "returnType": "void", "parameters": ["void *raw_record"] },
+        { "name": "extract_sensor_data", "returnType": "void", "parameters": ["generic_record *rec"] },
+        { "name": "extract_device_data", "returnType": "void", "parameters": ["generic_record *rec"] },
+        { "name": "print_record_info", "returnType": "void", "parameters": [] }
+      ],
+      "variables_declarations": [
+        { "name": "record_header", "type": "typedef struct", "value": "{uint8_t rec_type; uint8_t rec_subtype; uint16_t rec_length;}", "storageClass": "none" },
+        { "name": "generic_record", "type": "typedef struct", "value": "{record_header header; void* data;}", "storageClass": "none" },
+        { "name": "sensor_record", "type": "typedef struct", "value": "{record_header header; uint32_t sensor_id; char sensor_name[MAX_NAME_LEN]; uint32_t measurement_value;}", "storageClass": "none" },
+        { "name": "device_record", "type": "typedef struct", "value": "{record_header header; uint32_t device_id; char device_status[MAX_NAME_LEN]; bool is_active;}", "storageClass": "none" },
+        { "name": "current_record", "type": "generic_record *", "storageClass": "extern" },
+        { "name": "sensor_data", "type": "sensor_record *", "storageClass": "extern" },
+        { "name": "device_data", "type": "device_record *", "storageClass": "extern" }
+      ],
+      "variables": [
+        { "name": "current_record", "type": "generic_record *", "value": "NULL", "storageClass": "none" },
+        { "name": "sensor_data", "type": "sensor_record *", "value": "NULL", "storageClass": "none" },
+        { "name": "device_data", "type": "device_record *", "value": "NULL", "storageClass": "none" }
+      ],
+      "outputMessages": [
+        "Pointer casting module loaded",
+        "Sensor Record Extracted",
+        "Sensor ID: 1001",
+        "Sensor Name: temperature_01",
+        "Measurement: 257",
+        "Current Record Info:",
+        "Record Type: 1",
+        "Record Subtype: 1",
+        "Record Length: 52",
+        "Pointer casting module unloaded"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/types.h"
+      ],
+      "mustContain": [
+        "generic_record *rec = (generic_record *)raw_record",
+        "sensor_record *sensor = (sensor_record *)rec",
+        "device_record *device = (device_record *)rec",
+        "current_record = rec",
+        "sensor_data = sensor",
+        "device_data = device",
+        "if (rec->header.rec_type == SENSOR_RECORD)",
+        "module_param(test_record_type, int, 0644)",
+        "module_param(test_sensor_id, int, 0644)",
+        "module_param(test_measurement, int, 0644)",
+        "module_param(test_device_id, int, 0644)"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_declarations",
+        "name": "Function Declarations in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void process_generic_record(void *raw_record)",
+          "void extract_sensor_data(generic_record *rec)",
+          "void extract_device_data(generic_record *rec)",
+          "void print_record_info(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void process_generic_record(void *raw_record)",
+          "void extract_sensor_data(generic_record *rec)",
+          "void extract_device_data(generic_record *rec)",
+          "void print_record_info(void)",
+          "static int __init pointer_casting_init(void)",
+          "static void __exit pointer_casting_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Pointer casting module loaded", "exact": true, "linkedFunction": "static int __init pointer_casting_init(void)" },
+          { "pattern": "Sensor Record Extracted", "exact": true, "linkedFunction": "void extract_sensor_data(generic_record *rec)" },
+          { "pattern": "Sensor ID: 1001", "exact": true, "linkedFunction": "void extract_sensor_data(generic_record *rec)" },
+          { "pattern": "Sensor Name: temperature_01", "exact": true, "linkedFunction": "void extract_sensor_data(generic_record *rec)" },
+          { "pattern": "Measurement: 257", "exact": true, "linkedFunction": "void extract_sensor_data(generic_record *rec)" },
+          { "pattern": "Current Record Info:", "exact": true, "linkedFunction": "void print_record_info(void)" },
+          { "pattern": "Record Type: 1", "exact": true, "linkedFunction": "void print_record_info(void)" },
+          { "pattern": "Record Subtype: 1", "exact": true, "linkedFunction": "void print_record_info(void)" },
+          { "pattern": "Record Length: 52", "exact": true, "linkedFunction": "void print_record_info(void)" },
+          { "pattern": "Pointer casting module unloaded", "exact": true, "linkedFunction": "static void __exit pointer_casting_exit(void)" }
+        ]
+      },
+      {
+        "id": "advanced_casting_validation",
+        "name": "Advanced Multi-Level Casting Implementation with Anti-Hardcoding Protection",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "casting_dynamic_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <time.h>\\n\\nint main() {\\n    printf(\\\"=== Dynamic Anti-Hardcoding Casting Test ===\\\\n\\\");\\n    \\n    // Seed random number generator with current time\\n    srand(time(NULL));\\n    \\n    // Generate unpredictable sensor test values\\n    int random_sensor_id = (rand() % 9000) + 1000;  // 1000-9999\\n    int random_measurement = (rand() % 500) + 100;   // 100-599\\n    \\n    // Generate unpredictable device test values\\n    int random_device_id = (rand() % 8000) + 2000;  // 2000-9999\\n    \\n    printf(\\\"Test 1: Random sensor casting (ID=%d, measurement=%d)\\\\n\\\", random_sensor_id, random_measurement);\\n    printf(\\\"Test 2: Random device casting (ID=%d)\\\\n\\\", random_device_id);\\n    \\n    // Test sensor record casting with random values\\n    printf(\\\"DEBUG: Unloading previous module...\\\\n\\\");\\n    system(\\\"rmmod pointer_casting 2>/dev/null\\\");\\n    \\n    char cmd1[512];\\n    snprintf(cmd1, sizeof(cmd1), \\\"insmod /lib/modules/pointer_casting.ko test_record_type=1 test_sensor_id=%d test_measurement=%d\\\", random_sensor_id, random_measurement);\\n    printf(\\\"DEBUG: Sensor command: %s\\\\n\\\", cmd1);\\n    system(cmd1);\\n    \\n    \\n    // Test device record casting with random values\\n    printf(\\\"DEBUG: Switching to device test...\\\\n\\\");\\n    system(\\\"rmmod pointer_casting\\\");\\n    \\n    char cmd2[512];\\n    snprintf(cmd2, sizeof(cmd2), \\\"insmod /lib/modules/pointer_casting.ko test_record_type=2 test_device_id=%d\\\", random_device_id);\\n    printf(\\\"DEBUG: Device command: %s\\\\n\\\", cmd2);\\n    system(cmd2);\\n    \\n    printf(\\\"SUCCESS: Anti-hardcoding casting test completed\\\\n\\\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting advanced multi-level casting implementation validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: Ultra-Fast TCC Header Validation'",
+            "echo 'Creating minimal kernel header stubs for TCC...'",
+            "mkdir -p /tmp/linux",
+            "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
+            "echo '#define KERN_ERR' >> /tmp/linux/kernel.h",
+            "echo 'int printk(const char *fmt, ...);' >> /tmp/linux/kernel.h",
+            "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
+            "echo '#define MODULE_AUTHOR(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_DESCRIPTION(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_VERSION(x)' >> /tmp/linux/module.h",
+            "echo '#define module_init(x)' >> /tmp/linux/module.h",
+            "echo '#define module_exit(x)' >> /tmp/linux/module.h",
+            "echo '#define module_param(name, type, perm)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_PARM_DESC(var, desc)' >> /tmp/linux/module.h",
+            "echo '#define __init' > /tmp/linux/init.h",
+            "echo '#define __exit' >> /tmp/linux/init.h",
+            "echo 'typedef int bool;' > /tmp/linux/types.h",
+            "echo 'typedef unsigned char uint8_t;' >> /tmp/linux/types.h",
+            "echo 'typedef unsigned short uint16_t;' >> /tmp/linux/types.h",
+            "echo 'typedef unsigned int uint32_t;' >> /tmp/linux/types.h",
+            "echo 'typedef unsigned long size_t;' >> /tmp/linux/types.h",
+            "echo '#define true 1' >> /tmp/linux/types.h",
+            "echo '#define false 0' >> /tmp/linux/types.h",
+            "echo '#define MAX_NAME_LEN 32' >> /tmp/linux/types.h",
+            "echo 'Creating test file that includes casting header...'",
+            "echo '#include \"/lib/modules/pointer_casting.h\"' > /tmp/test.c",
+            "echo 'int main() { current_record->header.rec_type = 1; process_generic_record((void*)0); extract_sensor_data((generic_record*)0); extract_device_data((generic_record*)0); print_record_info(); return 0; }' >> /tmp/test.c",
+            "echo 'Running TCC validation...'",
+            "/usr/bin/tcc -I/tmp -Wimplicit-function-declaration -Werror -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
+            "TCC_EXIT_CODE=$?",
+            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Function or variable declaration missing or commented in header'; echo 'TCC Error Details:'; cat /tmp/tcc_error.log; else echo 'PASS: All function and variable declarations found in header file'; fi",
+            "echo 'Phase 2: Anti-Hardcoding Dynamic Casting Test'",
+            "/bin/casting_dynamic_tester > /tmp/test_output.log",
+            "cat /tmp/test_output.log",
+            "echo 'Phase 3: Random Value Extraction and Validation'",
+            "echo 'Adding delay to ensure dmesg messages are written...'",
+            "sleep 1",
+            "echo 'Extracting random test values from output...'",
+            "SENSOR_ID=$(grep -o 'Random sensor casting (ID=[0-9]*' /tmp/test_output.log | cut -d'=' -f2)",
+            "SENSOR_MEASUREMENT=$(grep -o 'measurement=[0-9]*' /tmp/test_output.log | cut -d'=' -f2)",
+            "DEVICE_ID=$(grep -o 'Random device casting (ID=[0-9]*)' /tmp/test_output.log | cut -d'=' -f2 | cut -d')' -f1)",
+            "echo 'Extracted values: SENSOR_ID='$SENSOR_ID', MEASUREMENT='$SENSOR_MEASUREMENT', DEVICE_ID='$DEVICE_ID",
+            "if [ -z \"$SENSOR_ID\" ] || [ -z \"$SENSOR_MEASUREMENT\" ] || [ -z \"$DEVICE_ID\" ]; then echo 'FAIL: Could not extract random test values'; else echo 'PASS: Random values extracted successfully'; fi",
+            "echo 'Phase 4: Anti-Hardcoding Validation with Random Values'",
+            "echo 'Validating sensor casting with random ID '$SENSOR_ID",
+            "dmesg | grep \"Sensor ID: $SENSOR_ID\" && echo 'PASS: Sensor casting with random ID working' || echo 'FAIL: Sensor casting with random ID broken'",
+            "echo 'Validating sensor measurement with random value '$SENSOR_MEASUREMENT",
+            "dmesg | grep \"Measurement: $SENSOR_MEASUREMENT\" && echo 'PASS: Sensor measurement with random value working' || echo 'FAIL: Sensor measurement with random value broken'",
+            "echo 'Validating device casting with random ID '$DEVICE_ID",
+            "dmesg | grep \"Device ID: $DEVICE_ID\" && echo 'PASS: Device casting with random ID working' || echo 'FAIL: Device casting with random ID broken'",
+            "echo 'Phase 5: Static Field Validation (Non-Randomized Fields)'",
+            "dmesg | grep 'Sensor Name: temperature_01' && echo 'PASS: Sensor name field access working' || echo 'FAIL: Sensor name field access broken'",
+            "dmesg | grep 'Device Status: operational' && echo 'PASS: Device status field access working' || echo 'FAIL: Device status field access broken'",
+            "echo 'Phase 6: Casting Logic and Record Type Validation'",
+            "dmesg | grep 'Sensor Record Extracted' && echo 'PASS: Sensor extraction logic working' || echo 'FAIL: Sensor extraction logic broken'",
+            "dmesg | grep 'Device Record Extracted' && echo 'PASS: Device extraction logic working' || echo 'FAIL: Device extraction logic broken'",
+            "dmesg | grep 'Current Record Info:' && echo 'PASS: Record info display working' || echo 'FAIL: Record info display broken'",
+            "echo 'Phase 7: Final Validation Summary'",
+            "echo 'All phases completed successfully - anti-hardcoding protection verified'",
+            "echo 'PASS: All anti-hardcoding casting validation successful'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Pointer casting module loaded",
+              "Sensor Record Extracted",
+              "Sensor ID: .*",
+              "Sensor Name: temperature_01",
+              "Measurement: .*",
+              "Device Record Extracted", 
+              "Device ID: .*",
+              "Device Status: operational",
+              "Current Record Info:",
+              "Record Type: .*"
+            ],
+            "stdout": [
+              "PASS: All function and variable declarations found in header file",
+              "SUCCESS: Anti-hardcoding casting test completed",
+              "PASS: Random values extracted successfully",
+              "PASS: Sensor casting with random ID working",
+              "PASS: Sensor measurement with random value working",
+              "PASS: Device casting with random ID working",
+              "PASS: Sensor name field access working",
+              "PASS: Device status field access working",
+              "PASS: Sensor extraction logic working",
+              "PASS: Device extraction logic working",
+              "PASS: Record info display working",
+              "PASS: All anti-hardcoding casting validation successful"
+            ]
+          },
+          "timeout": 15
+        }
+      }
+    ]
+  }
+}
