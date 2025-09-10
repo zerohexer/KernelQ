@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Target, Book, Star, Zap, Code, Terminal, Play, Timer, Shuffle, Maximize2, Minimize2, HelpCircle, CheckCircle2, Circle, X } from 'lucide-react';
 import PremiumStyles from '../../styles/PremiumStyles';
 import ResizableSplitter from '../Layout/ResizableSplitter';
@@ -25,6 +25,7 @@ const ChallengeView = ({
     const [isFullScreen, setIsFullScreen] = useState(false); // True full-screen mode
     const [showFloatingHelp, setShowFloatingHelp] = useState(false); // Floating help modal
     const [completedRequirements, setCompletedRequirements] = useState(new Set()); // Track completed requirements
+    const scrollContainerRef = useRef(null); // Ref for scroll position preservation
 
     // Keyboard shortcut handler for Shift+Z
     useEffect(() => {
@@ -47,8 +48,11 @@ const ChallengeView = ({
         return match ? match[1] : signature;
     };
 
-    // Toggle function link expansion
+    // Toggle function link expansion with scroll position preservation
     const toggleFunctionLink = (outputIndex) => {
+        // Store current scroll position before state update
+        const currentScrollTop = scrollContainerRef.current?.scrollTop || 0;
+        
         const newExpanded = new Set(expandedFunctionLinks);
         if (newExpanded.has(outputIndex)) {
             newExpanded.delete(outputIndex);
@@ -56,6 +60,13 @@ const ChallengeView = ({
             newExpanded.add(outputIndex);
         }
         setExpandedFunctionLinks(newExpanded);
+        
+        // Restore scroll position after state update
+        setTimeout(() => {
+            if (scrollContainerRef.current) {
+                scrollContainerRef.current.scrollTop = currentScrollTop;
+            }
+        }, 0);
     };
 
     // Toggle requirement completion
@@ -171,14 +182,7 @@ const ChallengeView = ({
                             flex: 1, 
                             overflow: 'auto', 
                             paddingRight: '20px',
-                            marginRight: '-20px',
-                            marginTop: '0px',
-                            paddingTop: '0px',
-                            scrollBehavior: 'smooth'
-                        }}
-                        onWheel={(e) => {
-                            // Ensure smooth scrolling and prevent event bubbling
-                            e.stopPropagation();
+                            marginRight: '-20px'
                         }}
                         className="floating-help-scroll"
                     >
@@ -192,13 +196,13 @@ const ChallengeView = ({
                                 marginBottom: '16px',
                                 letterSpacing: '-0.025em'
                             }}>
-                                {challenge.id ? `#${challenge.id}: ${title}` : title}
+                                {challenge.id ? `#${challenge.id}: ${challenge.title}` : challenge.title}
                             </h2>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                             <span style={{
-                                background: difficulty <= 3 ? 
+                                background: challenge.difficulty <= 3 ? 
                                     'linear-gradient(135deg, #30d158 0%, #bf5af2 100%)' :
-                                    difficulty <= 6 ?
+                                    challenge.difficulty <= 6 ?
                                     'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)' :
                                     'linear-gradient(135deg, #ff453a 0%, #bf5af2 100%)',
                                 color: 'white',
@@ -211,7 +215,7 @@ const ChallengeView = ({
                                 gap: '6px'
                             }}>
                                 <Star size={14} />
-                                <span>Level {difficulty}</span>
+                                <span>Level {challenge.difficulty}</span>
                             </span>
                             <span style={{
                                 background: 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
@@ -225,7 +229,7 @@ const ChallengeView = ({
                                 gap: '6px'
                             }}>
                                 <Zap size={14} />
-                                <span>{xp} XP</span>
+                                <span>{challenge.xp} XP</span>
                             </span>
                         </div>
                     </div>
@@ -253,7 +257,7 @@ const ChallengeView = ({
                             color: 'rgba(245, 245, 247, 0.8)',
                             margin: 0
                         }}>
-                            {description}
+                            {challenge.description}
                         </p>
                     </div>
 
@@ -287,9 +291,9 @@ const ChallengeView = ({
                             listStyleType: 'none'
                         }}>
                             {/* Header Requirements Section */}
-                            {((validation?.exactRequirements?.variables_declarations && validation.exactRequirements.variables_declarations.length > 0) || 
-                              (validation?.exactRequirements?.mustContain && validation.exactRequirements.mustContain.some(item => item.includes('(') && !item.includes('='))) ||
-                              (validation?.testCases?.find(tc => tc.id === 'function_declarations' || tc.id === 'function_declaration')?.expectedSymbols?.length > 0)
+                            {((challenge.validation?.exactRequirements?.variables_declarations && challenge.validation.exactRequirements.variables_declarations.length > 0) || 
+                              (challenge.validation?.exactRequirements?.mustContain && challenge.validation.exactRequirements.mustContain.some(item => item.includes('(') && !item.includes('='))) ||
+                              (challenge.validation?.testCases?.find(tc => tc.id === 'function_declarations' || tc.id === 'function_declaration')?.expectedSymbols?.length > 0)
                             ) && (
                                 <>
                                     <li style={{
@@ -304,7 +308,7 @@ const ChallengeView = ({
                                         Header File Requirements
                                     </li>
                                     {/* Display header variable declarations (no values) */}
-                                    {validation?.exactRequirements?.variables_declarations?.map((variable, idx) => (
+                                    {challenge.validation?.exactRequirements?.variables_declarations?.map((variable, idx) => (
                                         <li key={`header-var-${idx}`} style={{ 
                                             marginBottom: '12px',
                                             position: 'relative',
@@ -358,7 +362,7 @@ const ChallengeView = ({
                                         </li>
                                     ))}
                                     {/* Display function declarations from function_declarations test case */}
-                                    {validation?.testCases?.find(tc => 
+                                    {challenge.validation?.testCases?.find(tc => 
                                         tc.id === 'function_declarations' || tc.id === 'function_declaration'
                                     )?.expectedSymbols?.map((funcDecl, idx) => {
                                         // Parse function signature: "int add_numbers(int a, int b)" -> returnType: "int", name: "add_numbers", params: "(int a, int b)"
@@ -434,7 +438,7 @@ const ChallengeView = ({
                             )}
 
                             {/* Source File Requirements Section */}
-                            {(validation?.exactRequirements?.functionNames || validation?.exactRequirements?.outputMessages) && (
+                            {(challenge.validation?.exactRequirements?.functionNames || challenge.validation?.exactRequirements?.outputMessages) && (
                                 <li style={{
                                     marginBottom: '16px',
                                     paddingLeft: '0',
@@ -449,7 +453,7 @@ const ChallengeView = ({
                             )}
 
                             {/* Show validation.exactRequirements if available */}
-                            {validation?.exactRequirements?.variables?.map((variable, idx) => (
+                            {challenge.validation?.exactRequirements?.variables?.map((variable, idx) => (
                                 <li key={`source-var-${idx}`} style={{ 
                                     marginBottom: '12px',
                                     position: 'relative',
@@ -503,8 +507,8 @@ const ChallengeView = ({
                                 </li>
                             ))}
                             {/* Display function signatures from function_signatures_source test case */}
-                            {validation?.testCases?.some(tc => tc.id === 'function_signatures_source') && 
-                             validation?.testCases?.find(tc => tc.id === 'function_signatures_source')?.expectedSymbols?.map((funcSig, idx) => {
+                            {challenge.validation?.testCases?.some(tc => tc.id === 'function_signatures_source') && 
+                             challenge.validation?.testCases?.find(tc => tc.id === 'function_signatures_source')?.expectedSymbols?.map((funcSig, idx) => {
                                 // Parse function signature: "static int __init hello_init(void)" -> static: "static", returnType: "int", attribute: "__init", name: "hello_init", params: "(void)"
                                 const parseFunction = (signature) => {
                                     // Match pattern: [storage_class] [returnType] [__init/__exit] functionName(params)
@@ -611,7 +615,7 @@ const ChallengeView = ({
                                 );
                             })}
                             {/* Function-linked outputs with collapsible function details */}
-                            {inputOutput?.functionLinkedOutputs?.map((output, idx) => (
+                            {challenge.inputOutput?.functionLinkedOutputs?.map((output, idx) => (
                                 <li key={`linked-${idx}`} style={{ 
                                     marginBottom: expandedFunctionLinks.has(idx) ? '8px' : '16px',
                                     position: 'relative',
@@ -695,7 +699,7 @@ const ChallengeView = ({
                                 </li>
                             ))}
                             {/* Include statements */}
-                            {validation?.exactRequirements?.requiredIncludes?.map((include, idx) => (
+                            {challenge.validation?.exactRequirements?.requiredIncludes?.map((include, idx) => (
                                 <li key={`include-${idx}`} style={{ 
                                     marginBottom: '12px',
                                     position: 'relative',

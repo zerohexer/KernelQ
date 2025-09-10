@@ -161,12 +161,12 @@ class ClangdProxy {
             setTimeout(() => {
                 try {
                     if (fs.existsSync(ws.workingDir)) {
-                        console.log('🧹 Cleaning up session workspace:', ws.sessionId);
+                        console.log('Cleaning up session workspace:', ws.sessionId);
                         fs.rmSync(ws.workingDir, { recursive: true, force: true });
-                        console.log('✅ Session workspace cleaned up:', ws.sessionId);
+                        console.log('Session workspace cleaned up:', ws.sessionId);
                     }
                 } catch (cleanupError) {
-                    console.warn('⚠️ Cleanup error for session', ws.sessionId + ':', cleanupError.message);
+                    console.warn('Cleanup error for session', ws.sessionId + ':', cleanupError.message);
                 }
             }, 300000); // 30 second delay for potential reconnections
         });
