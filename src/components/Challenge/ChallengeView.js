@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Target, Book, Star, Zap, Code, Terminal, Play, Timer, Shuffle, Maximize2, Minimize2, HelpCircle, CheckCircle2, Circle, X } from 'lucide-react';
 import PremiumStyles from '../../styles/PremiumStyles';
 import ResizableSplitter from '../Layout/ResizableSplitter';
@@ -25,6 +25,20 @@ const ChallengeView = ({
     const [isFullScreen, setIsFullScreen] = useState(false); // True full-screen mode
     const [showFloatingHelp, setShowFloatingHelp] = useState(false); // Floating help modal
     const [completedRequirements, setCompletedRequirements] = useState(new Set()); // Track completed requirements
+
+    // Keyboard shortcut handler for Shift+Z
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            // Only handle Shift+Z in full-screen mode
+            if (isFullScreen && event.shiftKey && event.key.toLowerCase() === 'z') {
+                event.preventDefault();
+                setShowFloatingHelp(prev => !prev);
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isFullScreen]);
 
     // Helper function to extract function name from signature
     const extractFunctionName = (signature) => {
@@ -117,11 +131,14 @@ const ChallengeView = ({
                     borderRadius: '12px',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
                     boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
-                    padding: '40px',
+                    paddingTop: '65px',
+                    paddingLeft: '25px',
+                    paddingRight: '40px',
+                    paddingBottom: '17px',
                     width: '90vw',
                     maxWidth: '1200px',
-                    height: '85vh',
-                    maxHeight: '85vh',
+                    height: '90vh',
+                    maxHeight: '90vh',
                     overflow: 'hidden',
                     position: 'relative',
                     display: 'flex',
@@ -149,12 +166,22 @@ const ChallengeView = ({
                     </button>
 
                     {/* Scrollable Content Container */}
-                    <div style={{ 
-                        flex: 1, 
-                        overflow: 'auto', 
-                        paddingRight: '10px',
-                        marginRight: '-10px'
-                    }}>
+                    <div 
+                        style={{ 
+                            flex: 1, 
+                            overflow: 'auto', 
+                            paddingRight: '20px',
+                            marginRight: '-20px',
+                            marginTop: '0px',
+                            paddingTop: '0px',
+                            scrollBehavior: 'smooth'
+                        }}
+                        onWheel={(e) => {
+                            // Ensure smooth scrolling and prevent event bubbling
+                            e.stopPropagation();
+                        }}
+                        className="floating-help-scroll"
+                    >
                         {/* Challenge Header */}
                         <div style={{ marginBottom: '24px' }}>
                             <h2 style={{ 
@@ -867,7 +894,7 @@ const ChallengeView = ({
                             }}
                             title="Show problem details"
                         >
-                            <span>Show problem details</span>
+                            <span>Shift + Z - Show problem details</span>
                             <HelpCircle size={16} />
                         </button>
 
@@ -1160,6 +1187,24 @@ const ChallengeView = ({
                 </div>
 
                 <FloatingHelp />
+                
+                {/* CSS for better scrollbar in floating modal */}
+                <style>{`
+                    .floating-help-scroll::-webkit-scrollbar {
+                        width: 8px;
+                    }
+                    .floating-help-scroll::-webkit-scrollbar-track {
+                        background: rgba(255, 255, 255, 0.1);
+                        border-radius: 4px;
+                    }
+                    .floating-help-scroll::-webkit-scrollbar-thumb {
+                        background: rgba(255, 255, 255, 0.3);
+                        border-radius: 4px;
+                    }
+                    .floating-help-scroll::-webkit-scrollbar-thumb:hover {
+                        background: rgba(255, 255, 255, 0.5);
+                    }
+                `}</style>
             </div>
         );
     }
