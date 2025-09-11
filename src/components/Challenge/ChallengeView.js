@@ -1306,7 +1306,7 @@ const ChallengeView = ({
                                     marginLeft: '16px',
                                     flexShrink: 0
                                 }}
-                                title="Full-screen coding mode"
+                                title="Shift + F - Full-screen coding mode"
                             >
                                 <Maximize2 size={16} />
                             </button>

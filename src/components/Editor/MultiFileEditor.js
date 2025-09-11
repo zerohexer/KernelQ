@@ -317,6 +317,7 @@ const MultiFileEditor = ({
           <button
             onClick={parentFullScreen ? handleFullScreenToggle : undefined}
             disabled={!parentFullScreen}
+            title="Shift + C - Toggle Full-Screen"
             style={{
               background: 'none',
               border: 'none',
