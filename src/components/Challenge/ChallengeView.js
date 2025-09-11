@@ -25,15 +25,28 @@ const ChallengeView = ({
     const [isFullScreen, setIsFullScreen] = useState(false); // True full-screen mode
     const [showFloatingHelp, setShowFloatingHelp] = useState(false); // Floating help modal
     const [completedRequirements, setCompletedRequirements] = useState(new Set()); // Track completed requirements
+    const [editorFullScreen, setEditorFullScreen] = useState(false); // Editor full-screen within main full-screen
     const scrollContainerRef = useRef(null); // Ref for scroll position preservation
 
-    // Keyboard shortcut handler for Shift+Z
+    // Keyboard shortcut handlers
     useEffect(() => {
         const handleKeyDown = (event) => {
-            // Only handle Shift+Z in full-screen mode
+            // Shift+Z: Toggle floating help (only in full-screen mode)
             if (isFullScreen && event.shiftKey && event.key.toLowerCase() === 'z') {
                 event.preventDefault();
                 setShowFloatingHelp(prev => !prev);
+            }
+            
+            // Shift+F: Toggle full-screen mode (works in any mode)
+            if (event.shiftKey && event.key.toLowerCase() === 'f') {
+                event.preventDefault();
+                setIsFullScreen(prev => !prev);
+            }
+            
+            // Shift+C: Toggle editor full-screen (only in main full-screen mode)
+            if (isFullScreen && event.shiftKey && event.key.toLowerCase() === 'c') {
+                event.preventDefault();
+                setEditorFullScreen(prev => !prev);
             }
         };
 
@@ -1024,6 +1037,8 @@ const ChallengeView = ({
                                                     allowFileCreation={challenge.requiredFiles && challenge.requiredFiles.length > 0}
                                                     allowFileDeletion={challenge.requiredFiles && challenge.requiredFiles.length > 0}
                                                     parentFullScreen={true}
+                                                    editorFullScreen={editorFullScreen}
+                                                    onEditorFullScreenChange={setEditorFullScreen}
                                                 />
                                             ) : (
                                                 <SemanticCodeEditor

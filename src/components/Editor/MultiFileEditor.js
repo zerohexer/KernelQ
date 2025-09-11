@@ -14,7 +14,9 @@ const MultiFileEditor = ({
   requiredFiles = [],
   allowFileCreation = false,
   allowFileDeletion = false,
-  parentFullScreen = false
+  parentFullScreen = false,
+  editorFullScreen = false,
+  onEditorFullScreenChange = null
 }) => {
   // Generate unique session ID for this editor instance
   const sessionId = useRef(crypto.randomUUID()).current;
@@ -29,6 +31,16 @@ const MultiFileEditor = ({
   const [activeFile, setActiveFile] = useState(mainFile || (files && files[0] ? files[0].name : ''));
   const [fileContents, setFileContents] = useState({});
   const [isFullScreen, setIsFullScreen] = useState(false);
+  
+  // Use external full-screen state if provided
+  const effectiveIsFullScreen = onEditorFullScreenChange ? editorFullScreen : isFullScreen;
+  const handleFullScreenToggle = () => {
+    if (onEditorFullScreenChange) {
+      onEditorFullScreenChange(!editorFullScreen);
+    } else {
+      setIsFullScreen(!isFullScreen);
+    }
+  };
   const resizeTimeoutRef = useRef(null);
 
   // Initialize file contents from props
@@ -230,16 +242,16 @@ const MultiFileEditor = ({
 
   return (
     <div style={{
-        height: isFullScreen ? '100vh' : height,
+        height: effectiveIsFullScreen ? '100vh' : height,
         width: '100%',
         display: 'flex',
         ...premiumStyles.glass.light,
         borderRadius: '12px',
         overflow: 'hidden',
-        position: isFullScreen ? 'fixed' : 'relative',
-        top: isFullScreen ? 0 : 'auto',
-        left: isFullScreen ? 0 : 'auto',
-        zIndex: isFullScreen ? 1000 : 'auto'
+        position: effectiveIsFullScreen ? 'fixed' : 'relative',
+        top: effectiveIsFullScreen ? 0 : 'auto',
+        left: effectiveIsFullScreen ? 0 : 'auto',
+        zIndex: effectiveIsFullScreen ? 1000 : 'auto'
       }}>
       {/* File Explorer */}
       {showFileExplorer && (
@@ -303,7 +315,7 @@ const MultiFileEditor = ({
           </div>
 
           <button
-            onClick={parentFullScreen ? () => setIsFullScreen(!isFullScreen) : undefined}
+            onClick={parentFullScreen ? handleFullScreenToggle : undefined}
             disabled={!parentFullScreen}
             style={{
               background: 'none',
@@ -331,7 +343,7 @@ const MultiFileEditor = ({
               }
             }}
           >
-            {isFullScreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            {effectiveIsFullScreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </button>
         </div>
 
