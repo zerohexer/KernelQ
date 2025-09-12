@@ -255,15 +255,24 @@ const MultiFileEditor = ({
       }}>
       {/* File Explorer */}
       {showFileExplorer && (
-        <FileExplorer
-          files={files}
-          activeFile={activeFile}
-          onFileSelect={handleFileSelect}
-          onFileCreate={allowFileCreation ? handleFileCreate : null}
-          onFileDelete={allowFileDeletion ? handleFileDelete : null}
-          requiredFiles={requiredFiles}
-          premiumStyles={premiumStyles}
-        />
+        <div style={{
+          position: 'relative',
+          ...(effectiveIsFullScreen && {
+            backdropFilter: 'blur(20px)',
+            background: 'rgba(80, 80, 80, 0.65)',
+            borderRight: '1px solid rgba(255, 255, 255, 0.1)'
+          })
+        }}>
+          <FileExplorer
+            files={files}
+            activeFile={activeFile}
+            onFileSelect={handleFileSelect}
+            onFileCreate={allowFileCreation ? handleFileCreate : null}
+            onFileDelete={allowFileDeletion ? handleFileDelete : null}
+            requiredFiles={requiredFiles}
+            premiumStyles={premiumStyles}
+          />
+        </div>
       )}
 
       {/* Main Editor Area */}
