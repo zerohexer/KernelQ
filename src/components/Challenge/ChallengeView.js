@@ -27,6 +27,7 @@ const ChallengeView = ({
     const [completedRequirements, setCompletedRequirements] = useState(new Set()); // Track completed requirements
     const [editorFullScreen, setEditorFullScreen] = useState(false); // Editor full-screen within main full-screen
     const scrollContainerRef = useRef(null); // Ref for scroll position preservation
+    const floatingHelpScrollRef = useRef(null); // Ref for FloatingHelp modal scroll position
 
     // Keyboard shortcut handlers
     useEffect(() => {
@@ -61,25 +62,36 @@ const ChallengeView = ({
         return match ? match[1] : signature;
     };
 
-    // Toggle function link expansion with scroll position preservation
+    // Toggle function link expansion
     const toggleFunctionLink = (outputIndex) => {
-        // Store current scroll position before state update
-        const currentScrollTop = scrollContainerRef.current?.scrollTop || 0;
-        
-        const newExpanded = new Set(expandedFunctionLinks);
-        if (newExpanded.has(outputIndex)) {
-            newExpanded.delete(outputIndex);
-        } else {
-            newExpanded.add(outputIndex);
-        }
-        setExpandedFunctionLinks(newExpanded);
-        
-        // Restore scroll position after state update
-        setTimeout(() => {
-            if (scrollContainerRef.current) {
-                scrollContainerRef.current.scrollTop = currentScrollTop;
+        // For FloatingHelp modal, preserve scroll position naturally
+        if (showFloatingHelp && floatingHelpScrollRef.current) {
+            const scrollTop = floatingHelpScrollRef.current.scrollTop;
+            
+            const newExpanded = new Set(expandedFunctionLinks);
+            if (newExpanded.has(outputIndex)) {
+                newExpanded.delete(outputIndex);
+            } else {
+                newExpanded.add(outputIndex);
             }
-        }, 0);
+            setExpandedFunctionLinks(newExpanded);
+            
+            // Use requestAnimationFrame for smooth, non-teleport restoration
+            requestAnimationFrame(() => {
+                if (floatingHelpScrollRef.current) {
+                    floatingHelpScrollRef.current.scrollTop = scrollTop;
+                }
+            });
+        } else {
+            // Normal toggle for left panel (no scroll preservation needed)
+            const newExpanded = new Set(expandedFunctionLinks);
+            if (newExpanded.has(outputIndex)) {
+                newExpanded.delete(outputIndex);
+            } else {
+                newExpanded.add(outputIndex);
+            }
+            setExpandedFunctionLinks(newExpanded);
+        }
     };
 
     // Toggle requirement completion
@@ -191,11 +203,13 @@ const ChallengeView = ({
 
                     {/* Scrollable Content Container */}
                     <div 
+                        ref={floatingHelpScrollRef}
                         style={{ 
                             flex: 1, 
                             overflow: 'auto', 
                             paddingRight: '20px',
-                            marginRight: '-20px'
+                            marginRight: '-20px',
+                            scrollBehavior: 'auto'
                         }}
                         className="floating-help-scroll"
                     >
@@ -690,7 +704,9 @@ const ChallengeView = ({
                                                 marginTop: '-7px',
                                                 paddingLeft: '16px',
                                                 padding: '10px 4px',
-                                                borderRadius: '6px'
+                                                borderRadius: '6px',
+                                                contain: 'layout style',
+                                                willChange: 'auto'
                                             }}>
                                                 <code style={{ 
                                                     background: 'rgba(255, 204, 2, 0.15)',
