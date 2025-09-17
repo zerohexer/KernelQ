@@ -33,19 +33,19 @@ const ChallengeView = ({
     useEffect(() => {
         const handleKeyDown = (event) => {
             // Shift+Z: Toggle floating help (only in full-screen mode)
-            if (isFullScreen && event.shiftKey && event.key.toLowerCase() === 'z') {
+            if (isFullScreen && event.altKey && event.key.toLowerCase() === 'z') {
                 event.preventDefault();
                 setShowFloatingHelp(prev => !prev);
             }
             
             // Shift+F: Toggle full-screen mode (works in any mode)
-            if (event.shiftKey && event.key.toLowerCase() === 'f') {
+            if (event.altKey && event.key.toLowerCase() === 'f') {
                 event.preventDefault();
                 setIsFullScreen(prev => !prev);
             }
             
             // Shift+C: Toggle editor full-screen (only in main full-screen mode)
-            if (isFullScreen && event.shiftKey && event.key.toLowerCase() === 'c') {
+            if (isFullScreen && event.altKey && event.key.toLowerCase() === 'c') {
                 event.preventDefault();
                 setEditorFullScreen(prev => !prev);
             }
@@ -927,7 +927,7 @@ const ChallengeView = ({
                             }}
                             title="Show problem details"
                         >
-                            <span>Shift + Z - Show problem details</span>
+                            <span>Alt + Z - Show problem details</span>
                             <HelpCircle size={16} />
                         </button>
 
@@ -1322,7 +1322,7 @@ const ChallengeView = ({
                                     marginLeft: '16px',
                                     flexShrink: 0
                                 }}
-                                title="Shift + F - Full-screen coding mode"
+                                title="Alt + F - Full-screen coding mode"
                             >
                                 <Maximize2 size={16} />
                             </button>
