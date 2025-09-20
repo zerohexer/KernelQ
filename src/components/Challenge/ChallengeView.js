@@ -1017,7 +1017,7 @@ const ChallengeView = ({
                     </div>
 
                     {/* Tab Content */}
-                    <div style={{ flex: 1, padding: '24px', overflow: 'hidden' }}>
+                    <div style={{ flex: 1, padding: '24px', overflow: 'hidden', minHeight: 0 }}>
                         {activeTab === 'code' && (
                             <div style={{
                                 height: '100%',
@@ -1123,21 +1123,26 @@ const ChallengeView = ({
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
                                 overflow: 'hidden',
                                 display: 'flex',
-                                flexDirection: 'column'
+                                flexDirection: 'column',
+                                minHeight: 0
                             }}>
                                 {codeEditor.output || codeEditor.overallResult === 'COMPILATION_ERROR' || codeEditor.overallResult === 'PRE_COMPILATION_ERROR' ? (
                                     <div style={{
                                         background: 'rgba(29, 29, 31, 0.9)',
-                                        padding: '0',
+                                        borderRadius: '12px',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
                                         flex: 1,
                                         overflow: 'hidden',
                                         display: 'flex',
-                                        flexDirection: 'column'
+                                        flexDirection: 'column',
+                                        minHeight: 0,
+                                        maxHeight: 'calc(100vh - 180px)'
                                     }}>
                                         <div style={{
                                             padding: '20px 24px 16px 24px',
                                             borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                                            background: 'rgba(255, 255, 255, 0.02)'
+                                            background: 'rgba(255, 255, 255, 0.02)',
+                                            flexShrink: 0
                                         }}>
                                             <h4 style={{
                                                 fontSize: '1.125rem',
@@ -1148,13 +1153,17 @@ const ChallengeView = ({
                                                 Test Results
                                             </h4>
                                         </div>
-                                        <div style={{
-                                            flex: 1,
-                                            overflow: 'auto',
-                                            padding: '24px'
-                                        }}>
-                                            <TestResultsView 
-                                                testResults={codeEditor.testResults} 
+                                        <div
+                                            style={{
+                                                flex: 1,
+                                                overflow: 'auto',
+                                                padding: '24px 24px 60px 24px',
+                                                minHeight: 0
+                                            }}
+                                            className="fullscreen-test-results-scroll"
+                                        >
+                                            <TestResultsView
+                                                testResults={codeEditor.testResults}
                                                 rawOutput={codeEditor.output}
                                                 overallResult={codeEditor.overallResult}
                                                 feedback={codeEditor.feedback}
@@ -1223,21 +1232,31 @@ const ChallengeView = ({
 
                 <FloatingHelp />
                 
-                {/* CSS for better scrollbar in floating modal */}
+                {/* CSS for better scrollbars */}
                 <style>{`
-                    .floating-help-scroll::-webkit-scrollbar {
+                    .floating-help-scroll::-webkit-scrollbar,
+                    .fullscreen-test-results-scroll::-webkit-scrollbar {
                         width: 8px;
                     }
-                    .floating-help-scroll::-webkit-scrollbar-track {
+                    .floating-help-scroll::-webkit-scrollbar-track,
+                    .fullscreen-test-results-scroll::-webkit-scrollbar-track {
                         background: rgba(255, 255, 255, 0.1);
                         border-radius: 4px;
                     }
-                    .floating-help-scroll::-webkit-scrollbar-thumb {
+                    .floating-help-scroll::-webkit-scrollbar-thumb,
+                    .fullscreen-test-results-scroll::-webkit-scrollbar-thumb {
                         background: rgba(255, 255, 255, 0.3);
                         border-radius: 4px;
                     }
-                    .floating-help-scroll::-webkit-scrollbar-thumb:hover {
+                    .floating-help-scroll::-webkit-scrollbar-thumb:hover,
+                    .fullscreen-test-results-scroll::-webkit-scrollbar-thumb:hover {
                         background: rgba(255, 255, 255, 0.5);
+                    }
+
+                    /* Force scrollbar to always be visible in fullscreen mode */
+                    .fullscreen-test-results-scroll {
+                        scrollbar-width: thin;
+                        scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
                     }
                 `}</style>
             </div>
