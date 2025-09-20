@@ -2,7 +2,7 @@
   "id": 23,
   "title": "STDF Binary Parser - Production Semiconductor Data Processing",
   "phase": "foundations",
-  "difficulty": 8,
+  "difficulty": 9,
   "xp": 75,
   "description": "Master STDF (Standard Test Data Format) parsing using real production patterns. Learn header/data separation, record type dispatch, and multi-record processing exactly as used in semiconductor test systems and libstdf parsers.",
   "mainFile": "stdf_parser.c",
