@@ -7,7 +7,7 @@ const Ajv = require('ajv');
 
 class ProblemCLI {
     constructor() {
-        this.ajv = new Ajv();
+        this.ajv = new Ajv({ allowUnionTypes: true });
         this.schema = require('../problems/schema.json');
         this.validateProblem = this.ajv.compile(this.schema);
         this.rl = readline.createInterface({
@@ -94,6 +94,85 @@ class ProblemCLI {
             const functionNames = (await this.prompt('Required function names (comma-separated): ')).split(',').map(s => s.trim()).filter(s => s);
             const outputMessages = (await this.prompt('Expected output messages (comma-separated): ')).split(',').map(s => s.trim()).filter(s => s);
             const requiredIncludes = (await this.prompt('Required includes (comma-separated, default: linux/module.h,linux/kernel.h,linux/init.h): ') || 'linux/module.h,linux/kernel.h,linux/init.h').split(',').map(s => s.trim()).filter(s => s);
+
+            // Macro support
+            console.log('\n🔧 Macro Definitions:');
+            const hasMacros = (await this.prompt('Does this problem require macro definitions? (y/n): ')).toLowerCase() === 'y';
+            let macroDeclarations = [];
+            let macroDefinitions = [];
+            let mustContain = [];
+
+            if (hasMacros) {
+                console.log('\n   This problem uses macros. You can define them in two ways:');
+                console.log('   1. Simple mustContain patterns (recommended for exact validation)');
+                console.log('   2. Structured macro declarations/definitions (for frontend display)');
+
+                const useSimple = (await this.prompt('   Use simple mustContain patterns? (recommended y/n): ')).toLowerCase() === 'y';
+
+                if (useSimple) {
+                    console.log('\n   Enter exact macro definitions (one per line, empty line to finish):');
+                    console.log('   Example: #define DEVICE_TYPE_SENSOR 1');
+                    console.log('   Example: #define MAKE_VERSION(major, minor) ((major << 16) | minor)');
+
+                    let macroLine;
+                    while ((macroLine = await this.prompt('   Macro: ')) !== '') {
+                        mustContain.push(macroLine);
+                    }
+                } else {
+                    console.log('\n   📄 Header file macros (declarations):');
+                    const hasHeaderMacros = (await this.prompt('   Add header macro declarations? (y/n): ')).toLowerCase() === 'y';
+
+                    if (hasHeaderMacros) {
+                        let macroName;
+                        while ((macroName = await this.prompt('     Macro name (empty to finish): ')) !== '') {
+                            const macroType = await this.prompt('     Type (constant/function-like/conditional): ');
+                            const macroValue = await this.prompt('     Value: ');
+                            const macroDesc = await this.prompt('     Description: ');
+
+                            const macro = {
+                                name: macroName,
+                                type: macroType,
+                                value: macroValue,
+                                description: macroDesc
+                            };
+
+                            if (macroType === 'function-like') {
+                                const params = await this.prompt('     Parameters (comma-separated): ');
+                                macro.parameters = params.split(',').map(s => s.trim()).filter(s => s);
+                            }
+
+                            macroDeclarations.push(macro);
+                        }
+                    }
+
+                    console.log('\n   📝 Source file macros (definitions):');
+                    const hasSourceMacros = (await this.prompt('   Add source macro definitions? (y/n): ')).toLowerCase() === 'y';
+
+                    if (hasSourceMacros) {
+                        let macroName;
+                        while ((macroName = await this.prompt('     Macro name (empty to finish): ')) !== '') {
+                            const macroType = await this.prompt('     Type (constant/function-like/conditional): ');
+                            const macroValue = await this.prompt('     Value (optional): ');
+                            const macroDesc = await this.prompt('     Description: ');
+
+                            const macro = {
+                                name: macroName,
+                                type: macroType,
+                                description: macroDesc
+                            };
+
+                            if (macroValue) macro.value = macroValue;
+
+                            if (macroType === 'function-like') {
+                                const params = await this.prompt('     Parameters (comma-separated): ');
+                                macro.parameters = params.split(',').map(s => s.trim()).filter(s => s);
+                            }
+
+                            macroDefinitions.push(macro);
+                        }
+                    }
+                }
+            }
             
             // Anti-cheat setup
             console.log('\n🛡️ Anti-Cheat Protection:');
@@ -167,14 +246,24 @@ class ProblemCLI {
                 expected: ['module_init', 'module_exit', 'MODULE_LICENSE']
             });
             
+            const exactRequirements = {
+                functionNames: functionNames,
+                variables: [],
+                outputMessages: outputMessages,
+                requiredIncludes: requiredIncludes,
+                mustContain: mustContain
+            };
+
+            // Add macro arrays if they exist
+            if (macroDeclarations.length > 0) {
+                exactRequirements.macro_declarations = macroDeclarations;
+            }
+            if (macroDefinitions.length > 0) {
+                exactRequirements.macro_definitions = macroDefinitions;
+            }
+
             problem.validation = {
-                exactRequirements: {
-                    functionNames: functionNames,
-                    variables: [],
-                    outputMessages: outputMessages,
-                    requiredIncludes: requiredIncludes,
-                    mustContain: []
-                },
+                exactRequirements: exactRequirements,
                 testCases: testCases
             };
             

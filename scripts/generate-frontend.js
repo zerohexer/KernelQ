@@ -18,7 +18,7 @@ const Ajv = require('ajv');
 
 class FrontendGenerator {
     constructor() {
-        this.ajv = new Ajv();
+        this.ajv = new Ajv({ allowUnionTypes: true });
         this.schema = require('../problems/schema.json');
         this.validateProblem = this.ajv.compile(this.schema);
     }

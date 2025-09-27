@@ -388,8 +388,58 @@ const ChallengeView = ({
                                             )}
                                         </li>
                                     ))}
+                                    {/* Display header macro declarations in floating help */}
+                                    {challenge.validation?.exactRequirements?.macro_declarations?.map((macro, idx) => (
+                                        <li key={`floating-header-macro-${idx}`} style={{
+                                            marginBottom: '12px',
+                                            position: 'relative',
+                                            paddingLeft: '20px'
+                                        }}>
+                                            <span style={{
+                                                position: 'absolute',
+                                                left: 0,
+                                                top: '8px',
+                                                width: '6px',
+                                                height: '6px',
+                                                borderRadius: '50%',
+                                                background: '#32d74b'
+                                            }} />
+                                            Define macro: {' '}
+                                            <code style={{
+                                                background: 'rgba(50, 215, 75, 0.15)',
+                                                border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                color: '#32d74b',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500,
+                                                marginRight: '6px'
+                                            }}>#define</code>
+                                            <code style={{
+                                                background: 'rgba(50, 215, 75, 0.15)',
+                                                border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                color: '#32d74b',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500
+                                            }}>{macro.name}</code>
+                                            {macro.type === 'function-like' && macro.parameters && (
+                                                <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
+                                                    {' '}({macro.parameters.join(', ')})
+                                                </span>
+                                            )}
+                                            {macro.value && (
+                                                <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
+                                                    {' '}{macro.value}
+                                                </span>
+                                            )}
+                                        </li>
+                                    ))}
                                     {/* Display function declarations from function_declarations test case */}
-                                    {challenge.validation?.testCases?.find(tc => 
+                                    {challenge.validation?.testCases?.find(tc =>
                                         tc.id === 'function_declarations' || tc.id === 'function_declaration'
                                     )?.expectedSymbols?.map((funcDecl, idx) => {
                                         // Parse function signature: "int add_numbers(int a, int b)" -> returnType: "int", name: "add_numbers", params: "(int a, int b)"
@@ -530,6 +580,56 @@ const ChallengeView = ({
                                     }}>{variable.name}</code>
                                     {variable.value && (
                                         <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}> = {variable.value}</span>
+                                    )}
+                                </li>
+                            ))}
+                            {/* Display source macro definitions in floating help */}
+                            {challenge.validation?.exactRequirements?.macro_definitions?.map((macro, idx) => (
+                                <li key={`floating-source-macro-${idx}`} style={{
+                                    marginBottom: '12px',
+                                    position: 'relative',
+                                    paddingLeft: '20px'
+                                }}>
+                                    <span style={{
+                                        position: 'absolute',
+                                        left: 0,
+                                        top: '8px',
+                                        width: '6px',
+                                        height: '6px',
+                                        borderRadius: '50%',
+                                        background: '#32d74b'
+                                    }} />
+                                    Define macro: {' '}
+                                    <code style={{
+                                        background: 'rgba(50, 215, 75, 0.15)',
+                                        border: '1px solid rgba(50, 215, 75, 0.3)',
+                                        padding: '4px 8px',
+                                        borderRadius: '6px',
+                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                        color: '#32d74b',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 500,
+                                        marginRight: '6px'
+                                    }}>#define</code>
+                                    <code style={{
+                                        background: 'rgba(50, 215, 75, 0.15)',
+                                        border: '1px solid rgba(50, 215, 75, 0.3)',
+                                        padding: '4px 8px',
+                                        borderRadius: '6px',
+                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                        color: '#32d74b',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 500
+                                    }}>{macro.name}</code>
+                                    {macro.type === 'function-like' && macro.parameters && (
+                                        <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
+                                            {' '}({macro.parameters.join(', ')})
+                                        </span>
+                                    )}
+                                    {macro.value && (
+                                        <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
+                                            {' '}{macro.value}
+                                        </span>
                                     )}
                                 </li>
                             ))}
@@ -1455,7 +1555,8 @@ const ChallengeView = ({
                                 listStyleType: 'none'
                             }}>
                                 {/* Header Requirements Section */}
-                                {((validation?.exactRequirements?.variables_declarations && validation.exactRequirements.variables_declarations.length > 0) || 
+                                {((validation?.exactRequirements?.variables_declarations && validation.exactRequirements.variables_declarations.length > 0) ||
+                                  (validation?.exactRequirements?.macro_declarations && validation.exactRequirements.macro_declarations.length > 0) ||
                                   (validation?.exactRequirements?.mustContain && validation.exactRequirements.mustContain.some(item => item.includes('(') && !item.includes('='))) ||
                                   (validation?.testCases?.find(tc => tc.id === 'function_declarations' || tc.id === 'function_declaration')?.expectedSymbols?.length > 0)
                                 ) && (
@@ -1525,8 +1626,58 @@ const ChallengeView = ({
                                                 )}
                                             </li>
                                         ))}
+                                        {/* Display header macro declarations */}
+                                        {validation?.exactRequirements?.macro_declarations?.map((macro, idx) => (
+                                            <li key={`header-macro-${idx}`} style={{
+                                                marginBottom: '12px',
+                                                position: 'relative',
+                                                paddingLeft: '20px'
+                                            }}>
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    left: 0,
+                                                    top: '8px',
+                                                    width: '6px',
+                                                    height: '6px',
+                                                    borderRadius: '50%',
+                                                    background: '#32d74b'
+                                                }} />
+                                                Define macro: {' '}
+                                                <code style={{
+                                                    background: 'rgba(50, 215, 75, 0.15)',
+                                                    border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
+                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    color: '#32d74b',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 500,
+                                                    marginRight: '6px'
+                                                }}>#define</code>
+                                                <code style={{
+                                                    background: 'rgba(50, 215, 75, 0.15)',
+                                                    border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
+                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    color: '#32d74b',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 500
+                                                }}>{macro.name}</code>
+                                                {macro.type === 'function-like' && macro.parameters && (
+                                                    <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
+                                                        {' '}({macro.parameters.join(', ')})
+                                                    </span>
+                                                )}
+                                                {macro.value && (
+                                                    <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
+                                                        {' '}{macro.value}
+                                                    </span>
+                                                )}
+                                            </li>
+                                        ))}
                                         {/* Display function declarations from function_declarations test case */}
-                                        {validation?.testCases?.find(tc => 
+                                        {validation?.testCases?.find(tc =>
                                             tc.id === 'function_declarations' || tc.id === 'function_declaration'
                                         )?.expectedSymbols?.map((funcDecl, idx) => {
                                             // Parse function signature: "int add_numbers(int a, int b)" -> returnType: "int", name: "add_numbers", params: "(int a, int b)"
@@ -1602,7 +1753,10 @@ const ChallengeView = ({
                                 )}
 
                                 {/* Source File Requirements Section */}
-                                {(validation?.exactRequirements?.functionNames || validation?.exactRequirements?.outputMessages) && (
+                                {(validation?.exactRequirements?.functionNames ||
+                                  validation?.exactRequirements?.outputMessages ||
+                                  (validation?.exactRequirements?.macro_definitions && validation.exactRequirements.macro_definitions.length > 0)
+                                ) && (
                                     <li style={{
                                         marginBottom: '16px',
                                         paddingLeft: '0',
@@ -1667,6 +1821,56 @@ const ChallengeView = ({
                                         }}>{variable.name}</code>
                                         {variable.value && (
                                             <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}> = {variable.value}</span>
+                                        )}
+                                    </li>
+                                ))}
+                                {/* Display source macro definitions */}
+                                {validation?.exactRequirements?.macro_definitions?.map((macro, idx) => (
+                                    <li key={`source-macro-${idx}`} style={{
+                                        marginBottom: '12px',
+                                        position: 'relative',
+                                        paddingLeft: '20px'
+                                    }}>
+                                        <span style={{
+                                            position: 'absolute',
+                                            left: 0,
+                                            top: '8px',
+                                            width: '6px',
+                                            height: '6px',
+                                            borderRadius: '50%',
+                                            background: '#32d74b'
+                                        }} />
+                                        Define macro: {' '}
+                                        <code style={{
+                                            background: 'rgba(50, 215, 75, 0.15)',
+                                            border: '1px solid rgba(50, 215, 75, 0.3)',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                            color: '#32d74b',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500,
+                                            marginRight: '6px'
+                                        }}>#define</code>
+                                        <code style={{
+                                            background: 'rgba(50, 215, 75, 0.15)',
+                                            border: '1px solid rgba(50, 215, 75, 0.3)',
+                                            padding: '4px 8px',
+                                            borderRadius: '6px',
+                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                            color: '#32d74b',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500
+                                        }}>{macro.name}</code>
+                                        {macro.type === 'function-like' && macro.parameters && (
+                                            <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
+                                                {' '}({macro.parameters.join(', ')})
+                                            </span>
+                                        )}
+                                        {macro.value && (
+                                            <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
+                                                {' '}{macro.value}
+                                            </span>
                                         )}
                                     </li>
                                 ))}

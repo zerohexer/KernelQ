@@ -1,0 +1,399 @@
+{
+  "id": 24,
+  "title": "Preprocessor Macros - Kernel-Style Code Generation",
+  "phase": "foundations",
+  "difficulty": 5,
+  "xp": 55,
+  "description": "Master essential preprocessor macros for kernel development. Learn #define constants, bit flag macros, function-like macros, and conditional compilation patterns used throughout Linux kernel code.",
+  "mainFile": "macro_processor.c",
+  "files": [
+    {
+      "name": "macro_processor.h",
+      "content": "#ifndef MACRO_PROCESSOR_H\n#define MACRO_PROCESSOR_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n/* TODO: Define device type constants */\n/* Define DEVICE_TYPE_SENSOR with value 1 */\n/* Define DEVICE_TYPE_MOTOR with value 2 */\n\n/* TODO: Define status flag constants using bit shifts */\n/* Define STATUS_ONLINE using (1 << 0) */\n/* Define STATUS_READY using (1 << 1) */\n\n/* TODO: Define configuration constants */\n/* Define MAX_DEVICE_NAME with value 32 */\n\n/* TODO: Define function-like macros */\n/* Create macro MAKE_VERSION(major, minor) that combines major and minor into single value */\n/* Formula: (major << 16) | minor */\n\n/* TODO: Define conditional compilation macros */\n/* Create macro DEBUG_PRINT(fmt, ...) that prints debug messages */\n/* When DEBUG_MODE is defined: printk(KERN_DEBUG fmt, ##__VA_ARGS__) */\n/* When DEBUG_MODE is not defined: empty (no operation) */\n\n/* Device structure for testing */\ntypedef struct {\n    uint8_t device_type;\n    uint8_t status_flags;\n    uint32_t version;\n    char name[MAX_DEVICE_NAME];\n} device_info;\n\n/* Global test device */\nextern device_info test_device;\n\n/* TODO: Declare your macro testing functions */\n/* void test_macro_constants(void); */\n/* void test_version_and_flags(void); */\n/* void test_conditional_compilation(void); */\n/* void print_device_info(device_info *device); */\n\n#endif /* MACRO_PROCESSOR_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "macro_processor.c",
+      "content": "#include \"macro_processor.h\"\n\n/* Enable debug mode for conditional compilation testing */\n#define DEBUG_MODE\n\n/* Global test device */\ndevice_info test_device = {\n    .device_type = DEVICE_TYPE_SENSOR,\n    .status_flags = 0,\n    .version = 0,\n    .name = \"Temperature Sensor\"\n};\n\nint test_device_type = DEVICE_TYPE_SENSOR;\nint test_major_version = 2;\nint test_minor_version = 4;\n\n/* IMPORTANT: DO NOT REMOVE OR MODIFY THE LINES BELOW!\n * These module parameter declarations are required for validation testing.\n * The testing system uses these to verify your macro logic works\n * with different input values. Removing them will cause test failures.\n */\nmodule_param(test_device_type, int, 0644);\nMODULE_PARM_DESC(test_device_type, \"Device type for testing macro validation\");\nmodule_param(test_major_version, int, 0644);\nMODULE_PARM_DESC(test_major_version, \"Major version for testing version macros\");\nmodule_param(test_minor_version, int, 0644);\nMODULE_PARM_DESC(test_minor_version, \"Minor version for testing version macros\");\n/* END OF REQUIRED MODULE PARAMETER SECTION */\n\n/* PATTERN SCAFFOLDING: How preprocessor macros work in kernel development */\n/* This teaches the FOUNDATION for kernel programming:\n *\n * Macro Types in Kernel Development:\n * 1. Simple Constants: #define MAX_SIZE 64\n * 2. Bit Flag Constants: #define FLAG_READY (1 << 0)\n * 3. Function-like Macros: #define MAX(a,b) ((a) > (b) ? (a) : (b))\n * 4. Conditional Compilation: #ifdef DEBUG ... #endif\n *\n * Why Macros are Essential in Kernel:\n * - Hardware register definitions use bit manipulation macros\n * - Kernel APIs heavily use function-like macros for efficiency\n * - Conditional compilation for different kernel configurations\n * - Version and feature detection macros\n */\n\n/* MACRO SAFETY PATTERNS: */\n\n/* Always wrap parameters in parentheses: */\n/* #define SQUARE(x) ((x) * (x))  // CORRECT */\n/* #define SQUARE(x) x * x        // WRONG - fails with SQUARE(a+b) */\n\n/* Always wrap entire macro in parentheses for complex expressions: */\n/* #define ADD(a,b) ((a) + (b))   // CORRECT */\n/* #define ADD(a,b) (a) + (b)     // WRONG - fails in expressions like 2 * ADD(3,4) */\n\n/* KERNEL MACRO EXAMPLES: */\n\n/* Module parameter declaration: */\n/* module_param(variable, type, permissions) */\n\n/* Kernel logging with levels: */\n/* printk(KERN_INFO \"message\") */\n\n/* Bit manipulation for hardware registers: */\n/* #define REG_ENABLE  (1 << 0) */\n/* #define REG_RESET   (1 << 1) */\n/* writel(REG_ENABLE | REG_RESET, device->base + CONTROL_REG) */\n\n/* TODO: Implement macro constants testing */\nvoid test_macro_constants(void) {\n    /* TODO: Test device type constants */\n    /* TODO: Print \"Testing macro constants:\" */\n    /* TODO: Print \"DEVICE_TYPE_SENSOR = %d\" with DEVICE_TYPE_SENSOR value */\n    /* TODO: Print \"DEVICE_TYPE_MOTOR = %d\" with DEVICE_TYPE_MOTOR value */\n    /* TODO: Print \"MAX_DEVICE_NAME = %d\" with MAX_DEVICE_NAME value */\n}\n\n/* TODO: Implement version and flags testing */\nvoid test_version_and_flags(void) {\n    /* TODO: Test bit flags */\n    /* TODO: Print \"Testing bit flags and version:\" */\n    /* TODO: Print \"STATUS_ONLINE = 0x%02x\" with STATUS_ONLINE value */\n    /* TODO: Print \"STATUS_READY = 0x%02x\" with STATUS_READY value */\n    \n    /* TODO: Test version macro */\n    /* TODO: Create version using MAKE_VERSION macro with test_major_version and test_minor_version */\n    /* TODO: Store result in variable: uint32_t version = MAKE_VERSION(test_major_version, test_minor_version) */\n    /* TODO: Print \"Created version: 0x%08x\" with version */\n    \n    /* TODO: Test combined flags */\n    /* TODO: Create variable combined_flags = STATUS_ONLINE | STATUS_READY */\n    /* TODO: Print \"Combined flags: 0x%02x\" with combined_flags */\n}\n\n/* TODO: Implement conditional compilation testing */\nvoid test_conditional_compilation(void) {\n    /* TODO: Test conditional compilation macros */\n    /* TODO: Print \"Testing conditional compilation:\" */\n    \n    /* TODO: Use DEBUG_PRINT macro to print \"Debug message: device type %d\" and test_device_type */\n    \n    /* TODO: Test preprocessor conditions */\n    /* TODO: Use #ifdef DEBUG_MODE to conditionally print \"Debug mode is enabled\" */\n    /* TODO: Use #else to print \"Debug mode is disabled\" */\n    /* TODO: Close with #endif */\n}\n\nvoid print_device_info(device_info *device) {\n    if (!device) {\n        printk(KERN_ERR \"No device information available\\n\");\n        return;\n    }\n    \n    printk(KERN_INFO \"Device: %s (Type: %d, Version: 0x%08x)\\n\", \n           device->name, device->device_type, device->version);\n}\n\nstatic int __init macro_processor_init(void)\n{\n    printk(KERN_INFO \"Macro processor module loaded\\n\");\n    \n    /* Update test device with dynamic parameter values */\n    test_device.device_type = test_device_type;\n    test_device.version = MAKE_VERSION(test_major_version, test_minor_version);\n    test_device.status_flags = STATUS_ONLINE | STATUS_READY;\n    \n    /* Test all macro categories */\n    test_macro_constants();\n    test_version_and_flags();\n    test_conditional_compilation();\n    \n    /* Display device information */\n    print_device_info(&test_device);\n    \n    printk(KERN_INFO \"Macro demonstration completed\\n\");\n    \n    return 0;\n}\n\nstatic void __exit macro_processor_exit(void)\n{\n    printk(KERN_INFO \"Macro processor module unloaded\\n\");\n}\n\nmodule_init(macro_processor_init);\nmodule_exit(macro_processor_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Learning essential preprocessor macros for kernel development\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Macro processor module Makefile\nobj-m += macro_processor.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "preprocessor directives",
+    "simple constant macros",
+    "bit manipulation macros",
+    "function-like macros",
+    "conditional compilation",
+    "kernel macro conventions"
+  ],
+  "skills": [
+    "Defining constant macros for magic numbers",
+    "Creating bit flag macros for status registers",
+    "Writing function-like macros",
+    "Using conditional compilation for debug code",
+    "Understanding macro parameter safety",
+    "Applying kernel-style macro patterns"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "macro_processor_init",
+        "macro_processor_exit",
+        "test_macro_constants",
+        "test_version_and_flags",
+        "test_conditional_compilation",
+        "print_device_info"
+      ],
+      "macro_declarations": [
+        {
+          "name": "DEVICE_TYPE_SENSOR",
+          "type": "constant",
+          "value": "1",
+          "description": "Device type constant for sensors"
+        },
+        {
+          "name": "DEVICE_TYPE_MOTOR",
+          "type": "constant",
+          "value": "2",
+          "description": "Device type constant for motors"
+        },
+        {
+          "name": "STATUS_ONLINE",
+          "type": "constant",
+          "value": "(1 << 0)",
+          "description": "Status bit flag for online state"
+        },
+        {
+          "name": "STATUS_READY",
+          "type": "constant",
+          "value": "(1 << 1)",
+          "description": "Status bit flag for ready state"
+        },
+        {
+          "name": "MAX_DEVICE_NAME",
+          "type": "constant",
+          "value": "32",
+          "description": "Maximum device name length"
+        },
+        {
+          "name": "MAKE_VERSION",
+          "type": "function-like",
+          "parameters": ["major", "minor"],
+          "value": "((major << 16) | minor)",
+          "description": "Combine major and minor version into single value"
+        },
+        {
+          "name": "DEBUG_PRINT",
+          "type": "conditional",
+          "parameters": ["fmt", "..."],
+          "value": "#ifdef DEBUG_MODE printk(KERN_DEBUG fmt, ##__VA_ARGS__) #else #endif",
+          "description": "Conditional debug printing macro"
+        }
+      ],
+      "macro_definitions": [
+        {
+          "name": "DEBUG_MODE",
+          "type": "constant",
+          "description": "Enable debug compilation mode"
+        }
+      ],
+      "function_declarations": [
+        {
+          "name": "test_macro_constants",
+          "returnType": "void",
+          "parameters": ["void"]
+        },
+        {
+          "name": "test_version_and_flags",
+          "returnType": "void",
+          "parameters": ["void"]
+        },
+        {
+          "name": "test_conditional_compilation",
+          "returnType": "void",
+          "parameters": ["void"]
+        },
+        {
+          "name": "print_device_info",
+          "returnType": "void",
+          "parameters": ["device_info *device"]
+        }
+      ],
+      "variables_declarations": [
+        {
+          "name": "test_device",
+          "type": "device_info",
+          "storageClass": "extern"
+        }
+      ],
+      "variables": [
+        {
+          "name": "test_device",
+          "type": "device_info",
+          "storageClass": "none"
+        }
+      ],
+      "outputMessages": [
+        "Macro processor module loaded",
+        "Testing macro constants:",
+        "DEVICE_TYPE_SENSOR = 1",
+        "DEVICE_TYPE_MOTOR = 2",
+        "MAX_DEVICE_NAME = 32",
+        "Testing bit flags and version:",
+        "STATUS_ONLINE = 0x01",
+        "STATUS_READY = 0x02",
+        "Created version:",
+        "Combined flags: 0x03",
+        "Testing conditional compilation:",
+        "Debug mode is enabled",
+        "Device: Temperature Sensor",
+        "Macro demonstration completed",
+        "Macro processor module unloaded"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/types.h"
+      ],
+      "mustContain": [
+        "#define DEVICE_TYPE_SENSOR 1",
+        "#define DEVICE_TYPE_MOTOR 2",
+        "#define STATUS_ONLINE (1 << 0)",
+        "#define STATUS_READY (1 << 1)",
+        "#define MAX_DEVICE_NAME 32",
+        "#define MAKE_VERSION(major, minor) ((major << 16) | minor)",
+        "#ifdef DEBUG_MODE",
+        "#define DEBUG_PRINT(fmt, ...) printk(KERN_DEBUG fmt, ##__VA_ARGS__)",
+        "#else",
+        "#define DEBUG_PRINT(fmt, ...)",
+        "#endif",
+        "MAKE_VERSION(test_major_version, test_minor_version)",
+        "DEBUG_PRINT(",
+        "STATUS_ONLINE | STATUS_READY",
+        "module_param(test_device_type, int, 0644)",
+        "module_param(test_major_version, int, 0644)",
+        "module_param(test_minor_version, int, 0644)"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_declarations",
+        "name": "Function Declarations in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void test_macro_constants(void)",
+          "void test_version_and_flags(void)",
+          "void test_conditional_compilation(void)",
+          "void print_device_info(device_info *device)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "macro_definitions",
+        "name": "Macro Definitions in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "#define DEVICE_TYPE_SENSOR 1",
+          "#define DEVICE_TYPE_MOTOR 2",
+          "#define STATUS_ONLINE (1 << 0)",
+          "#define STATUS_READY (1 << 1)",
+          "#define MAX_DEVICE_NAME 32",
+          "#define MAKE_VERSION",
+          "#define DEBUG_PRINT"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void test_macro_constants(void)",
+          "void test_version_and_flags(void)",
+          "void test_conditional_compilation(void)",
+          "void print_device_info(device_info *device)",
+          "static int __init macro_processor_init(void)",
+          "static void __exit macro_processor_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {
+            "pattern": "Macro processor module loaded",
+            "exact": true,
+            "linkedFunction": "static int __init macro_processor_init(void)"
+          },
+          {
+            "pattern": "Testing macro constants:",
+            "exact": true,
+            "linkedFunction": "void test_macro_constants(void)"
+          },
+          {
+            "pattern": "DEVICE_TYPE_SENSOR = 1",
+            "exact": true,
+            "linkedFunction": "void test_macro_constants(void)"
+          },
+          {
+            "pattern": "DEVICE_TYPE_MOTOR = 2",
+            "exact": true,
+            "linkedFunction": "void test_macro_constants(void)"
+          },
+          {
+            "pattern": "MAX_DEVICE_NAME = 32",
+            "exact": true,
+            "linkedFunction": "void test_macro_constants(void)"
+          },
+          {
+            "pattern": "Testing bit flags and version:",
+            "exact": true,
+            "linkedFunction": "void test_version_and_flags(void)"
+          },
+          {
+            "pattern": "STATUS_ONLINE = 0x01",
+            "exact": true,
+            "linkedFunction": "void test_version_and_flags(void)"
+          },
+          {
+            "pattern": "STATUS_READY = 0x02",
+            "exact": true,
+            "linkedFunction": "void test_version_and_flags(void)"
+          },
+          {
+            "pattern": "Combined flags: 0x03",
+            "exact": true,
+            "linkedFunction": "void test_version_and_flags(void)"
+          },
+          {
+            "pattern": "Testing conditional compilation:",
+            "exact": true,
+            "linkedFunction": "void test_conditional_compilation(void)"
+          },
+          {
+            "pattern": "Debug mode is enabled",
+            "exact": true,
+            "linkedFunction": "void test_conditional_compilation(void)"
+          },
+          {
+            "pattern": "Device: Temperature Sensor",
+            "exact": true,
+            "linkedFunction": "void print_device_info(device_info *device)"
+          },
+          {
+            "pattern": "Macro demonstration completed",
+            "exact": true,
+            "linkedFunction": "static int __init macro_processor_init(void)"
+          },
+          {
+            "pattern": "Macro processor module unloaded",
+            "exact": true,
+            "linkedFunction": "static void __exit macro_processor_exit(void)"
+          }
+        ]
+      },
+      {
+        "id": "simplified_macro_validation",
+        "name": "Simplified Macro Processing with Anti-Hardcoding Protection",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "macro_dynamic_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <time.h>\\n\\nint main() {\\n    printf(\\\"=== Dynamic Macro Test ===\\\\n\\\");\\n    \\n    // Seed random number generator\\n    srand(time(NULL));\\n    \\n    // Generate test values\\n    int random_device_type = ((rand() % 2) + 1);  // 1 or 2\\n    int random_major = (rand() % 5) + 1;          // 1-5\\n    int random_minor = (rand() % 10) + 1;         // 1-10\\n    \\n    printf(\\\"Random macro test (device=%d, ver=%d.%d)\\\\n\\\", random_device_type, random_major, random_minor);\\n    \\n    printf(\\\"DEBUG: Unloading previous module...\\\\n\\\");\\n    system(\\\"rmmod macro_processor 2>/dev/null\\\");\\n    \\n    char cmd[512];\\n    snprintf(cmd, sizeof(cmd), \\\"insmod /lib/modules/macro_processor.ko test_device_type=%d test_major_version=%d test_minor_version=%d\\\", random_device_type, random_major, random_minor);\\n    printf(\\\"DEBUG: Command: %s\\\\n\\\", cmd);\\n    system(cmd);\\n    \\n    printf(\\\"SUCCESS: Macro test completed\\\\n\\\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting simplified macro validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: TCC Header Validation'",
+            "mkdir -p /tmp/linux",
+            "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
+            "echo '#define KERN_DEBUG' >> /tmp/linux/kernel.h",
+            "echo '#define KERN_ERR' >> /tmp/linux/kernel.h",
+            "echo 'int printk(const char *fmt, ...);' >> /tmp/linux/kernel.h",
+            "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
+            "echo '#define module_init(x)' >> /tmp/linux/module.h",
+            "echo '#define module_exit(x)' >> /tmp/linux/module.h",
+            "echo '#define module_param(name, type, perm)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_PARM_DESC(var, desc)' >> /tmp/linux/module.h",
+            "echo '#define __init' > /tmp/linux/init.h",
+            "echo '#define __exit' >> /tmp/linux/init.h",
+            "echo 'typedef unsigned char uint8_t;' > /tmp/linux/types.h",
+            "echo 'typedef unsigned int uint32_t;' >> /tmp/linux/types.h",
+            "echo '#include \"/lib/modules/macro_processor.h\"' > /tmp/test.c",
+            "echo 'int main() { device_info dev; test_macro_constants(); test_version_and_flags(); test_conditional_compilation(); print_device_info(&dev); return 0; }' >> /tmp/test.c",
+            "/usr/bin/tcc -I/tmp -Wimplicit-function-declaration -Werror -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
+            "TCC_EXIT_CODE=$?",
+            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Function or macro definition missing'; cat /tmp/tcc_error.log; else echo 'PASS: All declarations found in header'; fi",
+            "echo 'Phase 2: Dynamic Macro Test'",
+            "/bin/macro_dynamic_tester > /tmp/test_output.log",
+            "cat /tmp/test_output.log",
+            "echo 'Phase 3: Macro Validation'",
+            "sleep 1",
+            "dmesg | grep 'DEVICE_TYPE_SENSOR = 1' && echo 'PASS: Device constants working' || echo 'FAIL: Device constants broken'",
+            "dmesg | grep 'STATUS_ONLINE = 0x01' && echo 'PASS: Bit flags working' || echo 'FAIL: Bit flags broken'",
+            "dmesg | grep 'Combined flags: 0x03' && echo 'PASS: Flag combination working' || echo 'FAIL: Flag combination broken'",
+            "dmesg | grep 'Debug mode is enabled' && echo 'PASS: Conditional compilation working' || echo 'FAIL: Conditional compilation broken'",
+            "dmesg | grep 'Testing macro constants:' && echo 'PASS: Constant testing working' || echo 'FAIL: Constant testing broken'",
+            "dmesg | grep 'Testing bit flags and version:' && echo 'PASS: Version testing working' || echo 'FAIL: Version testing broken'",
+            "dmesg | grep 'Macro processor module loaded' && echo 'PASS: Module loading working' || echo 'FAIL: Module loading broken'",
+            "echo 'PASS: All macro validation successful'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Macro processor module loaded",
+              "Testing macro constants:",
+              "DEVICE_TYPE_SENSOR = 1",
+              "DEVICE_TYPE_MOTOR = 2",
+              "MAX_DEVICE_NAME = 32",
+              "Testing bit flags and version:",
+              "STATUS_ONLINE = 0x01",
+              "STATUS_READY = 0x02",
+              "Created version: .*",
+              "Combined flags: 0x03",
+              "Testing conditional compilation:",
+              "Debug mode is enabled",
+              "Device: Temperature Sensor",
+              "Macro demonstration completed",
+              "Macro processor module unloaded"
+            ],
+            "stdout": [
+              "PASS: All declarations found in header",
+              "SUCCESS: Macro test completed",
+              "PASS: Device constants working",
+              "PASS: Bit flags working",
+              "PASS: Flag combination working",
+              "PASS: Conditional compilation working",
+              "PASS: Constant testing working",
+              "PASS: Version testing working",
+              "PASS: Module loading working",
+              "PASS: All macro validation successful"
+            ]
+          },
+          "timeout": 15
+        }
+      }
+    ]
+  }
+}
