@@ -12,6 +12,7 @@ This guide documents the comprehensive approach to creating effective kernel pro
 - [Validation Types and Strategies](#validation-types-and-strategies)
 - [QEMU Infrastructure Guide](#qemu-infrastructure-guide)
 - [Anti-Hardcoding Protection](#anti-hardcoding-protection)
+- [Preprocessor Macros Implementation & Validation](#preprocessor-macros-implementation--validation)
 - [Problem Structure Template](#problem-structure-template)
 - [Best Practices](#best-practices)
 - [Common Pitfalls and Solutions](#common-pitfalls-and-solutions)
@@ -32,6 +33,7 @@ This guide documents the comprehensive approach to creating effective kernel pro
 6. **USE ERROR-TOLERANT QEMU scripts** - never include `set -e` in init scripts
 7. **NEVER use `exit 1` in validation commands** - causes kernel panic and kills init process
 8. **ADD timing delays before dmesg validation** - use `sleep 1` to prevent race conditions
+9. **FOR MACRO PROBLEMS** - use `mustContain` patterns, not `expectedSymbols` for exact validation (See [Preprocessor Macros](#preprocessor-macros-implementation--validation))
 
 ### 🎯 **Problem Type Decision Matrix**
 
@@ -401,6 +403,308 @@ int main() {
   }
 }
 ```
+
+## Preprocessor Macros Implementation & Validation
+
+### Overview
+
+Preprocessor macros are essential for kernel development, used extensively for constants, bit manipulation, function-like operations, and conditional compilation. Problem 24 demonstrates comprehensive macro education that covers all kernel-relevant macro types while maintaining manageable complexity.
+
+### Macro Types in Kernel Development
+
+#### 1. Simple Constant Macros
+```c
+#define DEVICE_TYPE_SENSOR 1
+#define MAX_DEVICE_NAME 32
+```
+**Purpose**: Replace magic numbers with named constants
+**Usage**: Hardware register values, buffer sizes, configuration constants
+**Validation**: Exact pattern matching via `mustContain`
+
+#### 2. Bit Flag Macros
+```c
+#define STATUS_ONLINE (1 << 0)
+#define STATUS_READY  (1 << 1)
+```
+**Purpose**: Define bit positions for status flags and hardware registers
+**Usage**: Device state management, interrupt flags, feature flags
+**Validation**: Test bit operations and combinations
+
+#### 3. Function-like Macros
+```c
+#define MAKE_VERSION(major, minor) ((major << 16) | minor)
+#define GET_MAJOR_VERSION(version) ((version >> 16) & 0xFFFF)
+```
+**Purpose**: Inline code generation for frequently used operations
+**Usage**: Version encoding, data packing/unpacking, utility operations
+**Validation**: Dynamic testing with various parameter values
+
+#### 4. Conditional Compilation Macros
+```c
+#ifdef DEBUG_MODE
+#define DEBUG_PRINT(fmt, ...) printk(KERN_DEBUG fmt, ##__VA_ARGS__)
+#else
+#define DEBUG_PRINT(fmt, ...)
+#endif
+```
+**Purpose**: Include/exclude code based on compile-time conditions
+**Usage**: Debug builds vs release builds, feature selection
+**Validation**: Test both enabled and disabled states
+
+### Schema Integration
+
+#### Frontend Display Support
+
+The system supports displaying macro requirements in both header and source contexts:
+
+```json
+"exactRequirements": {
+  "macro_declarations": [
+    {
+      "name": "DEVICE_TYPE_SENSOR",
+      "type": "constant",
+      "value": "1",
+      "description": "Device type constant for sensors"
+    },
+    {
+      "name": "MAKE_VERSION",
+      "type": "function-like",
+      "parameters": ["major", "minor"],
+      "value": "((major << 16) | minor)",
+      "description": "Combine major and minor version into single value"
+    },
+    {
+      "name": "DEBUG_PRINT",
+      "type": "conditional",
+      "parameters": ["fmt", "..."],
+      "value": "#ifdef DEBUG_MODE printk(KERN_DEBUG fmt, ##__VA_ARGS__) #else #endif",
+      "description": "Conditional debug printing macro"
+    }
+  ],
+  "macro_definitions": [
+    {
+      "name": "DEBUG_MODE",
+      "type": "constant",
+      "description": "Enable debug compilation mode"
+    }
+  ]
+}
+```
+
+#### Backend Validation Strategy
+
+**Method A: `mustContain` Patterns (Recommended)**
+```json
+"mustContain": [
+  "#define DEVICE_TYPE_SENSOR 1",
+  "#define STATUS_ONLINE (1 << 0)",
+  "#define MAKE_VERSION(major, minor) ((major << 16) | minor)",
+  "#ifdef DEBUG_MODE",
+  "#define DEBUG_PRINT(fmt, ...) printk(KERN_DEBUG fmt, ##__VA_ARGS__)",
+  "#else",
+  "#define DEBUG_PRINT(fmt, ...)",
+  "#endif"
+]
+```
+
+**Benefits:**
+- Validates complete macro definitions including values
+- Catches syntax errors and wrong values
+- Ensures students learn proper kernel macro patterns
+- No backend changes required
+
+**Method B: `code_analysis` with `expectedSymbols` (Not Recommended)**
+```json
+"expectedSymbols": ["#define STATUS_ONLINE", "#define MAKE_VERSION"]
+```
+**Problems:**
+- Only checks macro name presence, not values
+- Students can submit wrong implementations that pass
+- Weaker educational value
+
+### Macro Safety Patterns
+
+Teach students essential macro safety practices:
+
+#### 1. Parameter Wrapping
+```c
+// CORRECT
+#define SQUARE(x) ((x) * (x))
+
+// WRONG - fails with SQUARE(a+b)
+#define SQUARE(x) x * x
+```
+
+#### 2. Expression Wrapping
+```c
+// CORRECT
+#define ADD(a,b) ((a) + (b))
+
+// WRONG - fails in expressions like 2 * ADD(3,4)
+#define ADD(a,b) (a) + (b)
+```
+
+#### 3. Multi-statement Macros
+```c
+// CORRECT
+#define DEBUG_INIT() do { \
+    printk("init"); \
+    setup_debug(); \
+} while(0)
+
+// This ensures macro behaves like a single statement
+```
+
+### Anti-Hardcoding Protection for Macros
+
+#### Dynamic Testing Strategy
+
+```json
+"testScenario": {
+  "userspaceApps": [
+    {
+      "name": "macro_dynamic_tester",
+      "source": "C code that generates random test values and loads module with different parameters"
+    }
+  ],
+  "testCommands": [
+    "Generate random device types, version numbers",
+    "Load module with: insmod macro_processor.ko test_device_type=$RANDOM_TYPE test_major_version=$RANDOM_MAJOR",
+    "Validate macro behavior with unexpected values",
+    "Ensure MAKE_VERSION works with any input combination",
+    "Verify bit flag operations work correctly"
+  ]
+}
+```
+
+#### Module Parameter Integration
+
+```c
+int test_device_type = DEVICE_TYPE_SENSOR;
+int test_major_version = 2;
+int test_minor_version = 4;
+
+module_param(test_device_type, int, 0644);
+module_param(test_major_version, int, 0644);
+module_param(test_minor_version, int, 0644);
+
+// Use in macro testing
+test_device.version = MAKE_VERSION(test_major_version, test_minor_version);
+```
+
+#### Macro Selection Strategy
+
+**Essential Macros to Include:**
+1. **2-3 Simple Constants**: Device types, buffer sizes
+2. **2 Bit Flags**: Status flags demonstrating bit manipulation
+3. **1-2 Function-like**: Version packing, utility operations
+4. **1 Conditional**: Debug printing or feature flags
+
+**Avoid:**
+- Too many similar constants
+- Complex multi-parameter macros for beginners
+- Advanced patterns like `container_of` (save for later problems)
+
+### Frontend Display Features
+
+The macro requirements display with proper spacing and color coding:
+
+```
+Header File Requirements
+● Define macro: #define DEVICE_TYPE_SENSOR 1
+● Define macro: #define STATUS_ONLINE (1 << 0)
+● Define macro: #define MAKE_VERSION (major, minor) ((major << 16) | minor)
+● Define macro: #define DEBUG_PRINT (fmt, ...) #ifdef DEBUG_MODE ... #endif
+
+Source File Requirements
+● Define macro: #define DEBUG_MODE
+● Implement function: void test_macro_constants (void)
+```
+
+**Visual Design Notes:**
+- Green color (#32d74b) for macro requirements
+- Proper spacing between macro name and parameters
+- Consistent with function declaration formatting
+- Works in both normal and floating help views
+
+### CLI Tool Integration
+
+The problem-cli.js supports macro creation through interactive prompts:
+
+```bash
+node tools/problem-cli.js create
+
+# Macro creation options:
+# 1. Simple mustContain patterns (recommended)
+# 2. Structured macro declarations/definitions
+
+# For mustContain approach:
+Enter exact macro definitions (one per line):
+Macro: #define DEVICE_TYPE_SENSOR 1
+Macro: #define STATUS_ONLINE (1 << 0)
+Macro: #define MAKE_VERSION(major, minor) ((major << 16) | minor)
+```
+
+### Testing and Validation Best Practices
+
+#### 1. Comprehensive Coverage
+- ✅ **TCC Header Validation**: Ensures all macros compile correctly
+- ✅ **Dynamic Runtime Testing**: Validates macro behavior with random values
+- ✅ **Static Pattern Validation**: Confirms exact macro definitions
+- ✅ **Behavioral Testing**: Tests macro usage in real scenarios
+
+#### 2. Error Prevention
+- ✅ **Macro Safety**: Teach proper parentheses wrapping
+- ✅ **Type Safety**: Ensure macros work with different data types
+- ✅ **Edge Cases**: Test with boundary values and unexpected inputs
+
+#### 3. Educational Progression
+- Start with simple constants
+- Progress to bit manipulation
+- Introduce function-like macros
+- Cover conditional compilation
+- Emphasize kernel-specific patterns
+
+### Common Pitfalls and Solutions
+
+#### 1. Macro Expansion Issues
+**Problem**: Student macros fail with complex expressions
+**Solution**: Teach and validate proper parentheses wrapping
+
+#### 2. Conditional Compilation Confusion
+**Problem**: Students struggle with #ifdef/#else/#endif structure
+**Solution**: Provide clear examples and test both enabled/disabled states
+
+#### 3. Function-like Macro Errors
+**Problem**: Parameter substitution errors
+**Solution**: Include comprehensive parameter validation in tests
+
+#### 4. Over-complexity
+**Problem**: Too many macros overwhelming students
+**Solution**: Focus on 7-8 essential macros covering all types (Problem 24 approach)
+
+### Integration with Kernel Development
+
+#### Real-world Examples
+```c
+// Hardware register macros (common in drivers)
+#define REG_ENABLE  (1 << 0)
+#define REG_RESET   (1 << 1)
+#define REG_STATUS  (1 << 2)
+
+// Module parameter macros
+module_param(debug_level, int, 0644);
+
+// Kernel API macros
+#define KERN_INFO   "<6>"
+#define KERN_DEBUG  "<7>"
+
+// Container-of pattern (advanced)
+#define container_of(ptr, type, member) \
+    ((type *)((char *)(ptr) - offsetof(type, member)))
+```
+
+This comprehensive approach ensures students learn kernel macro patterns that directly transfer to real kernel development work.
 
 ## Best Practices
 
