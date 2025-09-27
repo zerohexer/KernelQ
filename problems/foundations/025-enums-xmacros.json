@@ -148,11 +148,13 @@
         {
           "name": "device_type_names",
           "type": "const char*",
+          "value": "[]",
           "storageClass": "extern"
         },
         {
           "name": "device_type_ids",
           "type": "const uint16_t",
+          "value": "[]",
           "storageClass": "extern"
         },
         {
@@ -170,21 +172,25 @@
         {
           "name": "device_type_names",
           "type": "const char*",
+          "value": "[]",
           "storageClass": "none"
         },
         {
           "name": "device_type_ids",
           "type": "const uint16_t",
+          "value": "[]",
           "storageClass": "none"
         },
         {
           "name": "xmacro_device_names",
           "type": "const char*",
+          "value": "[]",
           "storageClass": "none"
         },
         {
           "name": "xmacro_device_ids",
           "type": "const uint16_t",
+          "value": "[]",
           "storageClass": "none"
         }
       ],
