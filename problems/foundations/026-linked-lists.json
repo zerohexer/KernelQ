@@ -1,0 +1,341 @@
+{
+  "id": 26,
+  "title": "Linked Lists - Kernel List Patterns",
+  "phase": "foundations",
+  "difficulty": 4,
+  "xp": 45,
+  "description": "Master linked lists through two approaches: implement basic operations manually to understand fundamentals, then use real Linux kernel list macros. Learn the essential data structure pattern used throughout kernel development.",
+  "mainFile": "linked_lists.c",
+  "files": [
+    {
+      "name": "linked_lists.h",
+      "content": "#ifndef LINKED_LISTS_H\n#define LINKED_LISTS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n#include <linux/slab.h>\n#include <linux/list.h>\n\n#define MAX_DEVICE_NAME 16\n\n/* Basic list node structure (like kernel's list_head) */\nstruct list_head {\n    struct list_head *next, *prev;\n};\n\n/* Device entry structure with embedded list node */\nstruct device_entry {\n    int device_id;\n    char name[MAX_DEVICE_NAME];\n    int status;\n    struct list_head list;  /* Embedded list node - kernel pattern! */\n};\n\n/* Global list heads for testing */\nextern struct list_head manual_device_list;\nextern struct list_head kernel_device_list;\n\n/* TODO: Declare your manual list functions */\n/* void manual_init_list(struct list_head *head); */\n/* void manual_add_device(struct device_entry *dev, struct list_head *head); */\n/* void manual_remove_device(struct device_entry *dev); */\n/* int manual_is_empty(struct list_head *head); */\n/* void manual_traverse_list(struct list_head *head); */\n\n/* TODO: Declare your kernel macro functions */\n/* void kernel_add_device(struct device_entry *dev); */\n/* void kernel_traverse_list(void); */\n/* struct device_entry* find_device_by_id(int device_id); */\n/* int count_total_devices(void); */\n/* void cleanup_all_devices(void); */\n\n#endif /* LINKED_LISTS_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "linked_lists.c",
+      "content": "#include \"linked_lists.h\"\n\n/* Global list heads */\nstruct list_head manual_device_list;\nstruct list_head kernel_device_list;\n\nint test_device_id = 1001;\nint test_device_count = 3;\n\n/* IMPORTANT: DO NOT REMOVE OR MODIFY THE LINES BELOW!\n * These module parameter declarations are required for validation testing.\n */\nmodule_param(test_device_id, int, 0644);\nMODULE_PARM_DESC(test_device_id, \"Device ID for testing list operations\");\nmodule_param(test_device_count, int, 0644);\nMODULE_PARM_DESC(test_device_count, \"Number of devices for testing\");\n/* END OF REQUIRED MODULE PARAMETER SECTION */\n\n/* PATTERN SCAFFOLDING: How linked lists work in kernel development */\n/* This teaches the FOUNDATION for kernel data structures:\n *\n * Traditional Linked List (textbook approach):\n * struct node {\n *     int data;\n *     struct node *next;\n * };\n * Problem: Each data type needs its own list implementation\n *\n * Kernel Linked List (embedded approach):\n * struct list_head {\n *     struct list_head *next, *prev;\n * };\n * struct my_data {\n *     int value;\n *     struct list_head list;  // Embedded list node\n * };\n * Benefits: Generic operations, memory efficient, type flexible\n *\n * Why Kernel Pattern is Superior:\n * 1. Any struct can contain list nodes\n * 2. Same struct can be in multiple lists\n * 3. Generic list operations work on any type\n * 4. No separate memory allocation for list nodes\n * 5. Used everywhere: processes, devices, memory pages, files\n */\n\n/* MEMORY LAYOUT VISUALIZATION: */\n/* Traditional approach:\n * [data1|next] -> [data2|next] -> [data3|next] -> NULL\n * Each node allocated separately\n *\n * Kernel approach:\n * device_entry1: [device_id|name|status|list_node]\n * device_entry2: [device_id|name|status|list_node]\n * device_entry3: [device_id|name|status|list_node]\n * List nodes embedded in actual data structures\n */\n\n/* DOUBLE POINTER REVIEW FROM PREVIOUS PROBLEMS: */\n/* head->next points to first node\n * head->prev points to last node\n * node->next points to next node\n * node->prev points to previous node\n * Circular: last->next points back to head\n */\n\n/* TODO: Implement manual list initialization */\nvoid manual_init_list(struct list_head *head) {\n    /* TODO: Initialize head to point to itself (empty circular list) */\n    /* TODO: Set head->next = head */\n    /* TODO: Set head->prev = head */\n}\n\n/* TODO: Implement manual add to list */\nvoid manual_add_device(struct device_entry *dev, struct list_head *head) {\n    /* TODO: Initialize the device's list node */\n    /* TODO: Add device at the beginning of list (after head) */\n    /* TODO: Step 1: Set dev->list.next = head->next */\n    /* TODO: Step 2: Set dev->list.prev = head */\n    /* TODO: Step 3: Set head->next->prev = &dev->list */\n    /* TODO: Step 4: Set head->next = &dev->list */\n    /* TODO: Print \"Manually added device: %s (ID: %d)\" */\n}\n\n/* TODO: Implement manual remove from list */\nvoid manual_remove_device(struct device_entry *dev) {\n    /* TODO: Remove device from list by fixing pointers */\n    /* TODO: Step 1: Set dev->list.prev->next = dev->list.next */\n    /* TODO: Step 2: Set dev->list.next->prev = dev->list.prev */\n    /* TODO: Step 3: Set dev->list.next = &dev->list (reinitialize) */\n    /* TODO: Step 4: Set dev->list.prev = &dev->list (reinitialize) */\n    /* TODO: Print \"Manually removed device: %s (ID: %d)\" */\n}\n\n/* TODO: Implement manual empty check */\nint manual_is_empty(struct list_head *head) {\n    /* TODO: Return 1 if empty (head->next == head), 0 if not empty */\n    return 0;\n}\n\n/* TODO: Implement manual list traversal */\nvoid manual_traverse_list(struct list_head *head) {\n    /* TODO: Traverse list using manual pointer manipulation */\n    /* TODO: Create struct list_head *pos */\n    /* TODO: Loop: for (pos = head->next; pos != head; pos = pos->next) */\n    /* TODO: Inside loop: get device using container_of or list_entry */\n    /* TODO: Print \"Manual traversal - Device: %s (ID: %d, Status: %d)\" */\n    /* TODO: If empty list, print \"Manual list is empty\" */\n}\n\n/* TODO: Implement kernel macro add */\nvoid kernel_add_device(struct device_entry *dev) {\n    /* TODO: Use kernel macro to add device to kernel_device_list */\n    /* TODO: Use list_add(&dev->list, &kernel_device_list) */\n    /* TODO: Print \"Kernel added device: %s (ID: %d)\" */\n}\n\n/* TODO: Implement kernel macro traversal */\nvoid kernel_traverse_list(void) {\n    /* TODO: Use list_for_each_entry macro to traverse */\n    /* TODO: list_for_each_entry(entry, &kernel_device_list, list) */\n    /* TODO: Print \"Kernel traversal - Device: %s (ID: %d, Status: %d)\" */\n    /* TODO: If empty, print \"Kernel list is empty\" */\n}\n\n/* TODO: Implement device search */\nstruct device_entry* find_device_by_id(int device_id) {\n    /* TODO: Use list_for_each_entry to search for device_id */\n    /* TODO: Return pointer to device if found, NULL if not found */\n    return NULL;\n}\n\n/* TODO: Implement device counting */\nint count_total_devices(void) {\n    /* TODO: Use list_for_each_entry to count devices in kernel_device_list */\n    /* TODO: Return total count */\n    return 0;\n}\n\n/* TODO: Implement cleanup function */\nvoid cleanup_all_devices(void) {\n    /* TODO: Use list_for_each_entry_safe to safely remove and free all devices */\n    /* TODO: Use list_del to remove from list */\n    /* TODO: Use kfree to free memory */\n    /* TODO: Print \"Cleaned up device: %s\" for each device */\n}\n\n/* Helper function to create test devices */\nstatic struct device_entry* create_test_device(int id, const char* name, int status) {\n    struct device_entry *dev = kmalloc(sizeof(*dev), GFP_KERNEL);\n    if (!dev) {\n        return NULL;\n    }\n    \n    dev->device_id = id;\n    dev->status = status;\n    snprintf(dev->name, MAX_DEVICE_NAME, \"%s\", name);\n    INIT_LIST_HEAD(&dev->list);\n    \n    return dev;\n}\n\nstatic int __init linked_lists_init(void)\n{\n    struct device_entry *dev1, *dev2, *dev3;\n    struct device_entry *found_dev;\n    int total_devices;\n    \n    printk(KERN_INFO \"Linked lists module loaded\\n\");\n    \n    /* Initialize list heads */\n    manual_init_list(&manual_device_list);\n    INIT_LIST_HEAD(&kernel_device_list);\n    \n    printk(KERN_INFO \"Testing manual list operations\\n\");\n    \n    /* Test manual list operations */\n    dev1 = create_test_device(test_device_id, \"TempSensor\", 1);\n    dev2 = create_test_device(test_device_id + 1, \"MotorCtrl\", 1);\n    dev3 = create_test_device(test_device_id + 2, \"LEDStrip\", 0);\n    \n    if (!dev1 || !dev2 || !dev3) {\n        printk(KERN_ERR \"Failed to create test devices\\n\");\n        return -ENOMEM;\n    }\n    \n    /* Test manual operations */\n    manual_add_device(dev1, &manual_device_list);\n    manual_add_device(dev2, &manual_device_list);\n    manual_add_device(dev3, &manual_device_list);\n    \n    printk(KERN_INFO \"Manual list empty: %d\\n\", manual_is_empty(&manual_device_list));\n    manual_traverse_list(&manual_device_list);\n    \n    /* Remove one device manually */\n    manual_remove_device(dev2);\n    manual_traverse_list(&manual_device_list);\n    \n    printk(KERN_INFO \"Testing kernel macro operations\\n\");\n    \n    /* Test kernel macro operations */\n    kernel_add_device(dev1);\n    kernel_add_device(dev2);\n    kernel_add_device(dev3);\n    \n    kernel_traverse_list();\n    \n    /* Test search functionality */\n    found_dev = find_device_by_id(test_device_id);\n    if (found_dev) {\n        printk(KERN_INFO \"Found device: %s (ID: %d)\\n\", found_dev->name, found_dev->device_id);\n    } else {\n        printk(KERN_INFO \"Device ID %d not found\\n\", test_device_id);\n    }\n    \n    /* Test counting */\n    total_devices = count_total_devices();\n    printk(KERN_INFO \"Total devices in kernel list: %d\\n\", total_devices);\n    \n    printk(KERN_INFO \"Linked list demonstration completed\\n\");\n    \n    return 0;\n}\n\nstatic void __exit linked_lists_exit(void)\n{\n    printk(KERN_INFO \"Linked lists module unloading\\n\");\n    \n    /* Clean up all devices */\n    cleanup_all_devices();\n    \n    printk(KERN_INFO \"Linked lists module unloaded\\n\");\n}\n\nmodule_init(linked_lists_init);\nmodule_exit(linked_lists_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Learning linked list patterns for kernel development\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Linked lists module Makefile\nobj-m += linked_lists.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "linked list fundamentals",
+    "embedded list nodes",
+    "kernel list patterns",
+    "circular doubly-linked lists",
+    "manual vs macro operations",
+    "list traversal patterns",
+    "memory management with lists"
+  ],
+  "skills": [
+    "Implementing basic linked list operations",
+    "Using kernel list macros",
+    "Understanding embedded list node pattern",
+    "Managing list node pointers",
+    "Traversing lists safely",
+    "Searching and counting list elements",
+    "Cleaning up dynamic list structures"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "linked_lists_init",
+        "linked_lists_exit",
+        "manual_init_list",
+        "manual_add_device",
+        "manual_remove_device",
+        "manual_is_empty",
+        "manual_traverse_list",
+        "kernel_add_device",
+        "kernel_traverse_list",
+        "find_device_by_id",
+        "count_total_devices",
+        "cleanup_all_devices"
+      ],
+      "function_declarations": [
+        { "name": "manual_init_list", "returnType": "void", "parameters": ["struct list_head *head"] },
+        { "name": "manual_add_device", "returnType": "void", "parameters": ["struct device_entry *dev", "struct list_head *head"] },
+        { "name": "manual_remove_device", "returnType": "void", "parameters": ["struct device_entry *dev"] },
+        { "name": "manual_is_empty", "returnType": "int", "parameters": ["struct list_head *head"] },
+        { "name": "manual_traverse_list", "returnType": "void", "parameters": ["struct list_head *head"] },
+        { "name": "kernel_add_device", "returnType": "void", "parameters": ["struct device_entry *dev"] },
+        { "name": "kernel_traverse_list", "returnType": "void", "parameters": [] },
+        { "name": "find_device_by_id", "returnType": "struct device_entry*", "parameters": ["int device_id"] },
+        { "name": "count_total_devices", "returnType": "int", "parameters": [] },
+        { "name": "cleanup_all_devices", "returnType": "void", "parameters": [] }
+      ],
+      "variables_declarations": [
+        { "name": "device_entry", "type": "struct", "value": "{int device_id; char name[MAX_DEVICE_NAME]; int status; struct list_head list;}", "storageClass": "none" },
+        { "name": "manual_device_list", "type": "struct list_head", "storageClass": "extern" },
+        { "name": "kernel_device_list", "type": "struct list_head", "storageClass": "extern" }
+      ],
+      "variables": [
+        { "name": "manual_device_list", "type": "struct list_head", "storageClass": "none" },
+        { "name": "kernel_device_list", "type": "struct list_head", "storageClass": "none" }
+      ],
+      "outputMessages": [
+        "Linked lists module loaded",
+        "Testing manual list operations",
+        "Manually added device: TempSensor (ID: 1001)",
+        "Manually added device: MotorCtrl (ID: 1002)",
+        "Manually added device: LEDStrip (ID: 1003)",
+        "Manual list empty: 0",
+        "Manual traversal - Device: LEDStrip (ID: 1003, Status: 0)",
+        "Manual traversal - Device: MotorCtrl (ID: 1002, Status: 1)",
+        "Manual traversal - Device: TempSensor (ID: 1001, Status: 1)",
+        "Manually removed device: MotorCtrl (ID: 1002)",
+        "Testing kernel macro operations",
+        "Kernel added device: TempSensor (ID: 1001)",
+        "Kernel added device: MotorCtrl (ID: 1002)",
+        "Kernel added device: LEDStrip (ID: 1003)",
+        "Kernel traversal - Device: LEDStrip (ID: 1003, Status: 0)",
+        "Kernel traversal - Device: MotorCtrl (ID: 1002, Status: 1)",
+        "Kernel traversal - Device: TempSensor (ID: 1001, Status: 1)",
+        "Found device: TempSensor (ID: 1001)",
+        "Total devices in kernel list: 3",
+        "Linked list demonstration completed",
+        "Linked lists module unloading",
+        "Cleaned up device: LEDStrip",
+        "Cleaned up device: MotorCtrl",
+        "Cleaned up device: TempSensor",
+        "Linked lists module unloaded"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/types.h",
+        "linux/slab.h",
+        "linux/list.h"
+      ],
+      "mustContain": [
+        "head->next = head",
+        "head->prev = head",
+        "dev->list.next = head->next",
+        "dev->list.prev = head",
+        "head->next->prev = &dev->list",
+        "head->next = &dev->list",
+        "dev->list.prev->next = dev->list.next",
+        "dev->list.next->prev = dev->list.prev",
+        "head->next == head",
+        "pos = head->next; pos != head; pos = pos->next",
+        "list_add(&dev->list, &kernel_device_list)",
+        "list_for_each_entry(",
+        "list_for_each_entry_safe(",
+        "list_del(",
+        "kfree(",
+        "INIT_LIST_HEAD(",
+        "module_param(test_device_id, int, 0644)",
+        "module_param(test_device_count, int, 0644)"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_declarations",
+        "name": "Function Declarations in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void manual_init_list(struct list_head *head)",
+          "void manual_add_device(struct device_entry *dev, struct list_head *head)",
+          "void manual_remove_device(struct device_entry *dev)",
+          "int manual_is_empty(struct list_head *head)",
+          "void manual_traverse_list(struct list_head *head)",
+          "void kernel_add_device(struct device_entry *dev)",
+          "void kernel_traverse_list(void)",
+          "struct device_entry* find_device_by_id(int device_id)",
+          "int count_total_devices(void)",
+          "void cleanup_all_devices(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void manual_init_list(struct list_head *head)",
+          "void manual_add_device(struct device_entry *dev, struct list_head *head)",
+          "void manual_remove_device(struct device_entry *dev)",
+          "int manual_is_empty(struct list_head *head)",
+          "void manual_traverse_list(struct list_head *head)",
+          "void kernel_add_device(struct device_entry *dev)",
+          "void kernel_traverse_list(void)",
+          "struct device_entry* find_device_by_id(int device_id)",
+          "int count_total_devices(void)",
+          "void cleanup_all_devices(void)",
+          "static int __init linked_lists_init(void)",
+          "static void __exit linked_lists_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Linked lists module loaded", "exact": true, "linkedFunction": "static int __init linked_lists_init(void)" },
+          { "pattern": "Testing manual list operations", "exact": true, "linkedFunction": "static int __init linked_lists_init(void)" },
+          { "pattern": "Manually added device: TempSensor (ID: 1001)", "exact": true, "linkedFunction": "void manual_add_device(struct device_entry *dev, struct list_head *head)" },
+          { "pattern": "Manually added device: MotorCtrl (ID: 1002)", "exact": true, "linkedFunction": "void manual_add_device(struct device_entry *dev, struct list_head *head)" },
+          { "pattern": "Manually added device: LEDStrip (ID: 1003)", "exact": true, "linkedFunction": "void manual_add_device(struct device_entry *dev, struct list_head *head)" },
+          { "pattern": "Manual list empty: 0", "exact": true, "linkedFunction": "static int __init linked_lists_init(void)" },
+          { "pattern": "Manual traversal - Device: LEDStrip (ID: 1003, Status: 0)", "exact": true, "linkedFunction": "void manual_traverse_list(struct list_head *head)" },
+          { "pattern": "Manual traversal - Device: MotorCtrl (ID: 1002, Status: 1)", "exact": true, "linkedFunction": "void manual_traverse_list(struct list_head *head)" },
+          { "pattern": "Manual traversal - Device: TempSensor (ID: 1001, Status: 1)", "exact": true, "linkedFunction": "void manual_traverse_list(struct list_head *head)" },
+          { "pattern": "Manually removed device: MotorCtrl (ID: 1002)", "exact": true, "linkedFunction": "void manual_remove_device(struct device_entry *dev)" },
+          { "pattern": "Testing kernel macro operations", "exact": true, "linkedFunction": "static int __init linked_lists_init(void)" },
+          { "pattern": "Kernel added device: TempSensor (ID: 1001)", "exact": true, "linkedFunction": "void kernel_add_device(struct device_entry *dev)" },
+          { "pattern": "Kernel added device: MotorCtrl (ID: 1002)", "exact": true, "linkedFunction": "void kernel_add_device(struct device_entry *dev)" },
+          { "pattern": "Kernel added device: LEDStrip (ID: 1003)", "exact": true, "linkedFunction": "void kernel_add_device(struct device_entry *dev)" },
+          { "pattern": "Kernel traversal - Device: LEDStrip (ID: 1003, Status: 0)", "exact": true, "linkedFunction": "void kernel_traverse_list(void)" },
+          { "pattern": "Kernel traversal - Device: MotorCtrl (ID: 1002, Status: 1)", "exact": true, "linkedFunction": "void kernel_traverse_list(void)" },
+          { "pattern": "Kernel traversal - Device: TempSensor (ID: 1001, Status: 1)", "exact": true, "linkedFunction": "void kernel_traverse_list(void)" },
+          { "pattern": "Found device: TempSensor (ID: 1001)", "exact": true, "linkedFunction": "static int __init linked_lists_init(void)" },
+          { "pattern": "Total devices in kernel list: 3", "exact": true, "linkedFunction": "static int __init linked_lists_init(void)" },
+          { "pattern": "Linked list demonstration completed", "exact": true, "linkedFunction": "static int __init linked_lists_init(void)" },
+          { "pattern": "Linked lists module unloading", "exact": true, "linkedFunction": "static void __exit linked_lists_exit(void)" },
+          { "pattern": "Cleaned up device: LEDStrip", "exact": true, "linkedFunction": "void cleanup_all_devices(void)" },
+          { "pattern": "Cleaned up device: MotorCtrl", "exact": true, "linkedFunction": "void cleanup_all_devices(void)" },
+          { "pattern": "Cleaned up device: TempSensor", "exact": true, "linkedFunction": "void cleanup_all_devices(void)" },
+          { "pattern": "Linked lists module unloaded", "exact": true, "linkedFunction": "static void __exit linked_lists_exit(void)" }
+        ]
+      },
+      {
+        "id": "advanced_linked_list_validation",
+        "name": "Advanced Linked List Implementation with Anti-Hardcoding Protection",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "linked_list_dynamic_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <time.h>\\n\\nint main() {\\n    printf(\\\"=== Dynamic Anti-Hardcoding Linked List Test ===\\\\n\\\");\\n    \\n    // Seed random number generator\\n    srand(time(NULL));\\n    \\n    // Generate unpredictable test values\\n    int random_device_id = (rand() % 9000) + 1000;  // 1000-9999\\n    int random_device_count = (rand() % 3) + 2;     // 2-4 devices\\n    \\n    printf(\\\"Test 1: Random linked list operations (device_id=%d, count=%d)\\\\n\\\", random_device_id, random_device_count);\\n    \\n    // Test with random values\\n    printf(\\\"DEBUG: Unloading previous module...\\\\n\\\");\\n    system(\\\"rmmod linked_lists 2>/dev/null\\\");\\n    \\n    char cmd[256];\\n    snprintf(cmd, sizeof(cmd), \\\"insmod /lib/modules/linked_lists.ko test_device_id=%d test_device_count=%d\\\", random_device_id, random_device_count);\\n    printf(\\\"DEBUG: Command: %s\\\\n\\\", cmd);\\n    system(cmd);\\n    \\n    printf(\\\"SUCCESS: Anti-hardcoding linked list test completed\\\\n\\\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting advanced linked list implementation validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: Ultra-Fast TCC Header Validation'",
+            "echo 'Creating minimal kernel header stubs for TCC...'",
+            "mkdir -p /tmp/linux",
+            "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
+            "echo '#define KERN_ERR' >> /tmp/linux/kernel.h",
+            "echo 'int printk(const char *fmt, ...);' >> /tmp/linux/kernel.h",
+            "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
+            "echo '#define MODULE_AUTHOR(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_DESCRIPTION(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_VERSION(x)' >> /tmp/linux/module.h",
+            "echo '#define module_init(x)' >> /tmp/linux/module.h",
+            "echo '#define module_exit(x)' >> /tmp/linux/module.h",
+            "echo '#define module_param(name, type, perm)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_PARM_DESC(var, desc)' >> /tmp/linux/module.h",
+            "echo '#define __init' > /tmp/linux/init.h",
+            "echo '#define __exit' >> /tmp/linux/init.h",
+            "echo 'typedef unsigned char uint8_t;' > /tmp/linux/types.h",
+            "echo 'typedef unsigned short uint16_t;' >> /tmp/linux/types.h",
+            "echo 'typedef unsigned int uint32_t;' >> /tmp/linux/types.h",
+            "echo 'typedef unsigned long size_t;' >> /tmp/linux/types.h",
+            "echo '#define MAX_DEVICE_NAME 16' >> /tmp/linux/types.h",
+            "echo 'void* kmalloc(size_t size, int flags);' > /tmp/linux/slab.h",
+            "echo 'void kfree(const void *ptr);' >> /tmp/linux/slab.h",
+            "echo '#define GFP_KERNEL 0' >> /tmp/linux/slab.h",
+            "echo 'struct list_head { struct list_head *next, *prev; };' > /tmp/linux/list.h",
+            "echo '#define INIT_LIST_HEAD(ptr) do { (ptr)->next = (ptr); (ptr)->prev = (ptr); } while (0)' >> /tmp/linux/list.h",
+            "echo '#define list_add(new, head) do { (new)->next = (head)->next; (new)->prev = (head); (head)->next->prev = (new); (head)->next = (new); } while (0)' >> /tmp/linux/list.h",
+            "echo '#define list_for_each_entry(pos, head, member) for (pos = container_of((head)->next, typeof(*pos), member); &pos->member != (head); pos = container_of(pos->member.next, typeof(*pos), member))' >> /tmp/linux/list.h",
+            "echo '#define list_for_each_entry_safe(pos, n, head, member) for (pos = container_of((head)->next, typeof(*pos), member), n = container_of(pos->member.next, typeof(*pos), member); &pos->member != (head); pos = n, n = container_of(n->member.next, typeof(*n), member))' >> /tmp/linux/list.h",
+            "echo '#define list_del(entry) do { (entry)->next->prev = (entry)->prev; (entry)->prev->next = (entry)->next; } while (0)' >> /tmp/linux/list.h",
+            "echo '#define container_of(ptr, type, member) ((type *)((char *)(ptr) - offsetof(type, member)))' >> /tmp/linux/list.h",
+            "echo '#define offsetof(type, member) ((size_t) &((type *)0)->member)' >> /tmp/linux/list.h",
+            "echo 'Creating test file that includes linked lists header...'",
+            "echo '#include \"/lib/modules/linked_lists.h\"' > /tmp/test.c",
+            "echo 'int main() { struct list_head head; struct device_entry *dev; manual_init_list(&head); manual_add_device(dev, &head); manual_remove_device(dev); manual_is_empty(&head); manual_traverse_list(&head); kernel_add_device(dev); kernel_traverse_list(); find_device_by_id(1001); count_total_devices(); cleanup_all_devices(); return 0; }' >> /tmp/test.c",
+            "echo 'Running TCC validation...'",
+            "/usr/bin/tcc -I/tmp -Wimplicit-function-declaration -Werror -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
+            "TCC_EXIT_CODE=$?",
+            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Function or variable declaration missing or commented in header'; echo 'TCC Error Details:'; cat /tmp/tcc_error.log; else echo 'PASS: All function and variable declarations found in header file'; fi",
+            "echo 'Phase 2: Anti-Hardcoding Dynamic Linked List Test'",
+            "/bin/linked_list_dynamic_tester > /tmp/test_output.log",
+            "cat /tmp/test_output.log",
+            "echo 'Phase 3: Random Value Extraction and Validation'",
+            "echo 'Adding delay to ensure dmesg messages are written...'",
+            "sleep 1",
+            "echo 'Extracting random test values from output...'",
+            "DEVICE_ID=$(grep -o 'Random linked list operations (device_id=[0-9]*' /tmp/test_output.log | cut -d'=' -f2)",
+            "DEVICE_COUNT=$(grep -o 'count=[0-9]*)' /tmp/test_output.log | cut -d'=' -f2 | cut -d')' -f1)",
+            "echo 'Extracted values: DEVICE_ID='$DEVICE_ID', DEVICE_COUNT='$DEVICE_COUNT",
+            "if [ -z \"$DEVICE_ID\" ] || [ -z \"$DEVICE_COUNT\" ]; then echo 'FAIL: Could not extract random test values'; else echo 'PASS: Random values extracted successfully'; fi",
+            "echo 'Phase 4: Anti-Hardcoding Validation with Random Values'",
+            "echo 'Validating linked list operations with random device ID '$DEVICE_ID",
+            "dmesg | grep \"TempSensor (ID: $DEVICE_ID)\" && echo 'PASS: Linked list operations with random device ID working' || echo 'FAIL: Linked list operations with random device ID broken'",
+            "echo 'Phase 5: Linked List Implementation Validation'",
+            "dmesg | grep 'Manually added device:' && echo 'PASS: Manual add operations working' || echo 'FAIL: Manual add operations broken'",
+            "dmesg | grep 'Manual traversal - Device:' && echo 'PASS: Manual traversal working' || echo 'FAIL: Manual traversal broken'",
+            "dmesg | grep 'Manually removed device:' && echo 'PASS: Manual remove operations working' || echo 'FAIL: Manual remove operations broken'",
+            "dmesg | grep 'Kernel added device:' && echo 'PASS: Kernel macro operations working' || echo 'FAIL: Kernel macro operations broken'",
+            "dmesg | grep 'Kernel traversal - Device:' && echo 'PASS: Kernel traversal working' || echo 'FAIL: Kernel traversal broken'",
+            "echo 'Phase 6: Advanced List Operations Validation'",
+            "dmesg | grep 'Found device:' && echo 'PASS: Device search working' || echo 'FAIL: Device search broken'",
+            "dmesg | grep 'Total devices in kernel list: 3' && echo 'PASS: Device counting working' || echo 'FAIL: Device counting broken'",
+            "dmesg | grep 'Cleaned up device:' && echo 'PASS: Device cleanup working' || echo 'FAIL: Device cleanup broken'",
+            "echo 'Phase 7: Module Operations Validation'",
+            "dmesg | grep 'Linked lists module loaded' && echo 'PASS: Module initialization working' || echo 'FAIL: Module initialization broken'",
+            "dmesg | grep 'Linked lists module unloaded' && echo 'PASS: Module cleanup working' || echo 'FAIL: Module cleanup broken'",
+            "echo 'All linked list implementation validations completed'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Linked lists module loaded",
+              "Testing manual list operations",
+              "Manually added device: .*",
+              "Manual list empty: 0",
+              "Manual traversal - Device: .*",
+              "Manually removed device: .*",
+              "Testing kernel macro operations",
+              "Kernel added device: .*",
+              "Kernel traversal - Device: .*",
+              "Found device: .*",
+              "Total devices in kernel list: .*",
+              "Linked list demonstration completed",
+              "Linked lists module unloading",
+              "Cleaned up device: .*",
+              "Linked lists module unloaded"
+            ],
+            "stdout": [
+              "PASS: All function and variable declarations found in header file",
+              "SUCCESS: Anti-hardcoding linked list test completed",
+              "PASS: Random values extracted successfully",
+              "PASS: Linked list operations with random device ID working",
+              "PASS: Manual add operations working",
+              "PASS: Manual traversal working",
+              "PASS: Manual remove operations working",
+              "PASS: Kernel macro operations working",
+              "PASS: Kernel traversal working",
+              "PASS: Device search working",
+              "PASS: Device counting working",
+              "PASS: Device cleanup working",
+              "PASS: Module initialization working",
+              "PASS: Module cleanup working"
+            ]
+          },
+          "timeout": 15
+        }
+      }
+    ]
+  }
+}

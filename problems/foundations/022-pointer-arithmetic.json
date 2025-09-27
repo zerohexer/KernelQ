@@ -94,6 +94,7 @@
         {
           "name": "test_buffer",
           "type": "uint8_t",
+          "value": "[BUFFER_SIZE]",
           "storageClass": "extern"
         },
         {
