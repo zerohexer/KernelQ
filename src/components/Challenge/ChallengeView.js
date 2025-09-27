@@ -57,9 +57,64 @@ const ChallengeView = ({
 
     // Helper function to extract function name from signature
     const extractFunctionName = (signature) => {
-        // Handle patterns like "void print_employee_info(void)", "static int __init practice_vars_init(void)", etc.
-        const match = signature.match(/(?:static\s+)?(?:\w+\s+)?(?:__init\s+|__exit\s+)?(\w+)\s*\(/);
-        return match ? match[1] : signature;
+        // Find the opening parenthesis and work backwards to get function name
+        const parenIndex = signature.indexOf('(');
+        if (parenIndex === -1) return signature;
+
+        const beforeParen = signature.substring(0, parenIndex).trim();
+        const words = beforeParen.split(/\s+/);
+        return words[words.length - 1]; // Last word before parenthesis is function name
+    };
+
+    // Dynamic function signature parser that handles complex return types
+    const parseFunctionSignature = (signature) => {
+        // Find the opening parenthesis - everything after is parameters
+        const parenIndex = signature.indexOf('(');
+        if (parenIndex === -1) {
+            return { storageClass: '', returnType: '', attribute: '', name: signature, params: '' };
+        }
+
+        const beforeParen = signature.substring(0, parenIndex).trim();
+        const params = signature.substring(parenIndex);
+        const words = beforeParen.split(/\s+/);
+
+        if (words.length === 0) {
+            return { storageClass: '', returnType: '', attribute: '', name: signature, params: '' };
+        }
+
+        // Function name is always the last word before parenthesis
+        const name = words[words.length - 1];
+
+        // Check for storage class at the beginning
+        const storageClasses = ['static', 'extern', 'auto', 'register', 'inline'];
+        let storageClass = '';
+        let startIndex = 0;
+
+        if (words.length > 1 && storageClasses.includes(words[0])) {
+            storageClass = words[0];
+            startIndex = 1;
+        }
+
+        // Check for attributes (__init, __exit) near the end
+        const attributes = ['__init', '__exit'];
+        let attribute = '';
+        let endIndex = words.length - 1; // Exclude function name
+
+        if (words.length > 2 && attributes.includes(words[words.length - 2])) {
+            attribute = words[words.length - 2];
+            endIndex = words.length - 2;
+        }
+
+        // Everything between storage class and attribute/function name is return type
+        const returnType = words.slice(startIndex, endIndex).join(' ');
+
+        return {
+            storageClass,
+            returnType,
+            attribute,
+            name,
+            params
+        };
     };
 
     // Toggle function link expansion
@@ -442,27 +497,14 @@ const ChallengeView = ({
                                     {challenge.validation?.testCases?.find(tc =>
                                         tc.id === 'function_declarations' || tc.id === 'function_declaration'
                                     )?.expectedSymbols?.map((funcDecl, idx) => {
-                                        // Parse function signature: "int add_numbers(int a, int b)" -> returnType: "int", name: "add_numbers", params: "(int a, int b)"
+                                        // Parse function signature dynamically for function declarations
                                         const parseFunction = (signature) => {
-                                            const match = signature.match(/(\w+)\s+(\w+)\s*(\([^)]*\))/);
-                                            if (match) {
-                                                return {
-                                                    returnType: match[1],
-                                                    name: match[2],
-                                                    params: match[3]
-                                                };
-                                            }
-                                            // Fallback for other patterns
-                                            const parenIndex = signature.indexOf('(');
-                                            if (parenIndex > 0) {
-                                                const beforeParen = signature.substring(0, parenIndex).trim();
-                                                const words = beforeParen.split(/\s+/);
-                                                const name = words[words.length - 1];
-                                                const returnType = words.length > 1 ? words[words.length - 2] : '';
-                                                const params = signature.substring(parenIndex);
-                                                return { returnType, name, params };
-                                            }
-                                            return { returnType: '', name: signature, params: '' };
+                                            const parsed = parseFunctionSignature(signature);
+                                            return {
+                                                returnType: parsed.returnType,
+                                                name: parsed.name,
+                                                params: parsed.params
+                                            };
                                         };
                                         
                                         const parsed = parseFunction(funcDecl);
@@ -636,56 +678,8 @@ const ChallengeView = ({
                             {/* Display function signatures from function_signatures_source test case */}
                             {challenge.validation?.testCases?.some(tc => tc.id === 'function_signatures_source') && 
                              challenge.validation?.testCases?.find(tc => tc.id === 'function_signatures_source')?.expectedSymbols?.map((funcSig, idx) => {
-                                // Parse function signature: "static int __init hello_init(void)" -> static: "static", returnType: "int", attribute: "__init", name: "hello_init", params: "(void)"
-                                const parseFunction = (signature) => {
-                                    // Match pattern: [storage_class] [returnType] [__init/__exit] functionName(params)
-                                    // Storage classes: static, extern, auto, register, inline
-                                    const fullMatch = signature.match(/((?:static|extern|auto|register|inline)\s+)?(\w+)\s+(?:(__init|__exit)\s+)?(\w+)\s*(\([^)]*\))/);
-                                    if (fullMatch) {
-                                        return {
-                                            storageClass: fullMatch[1] ? fullMatch[1].trim() : '',  // storage class specifier or empty
-                                            returnType: fullMatch[2],
-                                            attribute: fullMatch[3] || '',  // __init, __exit, or empty
-                                            name: fullMatch[4],
-                                            params: fullMatch[5]
-                                        };
-                                    }
-                                    
-                                    // Fallback for simpler patterns without storage class
-                                    const simpleMatch = signature.match(/(\w+)\s+(\w+)\s*(\([^)]*\))/);
-                                    if (simpleMatch) {
-                                        return {
-                                            storageClass: '',
-                                            returnType: simpleMatch[1],
-                                            attribute: '',
-                                            name: simpleMatch[2],
-                                            params: simpleMatch[3]
-                                        };
-                                    }
-                                    
-                                    // Final fallback
-                                    const parenIndex = signature.indexOf('(');
-                                    if (parenIndex > 0) {
-                                        const beforeParen = signature.substring(0, parenIndex).trim();
-                                        const words = beforeParen.split(/\s+/);
-                                        const name = words[words.length - 1];
-                                        const params = signature.substring(parenIndex);
-                                        return { 
-                                            storageClass: '',
-                                            returnType: '',
-                                            attribute: '', 
-                                            name, 
-                                            params 
-                                        };
-                                    }
-                                    return { 
-                                        storageClass: '',
-                                        returnType: '',
-                                        attribute: '', 
-                                        name: signature, 
-                                        params: '' 
-                                    };
-                                };
+                                // Parse function signature dynamically for function implementations
+                                const parseFunction = parseFunctionSignature;
                                 
                                 const parsed = parseFunction(funcSig);
                                 
@@ -1680,27 +1674,14 @@ const ChallengeView = ({
                                         {validation?.testCases?.find(tc =>
                                             tc.id === 'function_declarations' || tc.id === 'function_declaration'
                                         )?.expectedSymbols?.map((funcDecl, idx) => {
-                                            // Parse function signature: "int add_numbers(int a, int b)" -> returnType: "int", name: "add_numbers", params: "(int a, int b)"
+                                            // Parse function signature dynamically for function declarations (left panel)
                                             const parseFunction = (signature) => {
-                                                const match = signature.match(/(\w+)\s+(\w+)\s*(\([^)]*\))/);
-                                                if (match) {
-                                                    return {
-                                                        returnType: match[1],
-                                                        name: match[2],
-                                                        params: match[3]
-                                                    };
-                                                }
-                                                // Fallback for other patterns
-                                                const parenIndex = signature.indexOf('(');
-                                                if (parenIndex > 0) {
-                                                    const beforeParen = signature.substring(0, parenIndex).trim();
-                                                    const words = beforeParen.split(/\s+/);
-                                                    const name = words[words.length - 1];
-                                                    const returnType = words.length > 1 ? words[words.length - 2] : '';
-                                                    const params = signature.substring(parenIndex);
-                                                    return { returnType, name, params };
-                                                }
-                                                return { returnType: '', name: signature, params: '' };
+                                                const parsed = parseFunctionSignature(signature);
+                                                return {
+                                                    returnType: parsed.returnType,
+                                                    name: parsed.name,
+                                                    params: parsed.params
+                                                };
                                             };
                                             
                                             const parsed = parseFunction(funcDecl);
@@ -1877,56 +1858,8 @@ const ChallengeView = ({
                                 {/* Display function signatures from function_signatures_source test case */}
                                 {validation?.testCases?.some(tc => tc.id === 'function_signatures_source') && 
                                  validation?.testCases?.find(tc => tc.id === 'function_signatures_source')?.expectedSymbols?.map((funcSig, idx) => {
-                                    // Parse function signature: "static int __init hello_init(void)" -> static: "static", returnType: "int", attribute: "__init", name: "hello_init", params: "(void)"
-                                    const parseFunction = (signature) => {
-                                        // Match pattern: [storage_class] [returnType] [__init/__exit] functionName(params)
-                                        // Storage classes: static, extern, auto, register, inline
-                                        const fullMatch = signature.match(/((?:static|extern|auto|register|inline)\s+)?(\w+)\s+(?:(__init|__exit)\s+)?(\w+)\s*(\([^)]*\))/);
-                                        if (fullMatch) {
-                                            return {
-                                                storageClass: fullMatch[1] ? fullMatch[1].trim() : '',  // storage class specifier or empty
-                                                returnType: fullMatch[2],
-                                                attribute: fullMatch[3] || '',  // __init, __exit, or empty
-                                                name: fullMatch[4],
-                                                params: fullMatch[5]
-                                            };
-                                        }
-                                        
-                                        // Fallback for simpler patterns without storage class
-                                        const simpleMatch = signature.match(/(\w+)\s+(\w+)\s*(\([^)]*\))/);
-                                        if (simpleMatch) {
-                                            return {
-                                                storageClass: '',
-                                                returnType: simpleMatch[1],
-                                                attribute: '',
-                                                name: simpleMatch[2],
-                                                params: simpleMatch[3]
-                                            };
-                                        }
-                                        
-                                        // Final fallback
-                                        const parenIndex = signature.indexOf('(');
-                                        if (parenIndex > 0) {
-                                            const beforeParen = signature.substring(0, parenIndex).trim();
-                                            const words = beforeParen.split(/\s+/);
-                                            const name = words[words.length - 1];
-                                            const params = signature.substring(parenIndex);
-                                            return { 
-                                                storageClass: '',
-                                                returnType: '',
-                                                attribute: '', 
-                                                name, 
-                                                params 
-                                            };
-                                        }
-                                        return { 
-                                            storageClass: '',
-                                            returnType: '',
-                                            attribute: '', 
-                                            name: signature, 
-                                            params: '' 
-                                        };
-                                    };
+                                    // Parse function signature dynamically for function implementations (left panel)
+                                    const parseFunction = parseFunctionSignature;
                                     
                                     const parsed = parseFunction(funcSig);
                                     
