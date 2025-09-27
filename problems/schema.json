@@ -151,7 +151,7 @@
                 "properties": {
                   "name": { "type": "string" },
                   "type": { "type": "string" },
-                  "storageClass": { 
+                  "storageClass": {
                     "type": "string",
                     "enum": ["extern", "static", "auto", "register", "inline", "none"],
                     "description": "Optional storage class specifier for frontend display"
@@ -160,6 +160,50 @@
                 "required": ["name", "type"]
               },
               "description": "Required variable declarations only (for header files, no values)"
+            },
+            "macro_declarations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "type": {
+                    "type": "string",
+                    "enum": ["constant", "function-like", "conditional"]
+                  },
+                  "value": { "type": "string" },
+                  "description": { "type": "string" },
+                  "parameters": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "For function-like macros"
+                  }
+                },
+                "required": ["name", "type"]
+              },
+              "description": "Required macro declarations in header file"
+            },
+            "macro_definitions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "type": {
+                    "type": "string",
+                    "enum": ["constant", "function-like", "conditional"]
+                  },
+                  "value": { "type": "string" },
+                  "description": { "type": "string" },
+                  "parameters": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "For function-like macros"
+                  }
+                },
+                "required": ["name", "type"]
+              },
+              "description": "Required macro definitions in source file"
             },
             "outputMessages": {
               "type": "array",
