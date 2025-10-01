@@ -487,9 +487,22 @@ const ChallengeView = ({
                                                 </span>
                                             )}
                                             {macro.value && (
-                                                <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
-                                                    {' '}{macro.value}
-                                                </span>
+                                                macro.value.includes('\n') ? (
+                                                    <div style={{
+                                                        color: 'rgba(245, 245, 247, 0.5)',
+                                                        fontSize: '0.875rem',
+                                                        marginTop: '4px',
+                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        whiteSpace: 'pre-wrap',
+                                                        wordBreak: 'break-word'
+                                                    }}>
+                                                        {macro.value}
+                                                    </div>
+                                                ) : (
+                                                    <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
+                                                        {' '}{macro.value}
+                                                    </span>
+                                                )
                                             )}
                                         </li>
                                     ))}
@@ -669,9 +682,22 @@ const ChallengeView = ({
                                         </span>
                                     )}
                                     {macro.value && (
-                                        <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
-                                            {' '}{macro.value}
-                                        </span>
+                                        macro.value.includes('\n') ? (
+                                            <div style={{
+                                                color: 'rgba(245, 245, 247, 0.5)',
+                                                fontSize: '0.875rem',
+                                                marginTop: '4px',
+                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                whiteSpace: 'pre-wrap',
+                                                wordBreak: 'break-word'
+                                            }}>
+                                                {macro.value}
+                                            </div>
+                                        ) : (
+                                            <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
+                                                {' '}{macro.value}
+                                            </span>
+                                        )
                                     )}
                                 </li>
                             ))}
@@ -1664,9 +1690,22 @@ const ChallengeView = ({
                                                     </span>
                                                 )}
                                                 {macro.value && (
-                                                    <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
-                                                        {' '}{macro.value}
-                                                    </span>
+                                                    macro.value.includes('\n') ? (
+                                                        <div style={{
+                                                            color: 'rgba(245, 245, 247, 0.5)',
+                                                            fontSize: '0.875rem',
+                                                            marginTop: '4px',
+                                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                            whiteSpace: 'pre-wrap',
+                                                            wordBreak: 'break-word'
+                                                        }}>
+                                                            {macro.value}
+                                                        </div>
+                                                    ) : (
+                                                        <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
+                                                            {' '}{macro.value}
+                                                        </span>
+                                                    )
                                                 )}
                                             </li>
                                         ))}
@@ -1849,9 +1888,22 @@ const ChallengeView = ({
                                             </span>
                                         )}
                                         {macro.value && (
-                                            <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
-                                                {' '}{macro.value}
-                                            </span>
+                                            macro.value.includes('\n') ? (
+                                                <div style={{
+                                                    color: 'rgba(245, 245, 247, 0.5)',
+                                                    fontSize: '0.875rem',
+                                                    marginTop: '4px',
+                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    whiteSpace: 'pre-wrap',
+                                                    wordBreak: 'break-word'
+                                                }}>
+                                                    {macro.value}
+                                                </div>
+                                            ) : (
+                                                <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
+                                                    {' '}{macro.value}
+                                                </span>
+                                            )
                                         )}
                                     </li>
                                 ))}
