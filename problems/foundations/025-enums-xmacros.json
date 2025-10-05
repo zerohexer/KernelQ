@@ -59,9 +59,8 @@
       "macro_declarations": [
         {
           "name": "DEVICE_TABLE",
-          "type": "function-like",
-          "parameters": ["X"],
-          "value": "X(SENSOR, \"Temperature Sensor\", 0x2001) \\\nX(MOTOR, \"Stepper Motor\", 0x2002) \\\nX(LED, \"Status LED\", 0x2003) \\\nX(DISPLAY, \"LCD Display\", 0x2004)",
+          "type": "constant",
+          "value": "(X) \\\nX(SENSOR, \"Temperature Sensor\", 0x2001) \\\nX(MOTOR, \"Stepper Motor\", 0x2002) \\\nX(LED, \"Status LED\", 0x2003) \\\nX(DISPLAY, \"LCD Display\", 0x2004)",
           "description": "X-macro table defining all devices with name, description, and ID"
         },
         {
