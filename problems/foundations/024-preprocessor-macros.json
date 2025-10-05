@@ -91,10 +91,10 @@
           "description": "Combine major and minor version into single value"
         },
         {
-          "name": "DEBUG_PRINT",
-          "type": "conditional",
-          "parameters": ["fmt", "..."],
-          "value": "#ifdef DEBUG_MODE\n#define DEBUG_PRINT(fmt, ...) printk(KERN_DEBUG fmt, ##__VA_ARGS__)\n#else\n#define DEBUG_PRINT(fmt, ...)\n#endif",
+          "name": "DEBUG_MODE",
+          "preprocessor": "#ifdef",
+          "type": "constant",
+          "value": "\n#define DEBUG_PRINT(fmt, ...) printk(KERN_DEBUG fmt, ##__VA_ARGS__)\n#else\n#define DEBUG_PRINT(fmt, ...)\n#endif",
           "description": "Conditional debug printing macro"
         }
       ],

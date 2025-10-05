@@ -126,6 +126,7 @@ class ProblemCLI {
                         let macroName;
                         while ((macroName = await this.prompt('     Macro name (empty to finish): ')) !== '') {
                             const macroType = await this.prompt('     Type (constant/function-like/conditional): ');
+                            const preprocessor = await this.prompt('     Preprocessor (#define/#ifdef/#ifndef/#if/etc.) [optional, default: #define]: ');
                             const macroValue = await this.prompt('     Value: ');
                             const macroDesc = await this.prompt('     Description: ');
 
@@ -135,6 +136,10 @@ class ProblemCLI {
                                 value: macroValue,
                                 description: macroDesc
                             };
+
+                            if (preprocessor) {
+                                macro.preprocessor = preprocessor;
+                            }
 
                             if (macroType === 'function-like') {
                                 const params = await this.prompt('     Parameters (comma-separated): ');
@@ -152,6 +157,7 @@ class ProblemCLI {
                         let macroName;
                         while ((macroName = await this.prompt('     Macro name (empty to finish): ')) !== '') {
                             const macroType = await this.prompt('     Type (constant/function-like/conditional): ');
+                            const preprocessor = await this.prompt('     Preprocessor (#define/#ifdef/#ifndef/#if/etc.) [optional, default: #define]: ');
                             const macroValue = await this.prompt('     Value (optional): ');
                             const macroDesc = await this.prompt('     Description: ');
 
@@ -160,6 +166,10 @@ class ProblemCLI {
                                 type: macroType,
                                 description: macroDesc
                             };
+
+                            if (preprocessor) {
+                                macro.preprocessor = preprocessor;
+                            }
 
                             if (macroValue) macro.value = macroValue;
 

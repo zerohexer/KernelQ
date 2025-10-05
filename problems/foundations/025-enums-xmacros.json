@@ -65,9 +65,8 @@
         },
         {
           "name": "MAKE_ENUM",
-          "type": "function-like",
-          "parameters": ["name", "desc", "id"],
-          "value": "XDEV_##name,",
+          "type": "constant",
+          "value": "(name, desc, id) XDEV_##name,\nenum xmacro_device_type { DEVICE_TABLE(MAKE_ENUM) };\n#undef MAKE_ENUM",
           "description": "X-macro helper to generate enum values"
         },
         {

@@ -459,32 +459,61 @@ const ChallengeView = ({
                                                 borderRadius: '50%',
                                                 background: '#32d74b'
                                             }} />
-                                            Define macro: {' '}
-                                            <code style={{
-                                                background: 'rgba(50, 215, 75, 0.15)',
-                                                border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                color: '#32d74b',
-                                                fontSize: '0.875rem',
-                                                fontWeight: 500,
-                                                marginRight: '6px'
-                                            }}>#define</code>
-                                            <code style={{
-                                                background: 'rgba(50, 215, 75, 0.15)',
-                                                border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                color: '#32d74b',
-                                                fontSize: '0.875rem',
-                                                fontWeight: 500
-                                            }}>{macro.name}</code>
-                                            {macro.type === 'function-like' && macro.parameters && (
-                                                <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
-                                                    {' '}({macro.parameters.join(', ')})
-                                                </span>
+                                            {macro.preprocessor && macro.preprocessor !== '#define' ? (
+                                                <>
+                                                    Define macro: {' '}
+                                                    <code style={{
+                                                        background: 'rgba(50, 215, 75, 0.15)',
+                                                        border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                        padding: '4px 8px',
+                                                        borderRadius: '6px',
+                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        color: '#32d74b',
+                                                        fontSize: '0.875rem',
+                                                        fontWeight: 500,
+                                                        marginRight: '6px'
+                                                    }}>{macro.preprocessor}</code>
+                                                    <code style={{
+                                                        background: 'rgba(50, 215, 75, 0.15)',
+                                                        border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                        padding: '4px 8px',
+                                                        borderRadius: '6px',
+                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        color: '#32d74b',
+                                                        fontSize: '0.875rem',
+                                                        fontWeight: 500
+                                                    }}>{macro.value?.split('\n')[0]?.replace(macro.preprocessor + ' ', '') || macro.name}</code>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Define macro: {' '}
+                                                    <code style={{
+                                                        background: 'rgba(50, 215, 75, 0.15)',
+                                                        border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                        padding: '4px 8px',
+                                                        borderRadius: '6px',
+                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        color: '#32d74b',
+                                                        fontSize: '0.875rem',
+                                                        fontWeight: 500,
+                                                        marginRight: '6px'
+                                                    }}>#define</code>
+                                                    <code style={{
+                                                        background: 'rgba(50, 215, 75, 0.15)',
+                                                        border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                        padding: '4px 8px',
+                                                        borderRadius: '6px',
+                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        color: '#32d74b',
+                                                        fontSize: '0.875rem',
+                                                        fontWeight: 500
+                                                    }}>{macro.name}</code>
+                                                    {macro.type === 'function-like' && macro.parameters && (
+                                                        <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
+                                                            {' '}({macro.parameters.join(', ')})
+                                                        </span>
+                                                    )}
+                                                </>
                                             )}
                                             {macro.value && (
                                                 macro.value.includes('\n') ? (
@@ -653,32 +682,61 @@ const ChallengeView = ({
                                         borderRadius: '50%',
                                         background: '#32d74b'
                                     }} />
-                                    Define macro: {' '}
-                                    <code style={{
-                                        background: 'rgba(50, 215, 75, 0.15)',
-                                        border: '1px solid rgba(50, 215, 75, 0.3)',
-                                        padding: '4px 8px',
-                                        borderRadius: '6px',
-                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                        color: '#32d74b',
-                                        fontSize: '0.875rem',
-                                        fontWeight: 500,
-                                        marginRight: '6px'
-                                    }}>#define</code>
-                                    <code style={{
-                                        background: 'rgba(50, 215, 75, 0.15)',
-                                        border: '1px solid rgba(50, 215, 75, 0.3)',
-                                        padding: '4px 8px',
-                                        borderRadius: '6px',
-                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                        color: '#32d74b',
-                                        fontSize: '0.875rem',
-                                        fontWeight: 500
-                                    }}>{macro.name}</code>
-                                    {macro.type === 'function-like' && macro.parameters && (
-                                        <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
-                                            {' '}({macro.parameters.join(', ')})
-                                        </span>
+                                    {macro.preprocessor && macro.preprocessor !== '#define' ? (
+                                        <>
+                                            Define macro: {' '}
+                                            <code style={{
+                                                background: 'rgba(50, 215, 75, 0.15)',
+                                                border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                color: '#32d74b',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500,
+                                                marginRight: '6px'
+                                            }}>{macro.preprocessor}</code>
+                                            <code style={{
+                                                background: 'rgba(50, 215, 75, 0.15)',
+                                                border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                color: '#32d74b',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500
+                                            }}>{macro.value?.split('\n')[0]?.replace(macro.preprocessor + ' ', '') || macro.name}</code>
+                                        </>
+                                    ) : (
+                                        <>
+                                            Define macro: {' '}
+                                            <code style={{
+                                                background: 'rgba(50, 215, 75, 0.15)',
+                                                border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                color: '#32d74b',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500,
+                                                marginRight: '6px'
+                                            }}>#define</code>
+                                            <code style={{
+                                                background: 'rgba(50, 215, 75, 0.15)',
+                                                border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                padding: '4px 8px',
+                                                borderRadius: '6px',
+                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                color: '#32d74b',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500
+                                            }}>{macro.name}</code>
+                                            {macro.type === 'function-like' && macro.parameters && (
+                                                <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
+                                                    {' '}({macro.parameters.join(', ')})
+                                                </span>
+                                            )}
+                                        </>
                                     )}
                                     {macro.value && (
                                         macro.value.includes('\n') ? (
@@ -1660,32 +1718,61 @@ const ChallengeView = ({
                                                     borderRadius: '50%',
                                                     background: '#32d74b'
                                                 }} />
-                                                Define macro: {' '}
-                                                <code style={{
-                                                    background: 'rgba(50, 215, 75, 0.15)',
-                                                    border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                    color: '#32d74b',
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: 500,
-                                                    marginRight: '6px'
-                                                }}>#define</code>
-                                                <code style={{
-                                                    background: 'rgba(50, 215, 75, 0.15)',
-                                                    border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                    color: '#32d74b',
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: 500
-                                                }}>{macro.name}</code>
-                                                {macro.type === 'function-like' && macro.parameters && (
-                                                    <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
-                                                        {' '}({macro.parameters.join(', ')})
-                                                    </span>
+                                                {macro.preprocessor && macro.preprocessor !== '#define' ? (
+                                                    <>
+                                                        Define macro: {' '}
+                                                        <code style={{
+                                                            background: 'rgba(50, 215, 75, 0.15)',
+                                                            border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                            padding: '4px 8px',
+                                                            borderRadius: '6px',
+                                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                            color: '#32d74b',
+                                                            fontSize: '0.875rem',
+                                                            fontWeight: 500,
+                                                            marginRight: '6px'
+                                                        }}>{macro.preprocessor}</code>
+                                                        <code style={{
+                                                            background: 'rgba(50, 215, 75, 0.15)',
+                                                            border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                            padding: '4px 8px',
+                                                            borderRadius: '6px',
+                                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                            color: '#32d74b',
+                                                            fontSize: '0.875rem',
+                                                            fontWeight: 500
+                                                        }}>{macro.value?.split('\n')[0]?.replace(macro.preprocessor + ' ', '') || macro.name}</code>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        Define macro: {' '}
+                                                        <code style={{
+                                                            background: 'rgba(50, 215, 75, 0.15)',
+                                                            border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                            padding: '4px 8px',
+                                                            borderRadius: '6px',
+                                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                            color: '#32d74b',
+                                                            fontSize: '0.875rem',
+                                                            fontWeight: 500,
+                                                            marginRight: '6px'
+                                                        }}>#define</code>
+                                                        <code style={{
+                                                            background: 'rgba(50, 215, 75, 0.15)',
+                                                            border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                            padding: '4px 8px',
+                                                            borderRadius: '6px',
+                                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                            color: '#32d74b',
+                                                            fontSize: '0.875rem',
+                                                            fontWeight: 500
+                                                        }}>{macro.name}</code>
+                                                        {macro.type === 'function-like' && macro.parameters && (
+                                                            <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
+                                                                {' '}({macro.parameters.join(', ')})
+                                                            </span>
+                                                        )}
+                                                    </>
                                                 )}
                                                 {macro.value && (
                                                     macro.value.includes('\n') ? (
@@ -1857,32 +1944,61 @@ const ChallengeView = ({
                                             borderRadius: '50%',
                                             background: '#32d74b'
                                         }} />
-                                        Define macro: {' '}
-                                        <code style={{
-                                            background: 'rgba(50, 215, 75, 0.15)',
-                                            border: '1px solid rgba(50, 215, 75, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#32d74b',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500,
-                                            marginRight: '6px'
-                                        }}>#define</code>
-                                        <code style={{
-                                            background: 'rgba(50, 215, 75, 0.15)',
-                                            border: '1px solid rgba(50, 215, 75, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#32d74b',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500
-                                        }}>{macro.name}</code>
-                                        {macro.type === 'function-like' && macro.parameters && (
-                                            <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
-                                                {' '}({macro.parameters.join(', ')})
-                                            </span>
+                                        {macro.preprocessor && macro.preprocessor !== '#define' ? (
+                                            <>
+                                                Define macro: {' '}
+                                                <code style={{
+                                                    background: 'rgba(50, 215, 75, 0.15)',
+                                                    border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
+                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    color: '#32d74b',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 500,
+                                                    marginRight: '6px'
+                                                }}>{macro.preprocessor}</code>
+                                                <code style={{
+                                                    background: 'rgba(50, 215, 75, 0.15)',
+                                                    border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
+                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    color: '#32d74b',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 500
+                                                }}>{macro.value?.split('\n')[0]?.replace(macro.preprocessor + ' ', '') || macro.name}</code>
+                                            </>
+                                        ) : (
+                                            <>
+                                                Define macro: {' '}
+                                                <code style={{
+                                                    background: 'rgba(50, 215, 75, 0.15)',
+                                                    border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
+                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    color: '#32d74b',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 500,
+                                                    marginRight: '6px'
+                                                }}>#define</code>
+                                                <code style={{
+                                                    background: 'rgba(50, 215, 75, 0.15)',
+                                                    border: '1px solid rgba(50, 215, 75, 0.3)',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '6px',
+                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    color: '#32d74b',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: 500
+                                                }}>{macro.name}</code>
+                                                {macro.type === 'function-like' && macro.parameters && (
+                                                    <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
+                                                        {' '}({macro.parameters.join(', ')})
+                                                    </span>
+                                                )}
+                                            </>
                                         )}
                                         {macro.value && (
                                             macro.value.includes('\n') ? (
