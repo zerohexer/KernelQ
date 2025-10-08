@@ -471,14 +471,15 @@ The system supports displaying macro requirements in both header and source cont
       "name": "MAKE_VERSION",
       "type": "function-like",
       "parameters": ["major", "minor"],
-      "value": "((major << 16) | minor)",
+      "value": "(((major) << 16) | (minor))",
       "description": "Combine major and minor version into single value"
     },
     {
       "name": "DEBUG_PRINT",
+      "preprocessor": "#ifdef",
       "type": "conditional",
       "parameters": ["fmt", "..."],
-      "value": "#ifdef DEBUG_MODE printk(KERN_DEBUG fmt, ##__VA_ARGS__) #else #endif",
+      "value": "#ifdef DEBUG_MODE\n#define DEBUG_PRINT(fmt, ...) printk(KERN_DEBUG fmt, ##__VA_ARGS__)\n#else\n#define DEBUG_PRINT(fmt, ...)\n#endif",
       "description": "Conditional debug printing macro"
     }
   ],
@@ -491,6 +492,51 @@ The system supports displaying macro requirements in both header and source cont
   ]
 }
 ```
+
+#### Preprocessor Field (Optional)
+
+The **optional** `preprocessor` field allows you to specify custom preprocessor directives:
+
+- **Default**: `#define` (used when field is omitted)
+- **Supported values**: `#define`, `#ifdef`, `#ifndef`, `#if`, `#undef`, etc.
+- **When to use**: For macros that start with directives other than `#define`
+
+**Example: Conditional Macros**
+```json
+{
+  "name": "DEBUG_PRINT",
+  "preprocessor": "#ifdef",
+  "type": "conditional",
+  "value": "#ifdef DEBUG_MODE\n#define DEBUG_PRINT(fmt, ...) printk(KERN_DEBUG fmt, ##__VA_ARGS__)\n#else\n#define DEBUG_PRINT(fmt, ...)\n#endif"
+}
+```
+
+**Frontend Display:**
+```
+Define macro: #ifdef DEBUG_MODE
+#define DEBUG_PRINT(fmt, ...) printk(KERN_DEBUG fmt, ##__VA_ARGS__)
+#else
+#define DEBUG_PRINT(fmt, ...)
+#endif
+```
+
+**Example: X-Macros**
+```json
+{
+  "name": "DEVICE_TABLE",
+  "type": "constant",
+  "value": "(X) \\\nX(SENSOR, \"Temperature Sensor\", 0x2001) \\\nX(MOTOR, \"Stepper Motor\", 0x2002)"
+}
+```
+
+**Frontend Display:**
+```
+Define macro: #define DEVICE_TABLE (X) \
+X(SENSOR, "Temperature Sensor", 0x2001) \
+X(MOTOR, "Stepper Motor", 0x2002)
+```
+
+**Note**: The `preprocessor` field is optional. If omitted, the system defaults to `#define`.
 
 #### Backend Validation Strategy
 
@@ -529,12 +575,27 @@ Teach students essential macro safety practices:
 
 #### 1. Parameter Wrapping
 ```c
-// CORRECT
+// CORRECT - Parameters wrapped in parentheses
 #define SQUARE(x) ((x) * (x))
 
 // WRONG - fails with SQUARE(a+b)
 #define SQUARE(x) x * x
 ```
+
+**Example: MAKE_VERSION Macro**
+```c
+// UNSAFE - Missing parentheses around parameters
+#define BAD_VERSION(major, minor) ((major << 16) | minor)
+// BAD_VERSION(1+1, 2+2) expands to: ((1+1 << 16) | 2+2)
+// Due to operator precedence: ((1 + (1 << 16)) | 2) + 2 = WRONG!
+
+// SAFE - Parameters properly wrapped
+#define MAKE_VERSION(major, minor) (((major) << 16) | (minor))
+// MAKE_VERSION(1+1, 2+2) expands to: (((1+1) << 16) | (2+2))
+// Result: (((2) << 16) | (4)) = 0x00020004 = CORRECT!
+```
+
+**Why it matters**: Shift operator `<<` has higher precedence than addition `+`, causing incorrect evaluation without parentheses.
 
 #### 2. Expression Wrapping
 ```c
