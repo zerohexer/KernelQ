@@ -900,7 +900,7 @@ class LeetCodeStyleValidator {
                 results.feedback.push({
                     type: 'error',
                     message: 'Compilation failed',
-                    details: compilation.error
+                    details: compilation.output
                 });
                 return results;
             }
@@ -1575,7 +1575,7 @@ class LeetCodeStyleValidator {
                 return {
                     success: false,
                     error: result.error || 'Direct compilation/testing failed',
-                    output: (result.compilation?.output || '') + (result.testing?.output || ''),
+                    output: result.output || (result.compilation?.output || '') + (result.testing?.output || ''),
                     directResults: result
                 };
             }
