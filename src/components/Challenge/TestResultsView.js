@@ -75,36 +75,6 @@ const TestResultsView = ({ testResults, rawOutput, overallResult, feedback }) =>
             {errorDetails}
           </pre>
         </div>
-
-        {/* Help Section */}
-        <div style={{
-          background: 'rgba(255, 159, 10, 0.1)',
-          border: '1px solid rgba(255, 159, 10, 0.2)',
-          borderRadius: '8px',
-          padding: '1rem'
-        }}>
-          <h5 style={{
-            margin: '0 0 0.5rem 0',
-            fontSize: '1rem',
-            fontWeight: 600,
-            color: '#ff9f0a'
-          }}>
-            💡 Common Issues to Check:
-          </h5>
-          <ul style={{
-            margin: 0,
-            paddingLeft: '1.5rem',
-            color: PremiumStyles.colors.textSecondary,
-            fontSize: '0.875rem',
-            lineHeight: '1.5'
-          }}>
-            <li>Missing semicolons (;) at the end of statements</li>
-            <li>Unmatched braces {'{ }'} or parentheses ()</li>
-            <li>Missing header file includes</li>
-            <li>Typos in function names or variable names</li>
-            <li>Missing return statements in functions</li>
-          </ul>
-        </div>
       </div>
     );
   }
