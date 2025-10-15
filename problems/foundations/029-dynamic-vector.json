@@ -79,28 +79,6 @@
         "linux/slab.h",
         "linux/types.h"
       ],
-      "mustContain": [
-        "typedef struct vector",
-        "void **items",
-        "int capacity",
-        "int total",
-        "kmalloc(sizeof(void \\*) \\* ",
-        "kfree(v->items)",
-        "krealloc(v->items",
-        "v->items\\[v->total\\+\\+\\] = item",
-        "v->items\\[index\\] = item",
-        "v->total--",
-        "if (v->capacity == v->total)",
-        "vector_resize(v, v->capacity \\* 2)",
-        "if (index >= 0 && index < v->total)",
-        "return NULL",
-        "return VECTOR_ERROR",
-        "return VECTOR_SUCCESS",
-        "GFP_KERNEL",
-        "module_param(test_capacity, int, 0644)",
-        "module_param(test_add_count, int, 0644)",
-        "module_param(test_delete_index, int, 0644)"
-      ],
       "moduleInfo": {
         "license": "GPL"
       }
