@@ -1,0 +1,284 @@
+{
+  "id": 29,
+  "title": "Two-Level Memory Allocation - Array of Pointers Pattern",
+  "phase": "foundations",
+  "difficulty": 6,
+  "xp": 60,
+  "description": "Master the two-level allocation pattern using double pointers in kernel development. Learn to allocate arrays of pointers where each element points to dynamically allocated memory. Understand partial allocation failure recovery, reverse-order cleanup, and when this pattern is required. This prepares you for complex data structures like dynamic vectors and linked lists.",
+  "mainFile": "dynamic_memory.c",
+  "files": [
+    {
+      "name": "dynamic_memory.h",
+      "content": "#ifndef DYNAMIC_MEMORY_H\n#define DYNAMIC_MEMORY_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n#include <linux/slab.h>\n\n/* ========================================================================== */\n/* PATTERN SCAFFOLDING: WHEN to Use Static vs Dynamic Memory Allocation */\n/* ========================================================================== */\n/* This problem teaches the DECISION-MAKING PROCESS for choosing between\n * static allocation and dynamic allocation (kmalloc).\n *\n * CRITICAL LEARNING OBJECTIVE:\n * Understanding WHEN kmalloc is REQUIRED vs OPTIONAL is essential for\n * kernel development. Many students learn the syntax but not the criteria!\n *\n * DECISION TREE:\n * \n * Q1: Is the size known at compile time?\n *     NO  -> MUST use kmalloc (required)\n *     YES -> Continue to Q2\n *\n * Q2: Does memory need to outlive the function scope?\n *     YES -> MUST use kmalloc (required)\n *     NO  -> Continue to Q3\n *\n * Q3: Do you need to return a pointer from a function?\n *     YES -> MUST use kmalloc (required)\n *     NO  -> Static allocation is acceptable\n *\n * EXAMPLES OF WHEN KMALLOC IS REQUIRED:\n *\n * 1. RUNTIME-DETERMINED SIZE (Cannot use static allocation):\n *    int count = module_parameter;  // Unknown at compile time\n *    Device devices[count];  // ILLEGAL in C (VLA not allowed in kernel)\n *    Device *devices = kmalloc(sizeof(Device) * count, GFP_KERNEL);  // REQUIRED\n *\n * 2. RETURNING MEMORY FROM FUNCTION (Cannot use local variables):\n *    Device* bad_create(void) {\n *        Device local = {1, 2, true};  // Stack variable destroyed on return\n *        return &local;  // DANGER: Dangling pointer!\n *    }\n *    Device* good_create(void) {\n *        Device *dev = kmalloc(sizeof(Device), GFP_KERNEL);  // REQUIRED\n *        return dev;  // SAFE: Heap memory persists\n *    }\n *\n * 3. PERSISTENT LIFETIME (Beyond function scope):\n *    void init_device(void) {\n *        Device temp = {1, 2, true};  // Destroyed when function exits\n *    }\n *    Device *persistent_device = kmalloc(sizeof(Device), GFP_KERNEL);  // REQUIRED\n *\n * EXAMPLES OF WHEN STATIC IS ACCEPTABLE:\n *\n * 1. FIXED SIZE, KNOWN AT COMPILE TIME:\n *    Device single_device = {1001, 200, true};  // OK: Size known, lifetime OK\n *\n * 2. FIXED-SIZE ARRAY:\n *    Device devices[5] = {...};  // OK: Size known at compile time\n *\n * WHY THIS MATTERS IN KERNEL DEVELOPMENT:\n * - The Linux kernel uses kmalloc extensively for runtime-sized data structures\n * - Driver registration, device management, buffer allocation all use kmalloc\n * - Misunderstanding leads to stack corruption, memory leaks, crashes\n */\n\n/* ========================================================================== */\n/* MEMORY ALLOCATION PATTERN: The Lifecycle */\n/* ========================================================================== */\n/* KMALLOC/KFREE LIFECYCLE (4 Essential Steps):\n *\n * Step 1: ALLOCATE\n *   Device *dev = kmalloc(sizeof(Device), GFP_KERNEL);\n *   ^       ^      ^       ^               ^\n *   type    result function size           flags\n *\n * Step 2: CHECK (Critical - kmalloc can fail!)\n *   if (!dev) {\n *       printk(KERN_ERR \"Allocation failed!\\n\");\n *       return -ENOMEM;\n *   }\n *\n * Step 3: USE\n *   dev->device_id = 1001;\n *   dev->status = 200;\n *   dev->is_active = true;\n *\n * Step 4: FREE (When done)\n *   kfree(dev);\n *   dev = NULL;  // Prevent use-after-free bugs\n *\n * COMMON MISTAKES:\n * - Forgetting to check if kmalloc returned NULL\n * - Using memory after kfree (use-after-free bug)\n * - Forgetting to kfree (memory leak)\n * - Double-freeing the same pointer (double-free bug)\n */\n\n/* Device structure definition */\ntypedef struct {\n    int device_id;\n    int status;\n    bool is_active;\n} Device;\n\n/* Global device array pointer - dynamically allocated */\nextern Device **device_array;\nextern int device_count;\n\n/* ========================================================================== */\n/* SECTION 1: Function Declarations */\n/* ========================================================================== */\n/* TODO: Declare the following functions (declaration only, no implementation) */\n/* \n * REQUIRED FUNCTIONS:\n * 1. allocate_devices - Takes device count, returns 0 on success, -ENOMEM on failure\n * 2. initialize_device - Takes device pointer and ID, initializes device fields\n * 3. print_device_info - Takes device pointer, prints device information\n * 4. cleanup_devices - Takes no parameters, frees all allocated memory\n *\n * HINTS:\n * - allocate_devices should return int (for error code)\n * - initialize_device should take (Device *dev, int id) as parameters\n * - print_device_info should take (Device *dev) as parameter\n * - cleanup_devices should return void\n */\n\n#endif /* DYNAMIC_MEMORY_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "dynamic_memory.c",
+      "content": "#include \"dynamic_memory.h\"\n\n/* Global device array pointer - starts as NULL */\nDevice **device_array = NULL;\nint device_count = 3;\n\n/* IMPORTANT: DO NOT REMOVE OR MODIFY THE LINES BELOW!\n * These module parameter declarations are required for validation testing.\n * The testing system uses device_count to verify your dynamic allocation\n * works with RUNTIME-DETERMINED sizes (the key learning objective!).\n */\nmodule_param(device_count, int, 0644);\nMODULE_PARM_DESC(device_count, \"Number of devices to allocate (runtime-determined)\");\n/* END OF REQUIRED MODULE PARAMETER SECTION */\n\n/* ========================================================================== */\n/* PATTERN SCAFFOLDING: WHY Static Allocation Fails Here */\n/* ========================================================================== */\n/* PROBLEM: We need to allocate 'device_count' devices, but device_count\n * is determined at MODULE LOAD TIME (runtime), not compile time!\n *\n * STATIC ALLOCATION ATTEMPT (WILL NOT WORK):\n *   Device devices[device_count];  // ILLEGAL: VLA not allowed in kernel!\n *   \n * WHY THIS FAILS:\n * - device_count is only known when module loads (insmod dynamic_memory.ko device_count=5)\n * - C requires array sizes to be known at compile time\n * - Variable-Length Arrays (VLAs) are prohibited in kernel code for safety\n *\n * SOLUTION: MUST use kmalloc for runtime-determined sizes!\n *   Device **devices = kmalloc(sizeof(Device*) * device_count, GFP_KERNEL);\n *   ^       ^          ^        ^                  ^\n *   type    result     function size calculation   flags\n *\n * This is a REQUIRED use case for dynamic memory allocation!\n */\n\n/* ========================================================================== */\n/* PATTERN SCAFFOLDING: Two-Level Allocation Pattern */\n/* ========================================================================== */\n/* For an array of device pointers, we need TWO allocations:\n *\n * LEVEL 1: Allocate the array of pointers\n *   Device **device_array = kmalloc(sizeof(Device*) * count, GFP_KERNEL);\n *   This creates: [ptr0][ptr1][ptr2]...[ptrN]  (array of pointers)\n *\n * LEVEL 2: Allocate each individual device\n *   for (i = 0; i < count; i++) {\n *       device_array[i] = kmalloc(sizeof(Device), GFP_KERNEL);\n *   }\n *   This creates: [ptr0] -> Device{id, status, active}\n *                 [ptr1] -> Device{id, status, active}\n *                 [ptr2] -> Device{id, status, active}\n *\n * MEMORY LAYOUT VISUALIZATION:\n *   Stack:                    Heap (Level 1):           Heap (Level 2):\n *   +-------------+          +-------+                 +---------+\n *   |device_array |--------->| ptr0  |---------------->| Device 0|\n *   +-------------+          | ptr1  |---------------->| Device 1|\n *                            | ptr2  |---------------->| Device 2|\n *                            +-------+                 +---------+\n *\n * CLEANUP MUST BE TWO-LEVEL (in reverse order):\n *   Step 1: Free each device (Level 2)\n *   Step 2: Free the pointer array (Level 1)\n */\n\n/* ========================================================================== */\n/* SECTION 1: Memory Allocation Function */\n/* ========================================================================== */\n/* TODO: Implement allocate_devices function\n *\n * REQUIREMENTS:\n * - Function signature: int allocate_devices(int count)\n * - Allocate array of Device pointers (Level 1)\n * - Allocate each individual Device (Level 2)\n * - Check BOTH allocations for NULL (error handling!)\n * - Return 0 on success, -ENOMEM on failure\n * - Store result in global device_array variable\n *\n * ALGORITHM:\n * 1. Print message: \"Allocating %d devices...\" with count\n * 2. Allocate Level 1: device_array = kmalloc(sizeof(Device*) * count, GFP_KERNEL)\n * 3. Check if device_array is NULL (allocation failed)\n *    - If NULL: print error, return -ENOMEM\n * 4. Loop i from 0 to count-1:\n *    a. Allocate Level 2: device_array[i] = kmalloc(sizeof(Device), GFP_KERNEL)\n *    b. Check if device_array[i] is NULL\n *       - If NULL: free all previously allocated devices (0 to i-1), free device_array, return -ENOMEM\n * 5. Print success message: \"Successfully allocated %d devices\"\n * 6. Return 0\n *\n * CRITICAL ERROR HANDLING:\n * If Level 2 allocation fails partway through (e.g., device 3 out of 5),\n * you MUST free devices 0, 1, 2 before returning!\n */\nint allocate_devices(int count)\n{\n    /* TODO: Implement two-level allocation as described above */\n    return -ENOMEM;  /* Replace with actual implementation */\n}\n\n/* ========================================================================== */\n/* SECTION 2: Device Initialization Function */\n/* ========================================================================== */\n/* TODO: Implement initialize_device function\n *\n * REQUIREMENTS:\n * - Function signature: void initialize_device(Device *dev, int id)\n * - Check if dev pointer is NULL (safety check)\n * - Initialize device fields:\n *   - device_id = id\n *   - status = 200\n *   - is_active = true\n * - Print message: \"Device %d initialized\"\n *\n * ALGORITHM:\n * 1. Check if dev is NULL\n *    - If NULL: print error \"Cannot initialize NULL device\", return\n * 2. Set dev->device_id = id\n * 3. Set dev->status = 200\n * 4. Set dev->is_active = true\n * 5. Print success message with device ID\n */\nvoid initialize_device(Device *dev, int id)\n{\n    /* TODO: Implement device initialization as described above */\n}\n\n/* ========================================================================== */\n/* SECTION 3: Device Info Printing Function */\n/* ========================================================================== */\n/* TODO: Implement print_device_info function\n *\n * REQUIREMENTS:\n * - Function signature: void print_device_info(Device *dev)\n * - Check if dev pointer is NULL (safety check)\n * - Print device information:\n *   - \"=== Device Info ===\"\n *   - \"Device ID: %d\" (dev->device_id)\n *   - \"Status: %d\" (dev->status)\n *   - \"Active: YES\" or \"Active: NO\" (based on dev->is_active)\n *\n * ALGORITHM:\n * 1. Check if dev is NULL\n *    - If NULL: print error \"Cannot print info: device is NULL\", return\n * 2. Print header \"=== Device Info ===\"\n * 3. Print \"Device ID: %d\" with dev->device_id\n * 4. Print \"Status: %d\" with dev->status\n * 5. Print \"Active: YES\" if dev->is_active is true, else \"Active: NO\"\n */\nvoid print_device_info(Device *dev)\n{\n    /* TODO: Implement device info printing as described above */\n}\n\n/* ========================================================================== */\n/* SECTION 4: Memory Cleanup Function */\n/* ========================================================================== */\n/* TODO: Implement cleanup_devices function\n *\n * REQUIREMENTS:\n * - Function signature: void cleanup_devices(void)\n * - Free all allocated memory (two-level cleanup!)\n * - Set pointers to NULL after freeing (prevent use-after-free)\n * - Use global variables: device_array, device_count\n *\n * ALGORITHM:\n * 1. Check if device_array is NULL\n *    - If NULL: print \"No devices to free\", return\n * 2. Print message: \"Freeing %d devices...\" with device_count\n * 3. Loop i from 0 to device_count-1:\n *    a. Check if device_array[i] is not NULL\n *    b. Free device_array[i] using kfree\n *    c. Set device_array[i] = NULL\n * 4. Free device_array using kfree\n * 5. Set device_array = NULL\n * 6. Print success message: \"All devices freed\"\n *\n * CRITICAL: Must free in REVERSE order of allocation!\n * - First free individual devices (Level 2)\n * - Then free pointer array (Level 1)\n */\nvoid cleanup_devices(void)\n{\n    /* TODO: Implement two-level cleanup as described above */\n}\n\n/* ========================================================================== */\n/* MODULE INIT/EXIT */\n/* ========================================================================== */\nstatic int __init dynamic_memory_init(void)\n{\n    int ret;\n    int i;\n    int base_id = 1000;\n    \n    printk(KERN_INFO \"Dynamic memory module loaded\\n\");\n    printk(KERN_INFO \"Runtime device count: %d\\n\", device_count);\n    \n    /* Allocate devices dynamically */\n    ret = allocate_devices(device_count);\n    if (ret != 0) {\n        printk(KERN_ERR \"Failed to allocate devices\\n\");\n        return ret;\n    }\n    \n    /* Initialize all devices */\n    printk(KERN_INFO \"Initializing %d devices...\\n\", device_count);\n    for (i = 0; i < device_count; i++) {\n        initialize_device(device_array[i], base_id + i);\n    }\n    \n    /* Print information for all devices */\n    printk(KERN_INFO \"Printing device information...\\n\");\n    for (i = 0; i < device_count; i++) {\n        printk(KERN_INFO \"Device %d:\\n\", i);\n        print_device_info(device_array[i]);\n    }\n    \n    printk(KERN_INFO \"Dynamic allocation demonstration completed\\n\");\n    return 0;\n}\n\nstatic void __exit dynamic_memory_exit(void)\n{\n    printk(KERN_INFO \"Dynamic memory module unloading\\n\");\n    \n    /* Clean up all allocated memory */\n    cleanup_devices();\n    \n    printk(KERN_INFO \"Module unloaded cleanly\\n\");\n}\n\nmodule_init(dynamic_memory_init);\nmodule_exit(dynamic_memory_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Dynamic memory allocation with runtime-determined sizes\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Dynamic memory module Makefile\nobj-m += dynamic_memory.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "WHEN to use kmalloc vs static allocation (decision tree)",
+    "WHY static allocation fails (runtime-determined sizes)",
+    "Two-level allocation pattern (array of pointers)",
+    "kmalloc() function and GFP_KERNEL flags",
+    "kfree() function and proper cleanup order",
+    "NULL pointer checking and error handling",
+    "Memory lifecycle: allocate, check, use, free",
+    "Use-after-free prevention"
+  ],
+  "skills": [
+    "Applying decision tree for static vs dynamic allocation",
+    "Identifying scenarios requiring kmalloc (runtime sizes, persistent lifetime, returning pointers)",
+    "Implementing two-level allocation (array of structs)",
+    "Using kmalloc(sizeof(Type) * count, GFP_KERNEL) for arrays",
+    "Proper error handling for partial allocation failures",
+    "Two-level cleanup in reverse order",
+    "Setting pointers to NULL after freeing"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": ["dynamic_memory_init", "dynamic_memory_exit", "allocate_devices", "initialize_device", "print_device_info", "cleanup_devices"],
+      "function_declarations": [
+        { "name": "allocate_devices", "returnType": "int", "parameters": ["int count"] },
+        { "name": "initialize_device", "returnType": "void", "parameters": ["Device *dev", "int id"] },
+        { "name": "print_device_info", "returnType": "void", "parameters": ["Device *dev"] },
+        { "name": "cleanup_devices", "returnType": "void", "parameters": [] }
+      ],
+      "variables_declarations": [
+        { "name": "Device", "type": "typedef struct", "value": "{int device_id; int status; bool is_active;}", "storageClass": "none" },
+        { "name": "device_array", "type": "Device **", "storageClass": "extern" },
+        { "name": "device_count", "type": "int", "storageClass": "extern" }
+      ],
+      "variables": [
+        { "name": "device_array", "type": "Device **", "value": "NULL", "storageClass": "none" },
+        { "name": "device_count", "type": "int", "value": "3", "storageClass": "none" }
+      ],
+      "outputMessages": [
+        "Dynamic memory module loaded",
+        "Runtime device count: 3",
+        "Allocating 3 devices...",
+        "Successfully allocated 3 devices",
+        "Initializing 3 devices...",
+        "Device 1000 initialized",
+        "Device 1001 initialized",
+        "Device 1002 initialized",
+        "Printing device information...",
+        "Device 0:",
+        "=== Device Info ===",
+        "Device ID: 1000",
+        "Status: 200",
+        "Active: YES",
+        "Device 1:",
+        "Device ID: 1001",
+        "Device 2:",
+        "Device ID: 1002",
+        "Dynamic allocation demonstration completed",
+        "Dynamic memory module unloading",
+        "Freeing 3 devices...",
+        "All devices freed",
+        "Module unloaded cleanly"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/types.h",
+        "linux/slab.h"
+      ],
+      "mustContain": [
+        "kmalloc(sizeof(Device*) * count, GFP_KERNEL)",
+        "kmalloc(sizeof(Device), GFP_KERNEL)",
+        "kfree(device_array[i])",
+        "kfree(device_array)",
+        "if (!device_array)",
+        "device_array = NULL",
+        "module_param(device_count, int, 0644)"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_declarations",
+        "name": "Function Declarations in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "int allocate_devices(int count)",
+          "void initialize_device(Device *dev, int id)",
+          "void print_device_info(Device *dev)",
+          "void cleanup_devices(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "int allocate_devices(int count)",
+          "void initialize_device(Device *dev, int id)",
+          "void print_device_info(Device *dev)",
+          "void cleanup_devices(void)",
+          "static int __init dynamic_memory_init(void)",
+          "static void __exit dynamic_memory_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Messages with Function Linkage",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Dynamic memory module loaded", "exact": true, "linkedFunction": "static int __init dynamic_memory_init(void)" },
+          { "pattern": "Runtime device count:", "exact": false, "linkedFunction": "static int __init dynamic_memory_init(void)" },
+          { "pattern": "Allocating", "exact": false, "linkedFunction": "int allocate_devices(int count)" },
+          { "pattern": "Successfully allocated", "exact": false, "linkedFunction": "int allocate_devices(int count)" },
+          { "pattern": "Initializing", "exact": false, "linkedFunction": "static int __init dynamic_memory_init(void)" },
+          { "pattern": "Device 1000 initialized", "exact": true, "linkedFunction": "void initialize_device(Device *dev, int id)" },
+          { "pattern": "Printing device information...", "exact": true, "linkedFunction": "static int __init dynamic_memory_init(void)" },
+          { "pattern": "Device 0:", "exact": true, "linkedFunction": "static int __init dynamic_memory_init(void)" },
+          { "pattern": "=== Device Info ===", "exact": true, "linkedFunction": "void print_device_info(Device *dev)" },
+          { "pattern": "Device ID: 1000", "exact": true, "linkedFunction": "void print_device_info(Device *dev)" },
+          { "pattern": "Status: 200", "exact": true, "linkedFunction": "void print_device_info(Device *dev)" },
+          { "pattern": "Active: YES", "exact": true, "linkedFunction": "void print_device_info(Device *dev)" },
+          { "pattern": "Dynamic allocation demonstration completed", "exact": true, "linkedFunction": "static int __init dynamic_memory_init(void)" },
+          { "pattern": "Dynamic memory module unloading", "exact": true, "linkedFunction": "static void __exit dynamic_memory_exit(void)" },
+          { "pattern": "Freeing", "exact": false, "linkedFunction": "void cleanup_devices(void)" },
+          { "pattern": "All devices freed", "exact": true, "linkedFunction": "void cleanup_devices(void)" },
+          { "pattern": "Module unloaded cleanly", "exact": true, "linkedFunction": "static void __exit dynamic_memory_exit(void)" }
+        ]
+      },
+      {
+        "id": "advanced_dynamic_memory_validation",
+        "name": "Advanced Dynamic Memory Implementation with TCC Header Validation",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "memory_dynamic_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <time.h>\\n\\nint main() {\\n    printf(\\\"=== Runtime-Determined Size Allocation Test ===\\\\n\\\");\\n    \\n    srand(time(NULL));\\n    \\n    // Test different device counts (runtime-determined)\\n    int test_count1 = (rand() % 3) + 2;  // 2-4 devices\\n    int test_count2 = (rand() % 4) + 5;  // 5-8 devices\\n    \\n    printf(\\\"Test 1: Allocating %d devices (runtime size)\\\\n\\\", test_count1);\\n    char cmd1[256];\\n    snprintf(cmd1, sizeof(cmd1), \\\"insmod /lib/modules/dynamic_memory.ko device_count=%d\\\", test_count1);\\n    system(\\\"rmmod dynamic_memory 2>/dev/null\\\");\\n    system(cmd1);\\n    \\n    printf(\\\"Test 2: Allocating %d devices (runtime size)\\\\n\\\", test_count2);\\n    char cmd2[256];\\n    snprintf(cmd2, sizeof(cmd2), \\\"insmod /lib/modules/dynamic_memory.ko device_count=%d\\\", test_count2);\\n    system(\\\"rmmod dynamic_memory\\\");\\n    system(cmd2);\\n    \\n    printf(\\\"SUCCESS: Runtime-sized allocation test completed\\\\n\\\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting advanced dynamic memory implementation validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: Ultra-Fast TCC Header Validation'",
+            "echo 'Creating minimal kernel header stubs for TCC...'",
+            "mkdir -p /tmp/linux",
+            "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
+            "echo '#define KERN_ERR' >> /tmp/linux/kernel.h",
+            "echo 'int printk(const char *fmt, ...);' >> /tmp/linux/kernel.h",
+            "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
+            "echo '#define MODULE_AUTHOR(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_DESCRIPTION(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_VERSION(x)' >> /tmp/linux/module.h",
+            "echo '#define module_init(x)' >> /tmp/linux/module.h",
+            "echo '#define module_exit(x)' >> /tmp/linux/module.h",
+            "echo '#define module_param(name, type, perm)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_PARM_DESC(var, desc)' >> /tmp/linux/module.h",
+            "echo '#define __init' > /tmp/linux/init.h",
+            "echo '#define __exit' >> /tmp/linux/init.h",
+            "echo 'typedef int bool;' > /tmp/linux/types.h",
+            "echo 'typedef unsigned long size_t;' >> /tmp/linux/types.h",
+            "echo '#define true 1' >> /tmp/linux/types.h",
+            "echo '#define false 0' >> /tmp/linux/types.h",
+            "echo '#define MAX_NAME_LEN 32' >> /tmp/linux/types.h",
+            "echo '#define MAX_DEVICES 5' >> /tmp/linux/types.h",
+            "echo '#define GFP_KERNEL 0' > /tmp/linux/slab.h",
+            "echo '#define ENOMEM 12' >> /tmp/linux/slab.h",
+            "echo 'void *kmalloc(size_t size, int flags);' >> /tmp/linux/slab.h",
+            "echo 'void kfree(const void *ptr);' >> /tmp/linux/slab.h",
+            "echo 'Creating test file that includes dynamic memory header...'",
+            "echo '#include \"/lib/modules/dynamic_memory.h\"' > /tmp/test.c",
+            "echo 'int main() { allocate_devices(3); initialize_device(device_array[0], 1000); print_device_info(device_array[0]); cleanup_devices(); return 0; }' >> /tmp/test.c",
+            "echo 'Running TCC validation...'",
+            "/usr/bin/tcc -I/tmp -Wimplicit-function-declaration -Werror -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
+            "TCC_EXIT_CODE=$?",
+            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Function or variable declaration missing or commented in header'; echo 'TCC Error Details:'; cat /tmp/tcc_error.log; else echo 'PASS: All function and variable declarations found in header file'; fi",
+            "echo 'Phase 2: Runtime-Determined Size Allocation Testing'",
+            "/bin/memory_dynamic_tester > /tmp/test_output.log",
+            "cat /tmp/test_output.log",
+            "echo 'Phase 3: Extract Runtime Device Counts'",
+            "sleep 1",
+            "echo 'Extracting runtime device counts from test output...'",
+            "COUNT1=$(grep -o 'Test 1: Allocating [0-9]*' /tmp/test_output.log | cut -d' ' -f4)",
+            "COUNT2=$(grep -o 'Test 2: Allocating [0-9]*' /tmp/test_output.log | cut -d' ' -f4)",
+            "echo 'Extracted runtime counts: COUNT1='$COUNT1', COUNT2='$COUNT2",
+            "if [ -z \"$COUNT1\" ] || [ -z \"$COUNT2\" ]; then echo 'FAIL: Could not extract runtime counts'; else echo 'PASS: Runtime device counts extracted successfully'; fi",
+            "echo 'Phase 4: Two-Level Allocation Validation (CRITICAL)'",
+            "echo 'Validating Level 1: Array of device pointers allocation...'",
+            "dmesg | grep 'Allocating.*devices' && echo 'PASS: Level 1 allocation (device array) working' || echo 'FAIL: Level 1 allocation broken'",
+            "dmesg | grep 'Successfully allocated.*devices' && echo 'PASS: Two-level allocation successful' || echo 'FAIL: Two-level allocation broken'",
+            "echo 'Phase 5: Runtime Device Count Validation'",
+            "echo 'Validating with runtime count '$COUNT1' devices...'",
+            "dmesg | grep \"Runtime device count: $COUNT1\" && echo 'PASS: Runtime count '$COUNT1' detected' || echo 'FAIL: Runtime count detection broken'",
+            "dmesg | grep \"Allocating $COUNT1 devices\" && echo 'PASS: Correct device count allocation' || echo 'FAIL: Wrong device count'",
+            "dmesg | grep \"Successfully allocated $COUNT1 devices\" && echo 'PASS: All '$COUNT1' devices allocated' || echo 'FAIL: Allocation incomplete'",
+            "echo 'Phase 6: Device Initialization Validation'",
+            "dmesg | grep 'Device 1000 initialized' && echo 'PASS: Device initialization working' || echo 'FAIL: Device initialization broken'",
+            "dmesg | grep 'Device ID: 1000' && echo 'PASS: First device data correct' || echo 'FAIL: First device data wrong'",
+            "dmesg | grep 'Status: 200' && echo 'PASS: Device status field correct' || echo 'FAIL: Device status wrong'",
+            "dmesg | grep 'Active: YES' && echo 'PASS: Device boolean field correct' || echo 'FAIL: Device boolean wrong'",
+            "echo 'Phase 7: Two-Level Cleanup Validation (CRITICAL)'",
+            "dmesg | grep 'Freeing.*devices' && echo 'PASS: Cleanup initiated' || echo 'FAIL: Cleanup not initiated'",
+            "dmesg | grep 'All devices freed' && echo 'PASS: Two-level cleanup (Level 2 then Level 1) successful' || echo 'FAIL: Cleanup broken'",
+            "dmesg | grep 'Module unloaded cleanly' && echo 'PASS: Complete cleanup successful' || echo 'FAIL: Module unload broken'",
+            "echo 'Phase 8: Final Validation Summary'",
+            "echo 'PASS: All runtime-determined allocation validation successful'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Dynamic memory module loaded",
+              "Runtime device count: .*",
+              "Allocating.*devices",
+              "Successfully allocated.*devices",
+              "Initializing.*devices",
+              "Device 1000 initialized",
+              "Device ID: 1000",
+              "Status: 200",
+              "Active: YES",
+              "Freeing.*devices",
+              "All devices freed",
+              "Module unloaded cleanly"
+            ],
+            "stdout": [
+              "PASS: All function and variable declarations found in header file",
+              "SUCCESS: Runtime-sized allocation test completed",
+              "PASS: Runtime device counts extracted successfully",
+              "PASS: Level 1 allocation \\(device array\\) working",
+              "PASS: Two-level allocation successful",
+              "PASS: Runtime count.*detected",
+              "PASS: Correct device count allocation",
+              "PASS: All.*devices allocated",
+              "PASS: Device initialization working",
+              "PASS: First device data correct",
+              "PASS: Device status field correct",
+              "PASS: Device boolean field correct",
+              "PASS: Cleanup initiated",
+              "PASS: Two-level cleanup \\(Level 2 then Level 1\\) successful",
+              "PASS: Complete cleanup successful",
+              "PASS: All runtime-determined allocation validation successful"
+            ]
+          },
+          "timeout": 15
+        }
+      }
+    ]
+  }
+}
