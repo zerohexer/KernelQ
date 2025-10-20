@@ -185,11 +185,27 @@ help:
             console.warn('⚠️  GCC setup failed, QEMU will run without development tools:', error.message);
         }
 
-        // Copy kernel module
-        await this.copyFile(
-            path.join(sessionDir, `${moduleName}.ko`),
-            path.join(initramfsDir, 'lib/modules', `${moduleName}.ko`)
-        );
+        // Copy ALL kernel modules (.ko files) from session directory
+        try {
+            const sessionFiles = await fs.readdir(sessionDir);
+            const koFiles = sessionFiles.filter(f => f.endsWith('.ko'));
+
+            if (koFiles.length === 0) {
+                throw new Error('No .ko files found in session directory');
+            }
+
+            console.log(`📦 Copying ${koFiles.length} kernel module(s) to QEMU environment...`);
+            for (const koFile of koFiles) {
+                await this.copyFile(
+                    path.join(sessionDir, koFile),
+                    path.join(initramfsDir, 'lib/modules', koFile)
+                );
+                console.log(`  ✅ Copied: ${koFile}`);
+            }
+        } catch (error) {
+            console.error('❌ Failed to copy kernel modules:', error.message);
+            throw error;
+        }
 
         // Copy header files for gcc compilation tests
         try {
@@ -237,8 +253,12 @@ help:
             }
         }
 
+        // Get list of all .ko files to determine module loading order
+        const sessionFiles = await fs.readdir(sessionDir);
+        const koFiles = sessionFiles.filter(f => f.endsWith('.ko'));
+
         // Generate dynamic init script based on test scenario
-        const initScript = this.generateInitScript(moduleName, testScenario);
+        const initScript = this.generateInitScript(moduleName, koFiles, testScenario);
         await fs.writeFile(path.join(initramfsDir, 'init'), initScript);
         await fs.chmod(path.join(initramfsDir, 'init'), 0o755);
 
@@ -247,7 +267,17 @@ help:
 
 
     // Generate truly generic init script for kernel_project_test scenarios
-    generateInitScript(moduleName, testScenario) {
+    generateInitScript(moduleName, koFiles, testScenario) {
+        // Determine module loading order
+        // If multiple modules exist, load dependencies first
+        let moduleLoadOrder = koFiles.map(ko => ko.replace('.ko', ''));
+
+        // Special case: If we have both kernel_vector and sensor_vector,
+        // load kernel_vector first (dependency)
+        if (moduleLoadOrder.includes('kernel_vector') && moduleLoadOrder.includes('sensor_vector')) {
+            moduleLoadOrder = ['kernel_vector', 'sensor_vector'];
+        }
+
         // Start with the boilerplate for any QEMU test
         let script = `#!/bin/sh
 # Removed 'set -e' to prevent script from dying on any command failure
@@ -272,23 +302,41 @@ ${cmd} || echo "Setup command failed: ${cmd.replace(/"/g, '\\"')}"
             }
         }
 
-        // **GENERIC PART 2: Load the module**
+        // **GENERIC PART 2: Load ALL modules in dependency order**
         script += `
 echo ""
-echo "=== Loading Module: ${moduleName} ==="
-if /sbin/insmod /lib/modules/${moduleName}.ko 2>&1; then
-    echo "✅ Module loaded successfully"
-    /bin/dmesg | tail -15 2>/dev/null || echo "dmesg not available"
+echo "=== Loading Modules ==="
+`;
+
+        // Generate insmod commands for all modules
+        for (let i = 0; i < moduleLoadOrder.length; i++) {
+            const mod = moduleLoadOrder[i];
+            const isLast = (i === moduleLoadOrder.length - 1);
+
+            script += `echo "Loading module: ${mod}.ko"
+if /sbin/insmod /lib/modules/${mod}.ko 2>&1; then
+    echo "✅ Module ${mod} loaded successfully"
+else
+    echo "❌ Failed to load ${mod}.ko"
+    /bin/dmesg | tail -10 2>/dev/null
+    echo "❌ QEMU_TEST_COMPLETE: LOAD_FAILED"
+    poweroff -f
+    exit 1
+fi
+`;
+        }
+
+        script += `/bin/dmesg | tail -15 2>/dev/null || echo "dmesg not available"
 `;
 
         // **GENERIC PART 3: Run any test commands defined in the problem**
         if (testScenario?.testCommands?.length) {
             script += `
-    echo ""
-    echo "=== Running Test Commands ==="
+echo ""
+echo "=== Running Test Commands ==="
 `;
             for (const cmd of testScenario.testCommands) {
-                script += `    ${cmd}
+                script += `${cmd}
 `;
             }
         }
@@ -296,28 +344,32 @@ if /sbin/insmod /lib/modules/${moduleName}.ko 2>&1; then
         // **GENERIC PART 4: Run cleanup commands if defined**
         if (testScenario?.cleanupCommands?.length) {
             script += `
-    echo ""
-    echo "=== Running Cleanup Commands ==="
+echo ""
+echo "=== Running Cleanup Commands ==="
 `;
             for (const cmd of testScenario.cleanupCommands) {
-                script += `    echo "-> Executing: ${cmd.replace(/"/g, '\\"')}"
-    ${cmd} || echo "⚠️ Cleanup command failed but continuing: ${cmd.replace(/"/g, '\\"')}"
+                script += `echo "-> Executing: ${cmd.replace(/"/g, '\\"')}"
+${cmd} || echo "⚠️ Cleanup command failed but continuing: ${cmd.replace(/"/g, '\\"')}"
 `;
             }
         }
 
-        // **GENERIC PART 5: Unload module and finish**
+        // **GENERIC PART 5: Unload ALL modules in reverse order**
         script += `
-    echo ""
-    echo "=== Unloading Module ==="
-    /sbin/rmmod ${moduleName} 2>&1 && echo "✅ Module unloaded successfully" || echo "⚠️ Module unload failed"
-    /bin/dmesg | tail -20 2>/dev/null || echo "dmesg not available after unload"
-    echo "✅ QEMU_TEST_COMPLETE: SUCCESS"
-else
-    echo "❌ Module loading failed"
-    /bin/dmesg | tail -15 2>/dev/null || echo "dmesg not available"
-    echo "❌ QEMU_TEST_COMPLETE: LOAD_FAILED"
-fi
+echo ""
+echo "=== Unloading Modules ==="
+`;
+
+        // Unload modules in reverse order (dependencies last)
+        const reverseOrder = [...moduleLoadOrder].reverse();
+        for (const mod of reverseOrder) {
+            script += `echo "Unloading module: ${mod}"
+/sbin/rmmod ${mod} 2>&1 && echo "✅ Module ${mod} unloaded successfully" || echo "⚠️ Module ${mod} unload failed"
+`;
+        }
+
+        script += `/bin/dmesg | tail -20 2>/dev/null || echo "dmesg not available after unload"
+echo "✅ QEMU_TEST_COMPLETE: SUCCESS"
 
 echo ""
 echo "=== Test Completed - Shutting Down ==="
@@ -463,24 +515,34 @@ poweroff -f
                             output += data.toString();
                         });
 
-                        buildProcess.on('close', (buildCode) => {
+                        buildProcess.on('close', async (buildCode) => {
                             if (buildCode === 0) {
-                                // Check if .ko file was generated
-                                fs.access(path.join(sessionDir, `${moduleName}.ko`))
-                                    .then(() => {
-                                        resolve({
-                                            success: true,
-                                            output: output,
-                                            message: `Kernel module ${moduleName}.ko compiled successfully`
-                                        });
-                                    })
-                                    .catch(() => {
+                                // Check if .ko files were generated
+                                try {
+                                    const sessionFiles = await fs.readdir(sessionDir);
+                                    const koFiles = sessionFiles.filter(f => f.endsWith('.ko'));
+
+                                    if (koFiles.length === 0) {
                                         resolve({
                                             success: false,
                                             output: output,
-                                            error: 'Compilation succeeded but no .ko file generated'
+                                            error: 'Compilation succeeded but no .ko files generated'
                                         });
+                                    } else {
+                                        console.log(`✅ Compilation successful: ${koFiles.length} module(s) built: ${koFiles.join(', ')}`);
+                                        resolve({
+                                            success: true,
+                                            output: output,
+                                            message: `Kernel module(s) compiled successfully: ${koFiles.join(', ')}`
+                                        });
+                                    }
+                                } catch (error) {
+                                    resolve({
+                                        success: false,
+                                        output: output,
+                                        error: `Failed to verify .ko files: ${error.message}`
                                     });
+                                }
                             } else {
                                 resolve({
                                     success: false,
@@ -562,7 +624,7 @@ poweroff -f
                         const baseQemuArgs = [
                             '-kernel', vmlinuzPath,
                             '-initrd', path.join(sessionDir, 'test.cpio.gz'),
-                            '-m', '512',  // Increased memory for GCC compilation
+                            '-m', '1024',  // Increased memory for GCC compilation
                             '-nographic',
                             '-append', 'console=ttyS0 init=/init loglevel=7 printk.console_loglevel=7'
                         ];
@@ -741,14 +803,24 @@ poweroff -f
                 // New multi-file format
                 console.log(`📁 Multi-file compilation for ${moduleName} (${codeOrFiles.length} files)`);
                 
-                // Extract actual module name from Makefile
+                // Extract ALL module names from Makefile
                 let actualModuleName = moduleName;
                 const makefileContent = codeOrFiles.find(f => f.name === 'Makefile')?.content;
                 if (makefileContent) {
-                    const objMMatch = makefileContent.match(/obj-m\s*\+=\s*(\w+)\.o/);
-                    if (objMMatch) {
-                        actualModuleName = objMMatch[1];
-                        console.log(`📁 Multi-file: Using actual module name '${actualModuleName}' from Makefile`);
+                    // Match ALL obj-m entries (handles multiple modules like "obj-m += kernel_vector.o sensor_vector.o")
+                    const objMMatches = makefileContent.matchAll(/obj-m\s*\+=\s*([\w\s]+\.o)/g);
+                    const allModules = [];
+
+                    for (const match of objMMatches) {
+                        // Split by whitespace and extract module names
+                        const modules = match[1].split(/\s+/).filter(m => m.endsWith('.o')).map(m => m.replace('.o', ''));
+                        allModules.push(...modules);
+                    }
+
+                    if (allModules.length > 0) {
+                        actualModuleName = allModules[allModules.length - 1]; // Use last module as primary
+                        console.log(`📁 Multi-file: Found ${allModules.length} module(s) in Makefile: ${allModules.join(', ')}`);
+                        console.log(`📁 Multi-file: Using '${actualModuleName}' as primary module name`);
                     }
                 }
                 
