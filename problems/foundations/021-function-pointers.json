@@ -1,85 +1,144 @@
 {
   "id": 21,
-  "title": "Function Pointers - STDF-Style Record Processing",
+  "title": "Function Pointers - WHEN to Use vs Direct Calls",
   "phase": "foundations",
-  "difficulty": 7,
-  "xp": 60,
-  "description": "Master function pointer typedefs and function dispatch patterns used in production kernel parsers like STDF. Learn to assign functions to pointers, call functions through pointers, and implement simple record processing dispatch similar to libstdf parsing architecture.",
-  "mainFile": "function_pointers.c",
+  "difficulty": 6,
+  "xp": 55,
+  "description": "Master function pointers from first principles! Learn WHAT function pointers are (variables storing function addresses), HOW they work (memory layout and syntax), WHY to use them (decision tree), and WHEN they're required vs overkill. Understand the 'set once, use forever' pattern, callback registration systems, and function pointers in structs (OOP in C). Build a real callback system like Linux interrupt handlers - the exact pattern used throughout the kernel.",
+  "mainFile": "function_dispatch.c",
   "files": [
     {
-      "name": "function_pointers.h",
-      "content": "#ifndef FUNCTION_POINTERS_H\n#define FUNCTION_POINTERS_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n#define MAX_NAME_LEN 32\n\n/* Record type constants (like STDF record types) */\n#define SENSOR_RECORD 1\n#define DEVICE_RECORD 2\n\n/* Base record header (like rec_header) */\ntypedef struct {\n    uint8_t rec_type;\n    uint8_t rec_subtype;\n    uint16_t rec_length;\n} record_header;\n\n/* Generic record (like rec_unknown) */\ntypedef struct {\n    record_header header;\n    void* data;\n} generic_record;\n\n/* Function pointer typedef (like STDF processor functions) */\ntypedef int (*record_processor_t)(void* record_data, uint32_t record_id);\n\n/* Global function pointers for different record types */\nextern record_processor_t sensor_processor;\nextern record_processor_t device_processor;\nextern record_processor_t active_processor;\n\n/* Function declarations */\nvoid register_processor(uint8_t record_type, record_processor_t processor);\nint process_record_with_function_pointer(void* raw_record, uint32_t record_id);\nvoid call_processor_function(record_processor_t processor, void* data, uint32_t id);\n\n/* Predefined processor functions for students to use */\nint sensor_record_processor(void* record_data, uint32_t record_id);\nint device_record_processor(void* record_data, uint32_t record_id);\n\n#endif /* FUNCTION_POINTERS_H */",
+      "name": "function_dispatch.h",
+      "content": "#ifndef FUNCTION_DISPATCH_H\n#define FUNCTION_DISPATCH_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/types.h>\n\n#define MAX_HANDLERS 8\n#define MAX_NAME_LEN 32\n\n/* Event type constants */\n#define EVENT_SENSOR_DATA   1\n#define EVENT_MOTOR_CONTROL 2\n#define EVENT_SYSTEM_STATUS 3\n\n/* Event handler function pointer type */\ntypedef void (*event_handler_t)(uint8_t event_type, void* event_data, uint32_t data_size);\n\n/* Event operations struct - demonstrates OOP in C pattern */\ntypedef struct {\n    event_handler_t handler;           /* Function pointer IN struct */\n    char event_name[MAX_NAME_LEN];   /* Event type name */\n    uint32_t event_count;             /* Number of times handled */\n} event_operations;\n\n/* Global event operations table */\nextern event_operations event_ops_table[MAX_HANDLERS];\nextern int registered_handler_count;\n\n/* TODO: Declare your callback registration function */\n/* void register_event_handler(uint8_t event_type, event_handler_t handler, const char* name); */\n\n/* TODO: Declare your dispatch function that uses the stored function pointer */\n/* void dispatch_event(uint8_t event_type, void* data, uint32_t size); */\n\n/* TODO: Declare your function to show all registered handlers */\n/* void show_registered_handlers(void); */\n\n/* Predefined handler functions for students to register */\nvoid sensor_event_handler(uint8_t type, void* data, uint32_t size);\nvoid motor_event_handler(uint8_t type, void* data, uint32_t size);\nvoid status_event_handler(uint8_t type, void* data, uint32_t size);\n\n#endif /* FUNCTION_DISPATCH_H */",
       "readOnly": false,
       "language": "h"
     },
     {
-      "name": "function_pointers.c",
-      "content": "#include \"function_pointers.h\"\n\n/* Global function pointers for record processing */\nrecord_processor_t sensor_processor = NULL;\nrecord_processor_t device_processor = NULL;\nrecord_processor_t active_processor = NULL;\n\nint test_record_type = SENSOR_RECORD;\nint test_record_id = 1001;\n\n/* IMPORTANT: DO NOT REMOVE OR MODIFY THE LINES BELOW!\n * These module parameter declarations are required for validation testing.\n * The testing system uses these to verify your function pointer logic works\n * with different input values. Removing them will cause test failures.\n */\nmodule_param(test_record_type, int, 0644);\nMODULE_PARM_DESC(test_record_type, \"Record type for testing function pointer dispatch\");\nmodule_param(test_record_id, int, 0644);\nMODULE_PARM_DESC(test_record_id, \"Record ID for anti-hardcoding testing\");\n/* END OF REQUIRED MODULE PARAMETER SECTION */\n\n/* Predefined processor functions (provided for students) */\nint sensor_record_processor(void* record_data, uint32_t record_id) {\n    printk(KERN_INFO \"Processing sensor record ID: %u\\n\", record_id);\n    printk(KERN_INFO \"Sensor data processed successfully\\n\");\n    return 0;\n}\n\nint device_record_processor(void* record_data, uint32_t record_id) {\n    printk(KERN_INFO \"Processing device record ID: %u\\n\", record_id);\n    printk(KERN_INFO \"Device data processed successfully\\n\");\n    return 0;\n}\n\n/* Predefined test records for casting demonstration */\nstatic generic_record test_sensor_record = {\n    .header = { .rec_type = SENSOR_RECORD, .rec_subtype = 1, .rec_length = 48 },\n    .data = NULL\n};\n\nstatic generic_record test_device_record = {\n    .header = { .rec_type = DEVICE_RECORD, .rec_subtype = 1, .rec_length = 52 },\n    .data = NULL\n};\n\n/* PATTERN SCAFFOLDING: How function pointer dispatch works with casting */\n/* This combines casting chains from Problem 19 with function pointers:\n *\n * Step 1: Casting chain (like STDF parser)\n * void* raw_record → generic_record* rec → extract rec_type\n *\n * Step 2: Function pointer dispatch\n * typedef int (*record_processor_t)(void* data, uint32_t id);\n * record_processor_t processor = sensor_record_processor;\n * int result = processor(data, id);  // Call through function pointer\n *\n * This is like: void* → generic_record* → get type → select function → call\n */\n\n/* WHAT EACH POINTER AND FUNCTION CONTAINS AND HOW TO USE IT: */\n\n/* 1. void* raw_record - Generic data pointer (from Problem 19) */\n/*    Contains: Memory address pointing to some record data */\n/*    Usage: Must cast to specific type before accessing fields */\n/*    Example: raw_record points to memory, but raw_record->header won't work */\n\n/* 2. generic_record* rec - Typed record pointer (from Problem 19) */\n/*    Contains: Same memory address, now treated as generic_record */\n/*    Usage: Can access header fields: rec->header.rec_type */\n/*    Example: rec->header.rec_type tells us SENSOR_RECORD or DEVICE_RECORD */\n\n/* 3. record_processor_t processor - Function pointer variable */\n/*    Contains: Memory address pointing to a function (not data!) */\n/*    Usage: Can call the function: processor(data, id) */\n/*    Example: processor = sensor_record_processor; // Assign function address */\n\n/* HOW FUNCTION POINTER ASSIGNMENT WORKS: */\n/* Function names are addresses! */\n/* sensor_record_processor = Function address (like 0x401234) */\n/* processor = sensor_record_processor; // Copy function address to processor */\n/* Now processor contains the same address as sensor_record_processor */\n\n/* CASTING REVIEW FROM PROBLEM 19 (CRITICAL FOR FUNCTION POINTERS): */\n/* (type_name*)pointer means \"treat this pointer as type_name*\" */\n/* Example: (generic_record*)raw_record */\n/*          ↑ target type     ↑ source void* pointer */\n/* Why needed? To access record->header.rec_type for function dispatch! */\n\n/* AMPERSAND OPERATOR (&) REVIEW FROM PROBLEM 19: */\n/* &variable means \"get the address of variable\" */\n/* Example: (void*)&test_sensor_record */\n/*          ↑ cast to void*  ↑ get address of struct variable */\n/* Why &? Functions expect pointers (addresses), but test_sensor_record is a struct */\n\n/* FUNCTION POINTER CALLING EXPLAINED IN DETAIL: */\n/* processor(data, id) - Call function through pointer */\n/*    ↑ function pointer variable pointing to actual function */\n/*              ↑ parameters passed to the actual function */\n\n/* WHAT HAPPENS DURING FUNCTION POINTER CALL: */\n/* 1. processor contains function address (like 0x401234) */\n/* 2. processor(data, id) jumps to address 0x401234 */\n/* 3. Executes the actual function code at that address */\n/* 4. Passes data and id as parameters to the function */\n/* 5. Returns the function's return value */\n\n/* COMPARISON: DIRECT vs FUNCTION POINTER CALLS: */\n/* DIRECT:          sensor_record_processor(data, id); */\n/*                  ↑ compiler knows exact function at compile time */\n/* FUNCTION POINTER: processor(data, id); */\n/*                  ↑ function determined at runtime from processor variable */\n\n/* WHY USE FUNCTION POINTERS? DYNAMIC DISPATCH: */\n/* Without function pointers (hardcoded): */\n/*   if (type == SENSOR_RECORD) sensor_record_processor(data, id); */\n/*   if (type == DEVICE_RECORD) device_record_processor(data, id); */\n/* */\n/* With function pointers (dynamic): */\n/*   processor = get_processor_for_type(type); // Set function pointer */\n/*   processor(data, id);                      // Call through pointer */\n\n/* FUNCTION POINTER TYPEDEF EXPLAINED: */\n/* typedef int (*record_processor_t)(void* data, uint32_t id); */\n/*         ↑    ↑                    ↑                        */\n/*    return   function pointer      parameter types          */\n/*     type    name/type                                      */\n/* Creates a type name for \"pointer to function that takes (void*, uint32_t) and returns int\" */\n\n/* MEMORY LAYOUT OF FUNCTION POINTERS: */\n/* Memory for functions:                Memory for function pointers: */\n/* 0x401234: [sensor_record_processor]  processor variable: [0x401234] */\n/* 0x401500: [device_record_processor]  sensor_processor:  [0x401234] */\n/*           ↑ actual function code    device_processor:  [0x401500] */\n/*                                     ↑ stores address of function */\n\n/* PRACTICAL EXAMPLES IN OUR KERNEL CODE: */\n/* 1. Function pointer assignment: */\n/*    sensor_processor = sensor_record_processor; */\n/*    ↑ pointer variable gets function address */\n/* */\n/* 2. Function pointer calling: */\n/*    sensor_processor(data, id); */\n/*    ↑ calls function at address stored in sensor_processor */\n/* */\n/* 3. Combined with casting (the power pattern!): */\n/*    generic_record* rec = (generic_record*)raw_record;  // Cast data */\n/*    if (rec->header.rec_type == SENSOR_RECORD) {        // Check type */\n/*        active_processor = sensor_processor;            // Set function */\n/*        active_processor(raw_record, id);               // Call function */\n/*    } */\n\n/* COMMON MISTAKES AND SOLUTIONS: */\n/* MISTAKE 1: Forgetting to cast before accessing header */\n/*   raw_record->header.rec_type  // ERROR: void* has no header field */\n/* SOLUTION: */\n/*   generic_record* rec = (generic_record*)raw_record; */\n/*   rec->header.rec_type  // CORRECT: now we can access header */\n/* */\n/* MISTAKE 2: Calling function incorrectly through pointer */\n/*   processor->data  // ERROR: processor is function pointer, not data pointer */\n/* SOLUTION: */\n/*   processor(data, id)  // CORRECT: call function through pointer */\n/* */\n/* MISTAKE 3: NULL function pointer calls */\n/*   processor(data, id)  // CRASH if processor is NULL */\n/* SOLUTION: */\n/*   if (processor) processor(data, id);  // CORRECT: check before calling */\n\n/* TODO: Implement processor registration function */\nvoid register_processor(uint8_t record_type, record_processor_t processor) {\n    /* TODO: Check if record_type is SENSOR_RECORD or DEVICE_RECORD */\n    /* TODO: If SENSOR_RECORD, assign processor to sensor_processor global variable */\n    /* TODO: If DEVICE_RECORD, assign processor to device_processor global variable */\n    /* TODO: Print \"Registered sensor processor\" or \"Registered device processor\" */\n    /* TODO: Handle unknown record types with error message */\n}\n\n/* TODO: Implement record processing with casting + function pointers */\nint process_record_with_function_pointer(void* raw_record, uint32_t record_id) {\n    /* TODO: Step 1 - Cast void* raw_record to generic_record* (like STDF parser casting) */\n    /* TODO: Step 2 - Read rec_type from the header to determine record type */\n    /* TODO: Step 3 - If SENSOR_RECORD: set active_processor and call sensor_processor */\n    /* TODO: Step 4 - If DEVICE_RECORD: set active_processor and call device_processor */\n    /* TODO: Step 5 - Print appropriate \"Found X record, calling X processor\" message */\n    /* TODO: Step 6 - Return the result from the processor function call */\n    /* TODO: Step 7 - Handle unknown record types with error return */\n    return 0;\n}\n\n/* TODO: Implement direct function pointer calling */\nvoid call_processor_function(record_processor_t processor, void* data, uint32_t id) {\n    /* TODO: Check if the processor function pointer is not NULL */\n    /* TODO: If valid, print \"Calling processor function through pointer\" */\n    /* TODO: Call the function through the function pointer with data and id parameters */\n    /* TODO: If NULL, print error message \"Processor function pointer is NULL\" */\n}\n\nstatic int __init function_pointers_init(void)\n{\n    int ret;\n    \n    printk(KERN_INFO \"Function pointers module loaded\\n\");\n    \n    /* Register predefined processors */\n    register_processor(SENSOR_RECORD, sensor_record_processor);\n    register_processor(DEVICE_RECORD, device_record_processor);\n    \n    /* Test both sensor and device records for comprehensive validation */\n    \n    /* First test: Sensor record with function pointer dispatch */\n    printk(KERN_INFO \"Testing function pointer dispatch with record type: %d, ID: %d\\n\", SENSOR_RECORD, test_record_id);\n    ret = process_record_with_function_pointer((void*)&test_sensor_record, test_record_id);\n    if (ret) {\n        printk(KERN_ERR \"Sensor function pointer dispatch failed with error: %d\\n\", ret);\n        return ret;\n    }\n    \n    /* Test direct function pointer calling with sensor */\n    if (active_processor) {\n        call_processor_function(active_processor, (void*)&test_sensor_record, test_record_id + 1);\n    }\n    \n    /* Second test: Device record with function pointer dispatch */\n    printk(KERN_INFO \"Testing function pointer dispatch with record type: %d, ID: %d\\n\", DEVICE_RECORD, test_record_id + 100);\n    ret = process_record_with_function_pointer((void*)&test_device_record, test_record_id + 100);\n    if (ret) {\n        printk(KERN_ERR \"Device function pointer dispatch failed with error: %d\\n\", ret);\n        return ret;\n    }\n    \n    /* Test direct function pointer calling with device */\n    if (active_processor) {\n        call_processor_function(active_processor, (void*)&test_device_record, test_record_id + 101);\n    }\n    \n    return 0;\n}\n\nstatic void __exit function_pointers_exit(void)\n{\n    printk(KERN_INFO \"Function pointers module unloaded\\n\");\n    \n    /* Reset global function pointers */\n    sensor_processor = NULL;\n    device_processor = NULL;\n    active_processor = NULL;\n}\n\nmodule_init(function_pointers_init);\nmodule_exit(function_pointers_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Learning function pointers with STDF-style record processing\");\nMODULE_VERSION(\"1.0\");",
+      "name": "function_dispatch.c",
+      "content": "#include \"function_dispatch.h\"\n\n/* Global event operations table - each entry has function pointer */\nevent_operations event_ops_table[MAX_HANDLERS];\nint registered_handler_count = 0;\n\n/* Module parameters for dynamic testing */\nint test_event_type = EVENT_SENSOR_DATA;\nint test_event_count = 3;\n\n/* IMPORTANT: DO NOT REMOVE OR MODIFY THE LINES BELOW!\n * These module parameter declarations are required for validation testing.\n * The testing system uses these to verify your function pointer logic works\n * with different input values. Removing them will cause test failures.\n */\nmodule_param(test_event_type, int, 0644);\nMODULE_PARM_DESC(test_event_type, \"Event type for testing function pointer dispatch\");\nmodule_param(test_event_count, int, 0644);\nMODULE_PARM_DESC(test_event_count, \"Number of events for anti-hardcoding testing\");\n/* END OF REQUIRED MODULE PARAMETER SECTION */\n\n/* ========================================================================== */\n/* PATTERN SCAFFOLDING: Complete Beginner's Guide to Function Pointers */\n/* ========================================================================== */\n/* This problem teaches function pointers from FIRST PRINCIPLES!\n *\n * LEARNING PATH:\n * 1. WHAT is a function pointer? (basics)\n * 2. HOW does it work? (memory and syntax)\n * 3. WHY use it? (decision tree)\n * 4. WHEN to use it? (patterns)\n * 5. HOW to implement? (callback system)\n */\n\n/* ========================================================================== */\n/* PART 1: WHAT IS A FUNCTION POINTER? */\n/* ========================================================================== */\n/* A function pointer is a VARIABLE that stores the MEMORY ADDRESS of a function.\n *\n * COMPARISON TO DATA POINTERS (from Problem 15):\n *\n * Data Pointer (you already know this!):\n *   int number = 42;\n *   int *ptr = &number;  // ptr stores ADDRESS of variable\n *   *ptr = 99;           // Change value through pointer\n *\n * Function Pointer (new concept!):\n *   void my_function(int x) { ... }\n *   void (*ptr)(int) = my_function;  // ptr stores ADDRESS of function!\n *   ptr(42);                          // Call function through pointer\n *\n * KEY INSIGHT: Functions have addresses in memory, just like variables!\n */\n\n/* ========================================================================== */\n/* PART 2: HOW FUNCTION POINTERS WORK - MEMORY LAYOUT */\n/* ========================================================================== */\n/* MEMORY VISUALIZATION:\n *\n * Code Segment (where functions live):\n * Address      Content\n * 0x401000:    [sensor_handler code]\n * 0x401200:    [motor_handler code]\n * 0x401400:    [status_handler code]\n *\n * Data Segment (where function pointers live):\n * Address      Content\n * 0x500000:    handler_ptr = 0x401000  // Points to sensor_handler\n *\n * WHEN YOU CALL handler_ptr():\n * 1. CPU reads value at 0x500000 ? gets 0x401000\n * 2. CPU jumps to address 0x401000\n * 3. Executes sensor_handler code\n * 4. Returns back\n *\n * This is called INDIRECT CALL (go through pointer first)\n * Direct call: my_function() ? CPU knows address at compile time\n * Indirect call: ptr() ? CPU must read pointer value first\n */\n\n/* ========================================================================== */\n/* PART 3: FUNCTION POINTER SYNTAX EXPLAINED */\n/* ========================================================================== */\n/* Function pointer declarations look scary, but follow a pattern!\n *\n * STEP-BY-STEP BREAKDOWN:\n *\n * 1. Start with a function signature:\n *    void sensor_handler(uint8_t type, void* data, uint32_t size);\n *    ?         ?            ?\n *    return    name         parameters\n *\n * 2. Replace function name with (*pointer_name):\n *    void (*handler_ptr)(uint8_t type, void* data, uint32_t size);\n *    ?     ?              ?\n *    return pointer name   parameters\n *\n * 3. That's it! Now handler_ptr can point to any function with this signature.\n *\n * WHY THE PARENTHESES (*handler_ptr)?\n * Without: void *handler_ptr(...) means \"function returning void*\"\n * With: void (*handler_ptr)(...) means \"pointer to function returning void\"\n */\n\n/* ========================================================================== */\n/* PART 4: ASSIGNING AND CALLING FUNCTION POINTERS */\n/* ========================================================================== */\n/* ASSIGNMENT (storing function address):\n *\n * void sensor_handler(uint8_t type, void* data, uint32_t size) {\n *     printk(\"Sensor handler called\\n\");\n * }\n *\n * // Declare pointer\n * void (*handler_ptr)(uint8_t, void*, uint32_t);\n *\n * // Assign function address (function name IS the address!)\n * handler_ptr = sensor_handler;  // Option 1: Direct\n * handler_ptr = &sensor_handler; // Option 2: Explicit (same thing!)\n *\n * CALLING (using stored address):\n *\n * handler_ptr(EVENT_SENSOR_DATA, NULL, 256);  // Option 1: Direct\n * (*handler_ptr)(EVENT_SENSOR_DATA, NULL, 256); // Option 2: Explicit (same!)\n *\n * Both work identically! Modern C allows the simpler syntax.\n */\n\n/* ========================================================================== */\n/* PART 5: TYPEDEF FOR FUNCTION POINTERS (Making Life Easier) */\n/* ========================================================================== */\n/* Raw function pointer syntax is hard to read:\n *\n * ? UGLY:\n * void (*handler1)(uint8_t, void*, uint32_t);\n * void (*handler2)(uint8_t, void*, uint32_t);\n * void (*handler3)(uint8_t, void*, uint32_t);\n * // Repetitive and error-prone!\n *\n * ? CLEAN: Use typedef to create a type name\n * typedef void (*event_handler_t)(uint8_t, void*, uint32_t);\n * event_handler_t handler1;\n * event_handler_t handler2;\n * event_handler_t handler3;\n * // Much clearer!\n *\n * TYPEDEF SYNTAX BREAKDOWN:\n * typedef void (*event_handler_t)(uint8_t type, void* data, uint32_t size);\n * ?       ?     ?                 ?\n * keyword return type name        parameters\n *\n * Now event_handler_t is a TYPE, like int or char*!\n * We use this in function_dispatch.h!\n */\n\n/* ========================================================================== */\n/* PART 6: FUNCTION POINTERS IN ARRAYS (The Power Move) */\n/* ========================================================================== */\n/* You can store function pointers in arrays for table-based dispatch!\n *\n * EXAMPLE: Interrupt handler table (like real Linux kernel)\n *\n * typedef void (*irq_handler_t)(int irq_num);\n * irq_handler_t irq_handlers[256];  // Array of function pointers!\n *\n * // Setup (registration):\n * irq_handlers[5] = keyboard_interrupt_handler;\n * irq_handlers[14] = disk_interrupt_handler;\n *\n * // Usage (dispatch):\n * void handle_interrupt(int irq_num) {\n *     if (irq_handlers[irq_num]) {\n *         irq_handlers[irq_num](irq_num);  // Call stored function!\n *     }\n * }\n *\n * This is O(1) lookup - much faster than if-else chain!\n * We use this pattern in this problem with event_ops_table[]!\n */\n\n/* ========================================================================== */\n/* PART 7: FUNCTION POINTERS IN STRUCTS (OOP in C) */\n/* ========================================================================== */\n/* This is how Linux kernel does object-oriented programming!\n *\n * STRUCT WITH FUNCTION POINTER:\n * struct file_operations {\n *     int (*open)(struct file *f);\n *     ssize_t (*read)(struct file *f, char *buf, size_t len);\n *     ssize_t (*write)(struct file *f, const char *buf, size_t len);\n * };\n *\n * DIFFERENT IMPLEMENTATIONS:\n * struct file_operations ext4_ops = {\n *     .open = ext4_open,\n *     .read = ext4_read,\n *     .write = ext4_write\n * };\n *\n * struct file_operations ntfs_ops = {\n *     .open = ntfs_open,\n *     .read = ntfs_read,\n *     .write = ntfs_write\n * };\n *\n * USAGE (automatic dispatch):\n * struct file {\n *     struct file_operations *ops;\n * };\n *\n * // Setup once:\n * ext4_file->ops = &ext4_ops;\n * ntfs_file->ops = &ntfs_ops;\n *\n * // Use many times (NO TYPE CHECKING!):\n * ext4_file->ops->read(...)  // Automatically calls ext4_read()\n * ntfs_file->ops->read(...)  // Automatically calls ntfs_read()\n *\n * We use a similar pattern with event_operations struct!\n */\n\n/* ========================================================================== */\n/* PART 8: WHEN to Use Function Pointers vs Direct Calls */\n/* ========================================================================== */\n/* Now that you know HOW function pointers work, learn WHEN to use them!\n *\n * DECISION TREE:\n * \n * Q1: Do you need to select different functions at RUNTIME based on data?\n *     NO  -> Direct function calls are simpler (STOP: don't use function pointers)\n *     YES -> Continue to Q2\n *\n * Q2: Do you have only 2-3 function options?\n *     YES -> Simple if-else is clearer and faster (STOP: don't use function pointers)\n *     NO  -> Continue to Q3\n *\n * Q3: Is this one of these scenarios?\n *     - Callbacks (must STORE function for later use)\n *     - 5+ functions requiring table-based dispatch\n *     - Plugin/extensible systems (functions unknown at compile time)\n *     - OOP in C (function pointers in struct for polymorphism)\n *     YES -> Function pointers required\n *     NO  -> Reconsider if complexity is justified\n *\n * EXAMPLES OF WHEN FUNCTION POINTERS ARE REQUIRED:\n *\n * 1. CALLBACK REGISTRATION (Cannot use if-else):\n *    void register_handler(event_handler_t handler) {\n *        handlers[event_type] = handler;  // MUST store for later!\n *    }\n *    // Later, when event occurs:\n *    handlers[event_type](data);  // Call stored function\n *    // ? IMPOSSIBLE with if-else - you don't know which function user registered!\n *\n * 2. MANY OPTIONS (5+ functions, if-else unmaintainable):\n *    // Real STDF has 70+ record types!\n *    processor_table[rec_type](data);  // O(1) lookup\n *    // vs 70 if-else statements - unmaintainable!\n *\n * 3. OOP IN C - Function Pointers in Struct (\"Set Once, Use Forever\"):\n *    struct file {\n *        struct file_operations *f_op;  // Points to function table\n *    };\n *    // Setup ONCE when file is opened:\n *    file->f_op = &ext4_file_operations;  // ? Decision made once!\n *    // Then all operations are automatic (no type checking!):\n *    file->f_op->read();   // No if-else needed!\n *    file->f_op->write();  // No if-else needed!\n *    file->f_op->close();  // No if-else needed!\n *\n * EXAMPLES OF WHEN DIRECT CALLS ARE BETTER:\n *\n * 1. FUNCTION KNOWN AT COMPILE TIME (No runtime selection):\n *    ? BAD:  handler = my_function; handler(data);  // Unnecessary indirection!\n *    ? GOOD: my_function(data);  // Direct call is faster!\n *\n * 2. ONLY 2-3 FUNCTION OPTIONS (Simple if-else is clearer):\n *    ? BAD:  Setup entire function pointer infrastructure for 2 functions\n *    ? GOOD: if (type == A) func_a(); else func_b();  // Simpler!\n *\n * 3. PERFORMANCE-CRITICAL INNER LOOPS (Every cycle matters):\n *    Function pointers have costs:\n *    - Indirect call overhead (CPU pipeline stall)\n *    - Compiler cannot inline\n *    - Harder branch prediction\n *    Use direct calls in hot paths!\n */\n\n/* ========================================================================== */\n/* PART 9: THE \"SET ONCE, USE FOREVER\" PATTERN */\n/* ========================================================================== */\n/* This is the KEY insight that makes function pointers worthwhile!\n *\n * WITHOUT function pointers (check type repeatedly):\n *   void process(struct data *d) {\n *       if (d->type == A) func_a(d);  // Check EVERY time\n *       else func_b(d);\n *   }\n *   // If you process 10,000 items: 10,000 type checks!\n *\n * WITH function pointers (decide once, use forever):\n *   // Setup ONCE:\n *   d->handler = (d->type == A) ? func_a : func_b;  // Decide once\n *   // Use MANY times (no type checking!):\n *   d->handler(d);  // Just call it - 0 type checks!\n *   // If you process 10,000 items: 0 type checks!\n *\n * PERFORMANCE COMPARISON:\n * Setup phase: 1 assignment vs 1 if-else (same cost)\n * Process phase (1000 calls):\n * - If-else: 1000 type checks\n * - Function pointer: 0 type checks, just 1000 indirect calls\n * Winner: Function pointer (when processing many times)\n */\n\n/* ========================================================================== */\n/* PART 10: CALLBACK PATTERN IN THIS PROBLEM */\n/* ========================================================================== */\n/* This problem demonstrates the CALLBACK REGISTRATION pattern.\n * This is IMPOSSIBLE without function pointers!\n *\n * THE PATTERN:\n * 1. User registers their function: register_event_handler(TYPE, my_func)\n * 2. System stores it: event_ops_table[TYPE].handler = my_func\n * 3. Event occurs: event_ops_table[TYPE].handler(data)  // Call stored function!\n *\n * WHY YOU CAN'T USE IF-ELSE:\n * if (???) user_function_1();  // What do we check? Unknown!\n * else user_function_2();      // Which functions exist? Unknown!\n *\n * REAL LINUX EXAMPLES:\n * - request_irq(): Register interrupt handler\n * - register_chrdev(): Register device operations  \n * - register_filesystem(): Register filesystem operations\n * - netdev_register(): Register network device operations\n */\n\n/* ========================================================================== */\n/* NOW LET'S IMPLEMENT IT! */\n/* ========================================================================== */\n\n/* Predefined handler functions (provided for students) */\nvoid sensor_event_handler(uint8_t type, void* data, uint32_t size) {\n    printk(KERN_INFO \"[Sensor Handler] Processing event type %d, data size: %u\\n\", type, size);\n    printk(KERN_INFO \"[Sensor Handler] Sensor data received successfully\\n\");\n}\n\nvoid motor_event_handler(uint8_t type, void* data, uint32_t size) {\n    printk(KERN_INFO \"[Motor Handler] Processing event type %d, data size: %u\\n\", type, size);\n    printk(KERN_INFO \"[Motor Handler] Motor control command executed\\n\");\n}\n\nvoid status_event_handler(uint8_t type, void* data, uint32_t size) {\n    printk(KERN_INFO \"[Status Handler] Processing event type %d, data size: %u\\n\", type, size);\n    printk(KERN_INFO \"[Status Handler] System status updated\\n\");\n}\n\n/* PATTERN SCAFFOLDING: Callback Registration Pattern */\n/* This is a FUNDAMENTAL kernel programming pattern!\n *\n * WHAT IS A CALLBACK?\n * A callback is a function that YOU provide, and the SYSTEM calls later.\n * Think of it like: \"Call me back when this event happens!\"\n *\n * REAL-WORLD ANALOGY:\n * You give the restaurant your phone number (register callback)\n * Later, when your table is ready, they call you (dispatch callback)\n * You don't sit at the restaurant waiting - you do other things!\n *\n * IN THIS PROBLEM:\n * User: register_event_handler(SENSOR, my_function)  ? \"Call me when sensor event\"\n * System stores: handlers[SENSOR] = my_function      ? Store your number\n * Event occurs: handlers[SENSOR](data)               ? System calls you back!\n *\n * WHY CALLBACKS REQUIRE FUNCTION POINTERS:\n * The kernel doesn't know which functions users will register.\n * Users call register_event_handler() to provide their function.\n * Kernel must STORE this function to call later when event occurs.\n *\n * IMPOSSIBLE WITH IF-ELSE:\n * if (???) user_function_1();  // What do we check? We don't know!\n * else user_function_2();      // Which functions exist? Unknown!\n *\n * THE PATTERN (used throughout Linux kernel):\n * 1. User registers: register_handler(MY_EVENT, my_function)\n * 2. Kernel stores: handlers[MY_EVENT] = my_function\n * 3. Event occurs: handlers[MY_EVENT](data)  // Call stored function!\n *\n * REAL EXAMPLES IN LINUX:\n * - request_irq(): Register interrupt handler\n *   request_irq(IRQ_NUM, my_interrupt_handler, ...);\n *   Later when hardware interrupt: my_interrupt_handler() gets called!\n *\n * - register_chrdev(): Register device operations\n *   file_operations.read = my_read_function;\n *   Later when user reads: my_read_function() gets called!\n *\n * - timer callbacks: setup_timer(&timer, my_timeout_handler);\n *   Later when timer expires: my_timeout_handler() gets called!\n */\n\n/* TODO: Implement callback registration function */\nvoid register_event_handler(uint8_t event_type, event_handler_t handler, const char* name) {\n    /* STEP 1: VALIDATE EVENT TYPE */\n    /* TODO: Check if event_type is within valid range (0 to MAX_HANDLERS-1) */\n    /* TODO: if (event_type >= MAX_HANDLERS) { */\n    /* TODO:     printk(KERN_ERR \"Invalid event type %d (max: %d)\\n\", event_type, MAX_HANDLERS-1); */\n    /* TODO:     return; */\n    /* TODO: } */\n    \n    /* STEP 2: STORE THE FUNCTION POINTER (The Key Step!) */\n    /* This is where the MAGIC happens - we store the function address! */\n    /* TODO: event_ops_table[event_type].handler = handler; */\n    /* What this does: Saves the address of user's function in our table */\n    /* Later we can call: event_ops_table[event_type].handler(data) */\n    \n    /* STEP 3: STORE THE HANDLER NAME (for debugging/display) */\n    /* TODO: Copy the handler name to event_ops_table[event_type].event_name */\n    /* TODO: Use snprintf for safety: */\n    /* TODO: snprintf(event_ops_table[event_type].event_name, MAX_NAME_LEN, \"%s\", name); */\n    \n    /* STEP 4: INITIALIZE EVENT COUNT */\n    /* TODO: event_ops_table[event_type].event_count = 0; */\n    \n    /* STEP 5: TRACK TOTAL REGISTERED HANDLERS */\n    /* TODO: Increment registered_handler_count */\n    /* TODO: registered_handler_count++; */\n    \n    /* STEP 6: CONFIRMATION MESSAGE */\n    /* TODO: Print confirmation message */\n    /* TODO: printk(KERN_INFO \"Registered handler '%s' for event type %d\\n\", name, event_type); */\n}\n\n/* PATTERN SCAFFOLDING: The \"Set Once, Use Forever\" Dispatch Pattern */\n/* This demonstrates why function pointers are powerful!\n *\n * THE TWO PHASES:\n *\n * PHASE 1: SETUP (happens once per event type)\n * register_event_handler(SENSOR, sensor_handler, \"Sensor\");\n * ? This stores the function pointer in a table\n * ? Decision made ONCE about which function to call\n *\n * PHASE 2: DISPATCH (happens many times, no type checking!)\n * dispatch_event(SENSOR, data, size);  // Call 1\n * dispatch_event(SENSOR, data, size);  // Call 2\n * dispatch_event(SENSOR, data, size);  // Call 3\n * ? Just uses stored pointer: event_ops_table[SENSOR].handler()\n * ? NO if-else needed! NO type checking!\n *\n * WHAT HAPPENS IN dispatch_event():\n * Step 1: event_ops_table[event_type].handler  ? Read stored function pointer\n * Step 2: .handler(event_type, data, size)     ? Call through pointer\n *\n * MEMORY VISUALIZATION:\n * event_ops_table[SENSOR].handler = 0x401000  (address of sensor_handler)\n * event_ops_table[MOTOR].handler  = 0x401200  (address of motor_handler)\n * event_ops_table[STATUS].handler = 0x401400  (address of status_handler)\n *\n * When you call: dispatch_event(SENSOR, data, size)\n * 1. Look up: event_ops_table[1].handler ? gets 0x401000\n * 2. Call: 0x401000(SENSOR, data, size) ? executes sensor_handler!\n *\n * COMPARISON - Performance Impact:\n *\n * IF-ELSE APPROACH (check every time):\n * void dispatch(uint8_t type, void* data, uint32_t size) {\n *     if (type == SENSOR)      sensor_handler(type, data, size);\n *     else if (type == MOTOR)  motor_handler(type, data, size);\n *     else if (type == STATUS) status_handler(type, data, size);\n * }\n * // 3 event types � 1000 dispatches = 3000 comparisons!\n *\n * FUNCTION POINTER APPROACH (set once, use forever):\n * // Setup (3 assignments, happens once):\n * event_ops_table[SENSOR].handler = sensor_handler;\n * event_ops_table[MOTOR].handler = motor_handler;\n * event_ops_table[STATUS].handler = status_handler;\n *\n * // Dispatch (no comparisons, just array lookup!):\n * event_ops_table[type].handler(type, data, size);\n * // 3 assignments + 1000 dispatches = only 1003 operations!\n *\n * With 3 event types and 1000 dispatches:\n * - If-else: ~3000 comparisons\n * - Function pointer: 3 assignments + 0 comparisons\n * Winner: Function pointer is ~1000x less work during dispatch!\n */\n\n/* TODO: Implement event dispatch function using stored function pointer */\nvoid dispatch_event(uint8_t event_type, void* data, uint32_t size) {\n    /* STEP 1: VALIDATE EVENT TYPE */\n    /* TODO: Check if event_type is within valid range */\n    /* TODO: if (event_type >= MAX_HANDLERS) { */\n    /* TODO:     printk(KERN_ERR \"Invalid event type %d\\n\", event_type); */\n    /* TODO:     return; */\n    /* TODO: } */\n    \n    /* STEP 2: CHECK IF HANDLER IS REGISTERED */\n    /* This is CRITICAL - must check before calling! */\n    /* TODO: if (event_ops_table[event_type].handler == NULL) { */\n    /* TODO:     printk(KERN_ERR \"No handler registered for event type %d\\n\", event_type); */\n    /* TODO:     return; */\n    /* TODO: } */\n    \n    /* STEP 3: INCREMENT EVENT COUNTER (statistics) */\n    /* TODO: event_ops_table[event_type].event_count++; */\n    \n    /* STEP 4: CALL THE STORED FUNCTION POINTER! */\n    /* THIS IS THE MAGIC - No if-else needed! */\n    /* TODO: event_ops_table[event_type].handler(event_type, data, size); */\n    /*\n     * WHAT JUST HAPPENED?\n     * 1. event_ops_table[event_type].handler  ? Read function pointer from table\n     * 2. .handler(event_type, data, size)     ? Call function through pointer\n     *\n     * If event_type == SENSOR (1):\n     *   - handler points to sensor_event_handler\n     *   - Calls sensor_event_handler(1, data, size)\n     *\n     * If event_type == MOTOR (2):\n     *   - handler points to motor_event_handler  \n     *   - Calls motor_event_handler(2, data, size)\n     *\n     * NO IF-ELSE! The function pointer was set during registration!\n     * We just dereference and call - automatic dispatch!\n     */\n}\n\n/* TODO: Implement function to show all registered handlers */\nvoid show_registered_handlers(void) {\n    int i;\n    \n    /* STEP 1: PRINT HEADER */\n    /* TODO: Print header message */\n    /* TODO: printk(KERN_INFO \"\\n=== Registered Event Handlers ===\\n\"); */\n    \n    /* STEP 2: LOOP THROUGH ALL POSSIBLE EVENT TYPES */\n    /* TODO: Loop through all possible event types (0 to MAX_HANDLERS-1) */\n    /* TODO: for (i = 0; i < MAX_HANDLERS; i++) { */\n    \n        /* STEP 3: CHECK IF HANDLER IS REGISTERED AT THIS INDEX */\n        /* TODO: Check if handler is registered at this index */\n        /* TODO: if (event_ops_table[i].handler != NULL) { */\n        \n            /* STEP 4: PRINT HANDLER INFORMATION */\n            /* TODO: Print handler info: event type, name, call count */\n            /* TODO: printk(KERN_INFO \"Event Type %d: %s (called %u times)\\n\",  */\n            /*              i, event_ops_table[i].event_name, event_ops_table[i].event_count); */\n        \n        /* TODO: } */\n    /* TODO: } */\n    \n    /* STEP 5: PRINT FOOTER WITH TOTAL COUNT */\n    /* TODO: Print footer message */\n    /* TODO: printk(KERN_INFO \"Total registered handlers: %d\\n\", registered_handler_count); */\n}\n\nstatic int __init function_dispatch_init(void)\n{\n    int i;\n    \n    printk(KERN_INFO \"Function dispatch module loaded\\n\");\n    \n    /* Initialize the event operations table */\n    for (i = 0; i < MAX_HANDLERS; i++) {\n        event_ops_table[i].handler = NULL;\n        event_ops_table[i].event_count = 0;\n        memset(event_ops_table[i].event_name, 0, MAX_NAME_LEN);\n    }\n    \n    printk(KERN_INFO \"\\n=== Demonstrating Callback Registration Pattern ===\\n\");\n    \n    /* Register handlers for different event types */\n    register_event_handler(EVENT_SENSOR_DATA, sensor_event_handler, \"SensorData\");\n    register_event_handler(EVENT_MOTOR_CONTROL, motor_event_handler, \"MotorControl\");\n    register_event_handler(EVENT_SYSTEM_STATUS, status_event_handler, \"SystemStatus\");\n    \n    /* Show registered handlers */\n    show_registered_handlers();\n    \n    printk(KERN_INFO \"\\n=== Demonstrating 'Set Once, Use Forever' Pattern ===\\n\");\n    printk(KERN_INFO \"Dispatching %d events of type %d (no if-else needed!)\\n\", \n           test_event_count, test_event_type);\n    \n    /* Dispatch events using stored function pointers - NO TYPE CHECKING! */\n    for (i = 0; i < test_event_count; i++) {\n        printk(KERN_INFO \"\\nDispatching event %d of %d:\\n\", i+1, test_event_count);\n        dispatch_event(test_event_type, NULL, 256);\n    }\n    \n    printk(KERN_INFO \"\\n=== Testing Multiple Event Types ===\\n\");\n    \n    /* Dispatch different event types to show automatic routing */\n    printk(KERN_INFO \"\\nDispatching SENSOR event:\\n\");\n    dispatch_event(EVENT_SENSOR_DATA, NULL, 128);\n    \n    printk(KERN_INFO \"\\nDispatching MOTOR event:\\n\");\n    dispatch_event(EVENT_MOTOR_CONTROL, NULL, 64);\n    \n    printk(KERN_INFO \"\\nDispatching STATUS event:\\n\");\n    dispatch_event(EVENT_SYSTEM_STATUS, NULL, 32);\n    \n    /* Show final handler statistics */\n    printk(KERN_INFO \"\\n=== Final Handler Statistics ===\\n\");\n    show_registered_handlers();\n    \n    printk(KERN_INFO \"\\nFunction dispatch demonstration complete\\n\");\n    \n    return 0;\n}\n\nstatic void __exit function_dispatch_exit(void)\n{\n    printk(KERN_INFO \"Function dispatch module unloaded\\n\");\n    \n    /* Clear the event operations table */\n    registered_handler_count = 0;\n}\n\nmodule_init(function_dispatch_init);\nmodule_exit(function_dispatch_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Learning WHEN to use function pointers with callback pattern\");\nMODULE_VERSION(\"1.0\");",
       "readOnly": false,
       "language": "c"
     },
     {
       "name": "Makefile",
-      "content": "# Function pointers module Makefile\nobj-m += function_pointers.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "content": "# Function dispatch module Makefile\nobj-m += function_dispatch.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
       "readOnly": true,
       "language": "makefile"
     }
   ],
   "concepts": [
-    "function pointer typedefs",
-    "function pointer assignment",
-    "calling functions through pointers",
-    "combining casting with function dispatch",
-    "STDF-style record processing patterns",
-    "simple function pointer dispatch"
+    "WHAT is a function pointer (variable storing function address)",
+    "HOW function pointers work (memory layout and indirect calls)",
+    "Function pointer syntax breakdown (step-by-step)",
+    "Typedef for function pointers (making syntax cleaner)",
+    "Function pointers in arrays (table-based dispatch)",
+    "Function pointers in structs (OOP in C pattern)",
+    "WHEN to use function pointers (decision tree)",
+    "WHEN NOT to use (2-3 options use if-else instead)",
+    "Callback registration pattern (impossible without function pointers)",
+    "Set once, use forever pattern (performance optimization)",
+    "Runtime vs compile-time function selection"
   ],
   "skills": [
-    "Creating function pointer typedefs",
-    "Assigning functions to pointers",
-    "Calling functions through pointers",
-    "Combining casting chains with function pointers",
-    "Understanding STDF parser function dispatch",
-    "Professional kernel processing patterns"
+    "Understanding function pointers as variables storing addresses",
+    "Reading function pointer syntax (breaking down declarations)",
+    "Using typedef to simplify function pointer declarations",
+    "Assigning functions to function pointers",
+    "Calling functions through pointers (indirect calls)",
+    "Storing function pointers in arrays for dispatch tables",
+    "Storing function pointers in structs for OOP patterns",
+    "Applying decision tree for function pointer vs direct call choice",
+    "Implementing callback registration systems (kernel pattern)",
+    "Understanding 'set once, use forever' performance optimization",
+    "Recognizing when function pointers add unnecessary complexity",
+    "Building extensible event handling systems"
   ],
   "validation": {
     "exactRequirements": {
-      "functionNames": ["function_pointers_init", "function_pointers_exit", "register_processor", "process_record_with_function_pointer", "call_processor_function"],
+      "functionNames": [
+        "function_dispatch_init",
+        "function_dispatch_exit",
+        "register_event_handler",
+        "dispatch_event",
+        "show_registered_handlers",
+        "sensor_event_handler",
+        "motor_event_handler",
+        "status_event_handler"
+      ],
       "function_declarations": [
-        { "name": "register_processor", "returnType": "void", "parameters": ["uint8_t record_type", "record_processor_t processor"] },
-        { "name": "process_record_with_function_pointer", "returnType": "int", "parameters": ["void* raw_record", "uint32_t record_id"] },
-        { "name": "call_processor_function", "returnType": "void", "parameters": ["record_processor_t processor", "void* data", "uint32_t id"] }
+        {
+          "name": "register_event_handler",
+          "returnType": "void",
+          "parameters": ["uint8_t event_type", "event_handler_t handler", "const char* name"]
+        },
+        {
+          "name": "dispatch_event",
+          "returnType": "void",
+          "parameters": ["uint8_t event_type", "void* data", "uint32_t size"]
+        },
+        {
+          "name": "show_registered_handlers",
+          "returnType": "void",
+          "parameters": []
+        }
       ],
       "variables_declarations": [
-        { "name": "record_header", "type": "typedef struct", "value": "{uint8_t rec_type; uint8_t rec_subtype; uint16_t rec_length;}", "storageClass": "none" },
-        { "name": "generic_record", "type": "typedef struct", "value": "{record_header header; void* data;}", "storageClass": "none" },
-        { "name": "record_processor_t", "type": "typedef", "value": "int (*)(void* record_data, uint32_t record_id)", "storageClass": "none" },
-        { "name": "sensor_processor", "type": "record_processor_t", "storageClass": "extern" },
-        { "name": "device_processor", "type": "record_processor_t", "storageClass": "extern" },
-        { "name": "active_processor", "type": "record_processor_t", "storageClass": "extern" }
+        {
+          "name": "event_handler_t",
+          "type": "typedef",
+          "value": "void (*)(uint8_t event_type, void* event_data, uint32_t data_size)",
+          "storageClass": "none"
+        },
+        {
+          "name": "event_operations",
+          "type": "typedef struct",
+          "value": "{event_handler_t handler; char event_name[MAX_NAME_LEN]; uint32_t event_count;}",
+          "storageClass": "none"
+        },
+        {
+          "name": "event_ops_table",
+          "type": "event_operations",
+          "value": "[MAX_HANDLERS]",
+          "storageClass": "extern"
+        },
+        {
+          "name": "registered_handler_count",
+          "type": "int",
+          "storageClass": "extern"
+        }
       ],
       "variables": [
-        { "name": "sensor_processor", "type": "record_processor_t", "value": "NULL", "storageClass": "none" },
-        { "name": "device_processor", "type": "record_processor_t", "value": "NULL", "storageClass": "none" },
-        { "name": "active_processor", "type": "record_processor_t", "value": "NULL", "storageClass": "none" }
+        {
+          "name": "event_ops_table",
+          "type": "event_operations",
+          "value": "[MAX_HANDLERS]",
+          "storageClass": "none"
+        },
+        {
+          "name": "registered_handler_count",
+          "type": "int",
+          "value": 0,
+          "storageClass": "none"
+        }
       ],
       "outputMessages": [
-        "Function pointers module loaded",
-        "Registered sensor processor",
-        "Registered device processor",
-        "Testing function pointer dispatch with record type: 1, ID: 1001",
-        "Found sensor record, calling sensor processor",
-        "Processing sensor record ID: 1001",
-        "Sensor data processed successfully",
-        "Calling processor function through pointer",
-        "Processing sensor record ID: 1002",
-        "Testing function pointer dispatch with record type: 2, ID: 1101",
-        "Found device record, calling device processor",
-        "Processing device record ID: 1101",
-        "Device data processed successfully",
-        "Calling processor function through pointer",
-        "Processing device record ID: 1102",
-        "Function pointers module unloaded"
+        "Function dispatch module loaded",
+        "Demonstrating Callback Registration Pattern",
+        "Registered handler 'SensorData' for event type 1",
+        "Registered handler 'MotorControl' for event type 2",
+        "Registered handler 'SystemStatus' for event type 3",
+        "Registered Event Handlers",
+        "Total registered handlers: 3",
+        "Demonstrating 'Set Once, Use Forever' Pattern",
+        "[Sensor Handler] Processing event type 1, data size: 256",
+        "[Sensor Handler] Sensor data received successfully",
+        "[Motor Handler] Processing event type 2, data size: 64",
+        "[Motor Handler] Motor control command executed",
+        "[Status Handler] Processing event type 3, data size: 32",
+        "[Status Handler] System status updated",
+        "Final Handler Statistics",
+        "Function dispatch demonstration complete",
+        "Function dispatch module unloaded"
       ],
       "requiredIncludes": [
         "linux/module.h",
@@ -88,18 +147,13 @@
         "linux/types.h"
       ],
       "mustContain": [
-        "sensor_processor = processor",
-        "device_processor = processor",
-        "active_processor = sensor_processor",
-        "active_processor = device_processor",
-        "generic_record* rec = (generic_record*)raw_record",
-        "if (rec->header.rec_type == SENSOR_RECORD)",
-        "if (rec->header.rec_type == DEVICE_RECORD)",
-        "sensor_processor(raw_record, record_id)",
-        "device_processor(raw_record, record_id)",
-        "processor(data, id)",
-        "module_param(test_record_type, int, 0644)",
-        "module_param(test_record_id, int, 0644)"
+        "event_ops_table[event_type].handler = handler",
+        "event_ops_table[event_type].handler(event_type, data, size)",
+        "if (event_ops_table[event_type].handler == NULL)",
+        "event_ops_table[event_type].event_count++",
+        "registered_handler_count++",
+        "module_param(test_event_type, int, 0644)",
+        "module_param(test_event_count, int, 0644)"
       ],
       "moduleInfo": {
         "license": "GPL"
@@ -112,9 +166,9 @@
         "type": "code_analysis",
         "critical": true,
         "expectedSymbols": [
-          "void register_processor(uint8_t record_type, record_processor_t processor)",
-          "int process_record_with_function_pointer(void* raw_record, uint32_t record_id)",
-          "void call_processor_function(record_processor_t processor, void* data, uint32_t id)"
+          "void register_event_handler(uint8_t event_type, event_handler_t handler, const char* name)",
+          "void dispatch_event(uint8_t event_type, void* data, uint32_t size)",
+          "void show_registered_handlers(void)"
         ],
         "prohibitedSymbols": []
       },
@@ -124,11 +178,32 @@
         "type": "code_analysis",
         "critical": true,
         "expectedSymbols": [
-          "void register_processor(uint8_t record_type, record_processor_t processor)",
-          "int process_record_with_function_pointer(void* raw_record, uint32_t record_id)",
-          "void call_processor_function(record_processor_t processor, void* data, uint32_t id)",
-          "static int __init function_pointers_init(void)",
-          "static void __exit function_pointers_exit(void)"
+          "void register_event_handler(uint8_t event_type, event_handler_t handler, const char* name)",
+          "void dispatch_event(uint8_t event_type, void* data, uint32_t size)",
+          "void show_registered_handlers(void)",
+          "static int __init function_dispatch_init(void)",
+          "static void __exit function_dispatch_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "callback_registration_implementation",
+        "name": "Callback Registration Implementation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "event_ops_table[event_type].handler = handler",
+          "registered_handler_count++"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_pointer_dispatch",
+        "name": "Function Pointer Dispatch (No If-Else)",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "event_ops_table[event_type].handler(event_type, data, size)"
         ],
         "prohibitedSymbols": []
       },
@@ -138,126 +213,158 @@
         "type": "output_match",
         "critical": true,
         "expected": [
-          { "pattern": "Function pointers module loaded", "exact": true, "linkedFunction": "static int __init function_pointers_init(void)" },
-          { "pattern": "Registered sensor processor", "exact": true, "linkedFunction": "void register_processor(uint8_t record_type, record_processor_t processor)" },
-          { "pattern": "Registered device processor", "exact": true, "linkedFunction": "void register_processor(uint8_t record_type, record_processor_t processor)" },
-          { "pattern": "Testing function pointer dispatch with record type: 1, ID: 1001", "exact": true, "linkedFunction": "static int __init function_pointers_init(void)" },
-          { "pattern": "Found sensor record, calling sensor processor", "exact": true, "linkedFunction": "int process_record_with_function_pointer(void* raw_record, uint32_t record_id)" },
-          { "pattern": "Processing sensor record ID: 1001", "exact": true, "linkedFunction": "int sensor_record_processor(void* record_data, uint32_t record_id)" },
-          { "pattern": "Sensor data processed successfully", "exact": true, "linkedFunction": "int sensor_record_processor(void* record_data, uint32_t record_id)" },
-          { "pattern": "Calling processor function through pointer", "exact": true, "linkedFunction": "void call_processor_function(record_processor_t processor, void* data, uint32_t id)" },
-          { "pattern": "Processing sensor record ID: 1002", "exact": true, "linkedFunction": "int sensor_record_processor(void* record_data, uint32_t record_id)" },
-          { "pattern": "Testing function pointer dispatch with record type: 2, ID: 1101", "exact": true, "linkedFunction": "static int __init function_pointers_init(void)" },
-          { "pattern": "Found device record, calling device processor", "exact": true, "linkedFunction": "int process_record_with_function_pointer(void* raw_record, uint32_t record_id)" },
-          { "pattern": "Processing device record ID: 1101", "exact": true, "linkedFunction": "int device_record_processor(void* record_data, uint32_t record_id)" },
-          { "pattern": "Device data processed successfully", "exact": true, "linkedFunction": "int device_record_processor(void* record_data, uint32_t record_id)" },
-          { "pattern": "Calling processor function through pointer", "exact": true, "linkedFunction": "void call_processor_function(record_processor_t processor, void* data, uint32_t id)" },
-          { "pattern": "Processing device record ID: 1102", "exact": true, "linkedFunction": "int device_record_processor(void* record_data, uint32_t record_id)" },
-          { "pattern": "Function pointers module unloaded", "exact": true, "linkedFunction": "static void __exit function_pointers_exit(void)" }
+          {
+            "pattern": "Function dispatch module loaded",
+            "exact": true,
+            "linkedFunction": "static int __init function_dispatch_init(void)"
+          },
+          {
+            "pattern": "Demonstrating Callback Registration Pattern",
+            "exact": true,
+            "linkedFunction": "static int __init function_dispatch_init(void)"
+          },
+          {
+            "pattern": "Registered handler 'SensorData' for event type 1",
+            "exact": true,
+            "linkedFunction": "void register_event_handler(uint8_t event_type, event_handler_t handler, const char* name)"
+          },
+          {
+            "pattern": "Registered handler 'MotorControl' for event type 2",
+            "exact": true,
+            "linkedFunction": "void register_event_handler(uint8_t event_type, event_handler_t handler, const char* name)"
+          },
+          {
+            "pattern": "Registered handler 'SystemStatus' for event type 3",
+            "exact": true,
+            "linkedFunction": "void register_event_handler(uint8_t event_type, event_handler_t handler, const char* name)"
+          },
+          {
+            "pattern": "Total registered handlers: 3",
+            "exact": true,
+            "linkedFunction": "void show_registered_handlers(void)"
+          },
+          {
+            "pattern": "Demonstrating 'Set Once, Use Forever' Pattern",
+            "exact": true,
+            "linkedFunction": "static int __init function_dispatch_init(void)"
+          },
+          {
+            "pattern": "[Sensor Handler] Processing event type 1, data size: 256",
+            "exact": true,
+            "linkedFunction": "void sensor_event_handler(uint8_t type, void* data, uint32_t size)"
+          },
+          {
+            "pattern": "[Sensor Handler] Sensor data received successfully",
+            "exact": true,
+            "linkedFunction": "void sensor_event_handler(uint8_t type, void* data, uint32_t size)"
+          },
+          {
+            "pattern": "[Motor Handler] Processing event type 2, data size: 64",
+            "exact": true,
+            "linkedFunction": "void motor_event_handler(uint8_t type, void* data, uint32_t size)"
+          },
+          {
+            "pattern": "[Motor Handler] Motor control command executed",
+            "exact": true,
+            "linkedFunction": "void motor_event_handler(uint8_t type, void* data, uint32_t size)"
+          },
+          {
+            "pattern": "[Status Handler] Processing event type 3, data size: 32",
+            "exact": true,
+            "linkedFunction": "void status_event_handler(uint8_t type, void* data, uint32_t size)"
+          },
+          {
+            "pattern": "[Status Handler] System status updated",
+            "exact": true,
+            "linkedFunction": "void status_event_handler(uint8_t type, void* data, uint32_t size)"
+          },
+          {
+            "pattern": "Function dispatch demonstration complete",
+            "exact": true,
+            "linkedFunction": "static int __init function_dispatch_init(void)"
+          },
+          {
+            "pattern": "Function dispatch module unloaded",
+            "exact": true,
+            "linkedFunction": "static void __exit function_dispatch_exit(void)"
+          }
         ]
       },
       {
-        "id": "advanced_function_pointer_validation",
-        "name": "Advanced Function Pointer with Casting Implementation and Anti-Hardcoding Protection",
+        "id": "advanced_callback_validation",
+        "name": "Advanced Callback Pattern with Anti-Hardcoding Protection",
         "type": "kernel_project_test",
         "critical": true,
         "testScenario": {
           "userspaceApps": [
             {
-              "name": "function_pointer_dynamic_tester",
-              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <time.h>\\n\\nint main() {\\n    printf(\\\"=== Dynamic Anti-Hardcoding Function Pointer Test ===\\\\n\\\");\\n    \\n    // Seed random number generator\\n    srand(time(NULL));\\n    \\n    // Generate unpredictable test values\\n    int random_record_id1 = (rand() % 9000) + 1000;  // 1000-9999\\n    int random_record_id2 = (rand() % 8000) + 2000;  // 2000-9999\\n    \\n    printf(\\\"Test 1: Sensor function pointer dispatch (ID=%d)\\\\n\\\", random_record_id1);\\n    system(\\\"rmmod function_pointers 2>/dev/null\\\");\\n    char cmd1[256];\\n    snprintf(cmd1, sizeof(cmd1), \\\"insmod /lib/modules/function_pointers.ko test_record_type=1 test_record_id=%d\\\", random_record_id1);\\n    system(cmd1);\\n    \\n    printf(\\\"Test 2: Device function pointer dispatch (ID=%d)\\\\n\\\", random_record_id2);\\n    system(\\\"rmmod function_pointers\\\");\\n    char cmd2[256];\\n    snprintf(cmd2, sizeof(cmd2), \\\"insmod /lib/modules/function_pointers.ko test_record_type=2 test_record_id=%d\\\", random_record_id2);\\n    system(cmd2);\\n    \\n    printf(\\\"SUCCESS: Anti-hardcoding function pointer test completed\\\\n\\\");\\n    return 0;\\n}"
+              "name": "callback_dynamic_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <time.h>\\n\\nint main() {\\n    printf(\\\"=== Dynamic Anti-Hardcoding Callback Test ===\\\\n\\\");\\n    \\n    srand(time(NULL));\\n    \\n    int random_event_type = (rand() % 3) + 1;\\n    int random_event_count = (rand() % 5) + 3;\\n    \\n    printf(\\\"Test 1: Random callback dispatch (type=%d, count=%d)\\\\n\\\", random_event_type, random_event_count);\\n    system(\\\"rmmod function_dispatch 2>/dev/null\\\");\\n    char cmd[256];\\n    snprintf(cmd, sizeof(cmd), \\\"insmod /lib/modules/function_dispatch.ko test_event_type=%d test_event_count=%d\\\", random_event_type, random_event_count);\\n    system(cmd);\\n    \\n    printf(\\\"SUCCESS: Anti-hardcoding callback test completed\\\\n\\\");\\n    return 0;\\n}"
             }
           ],
           "setupCommands": [
-            "echo 'Starting advanced function pointer dispatch implementation validation'"
+            "echo 'Starting advanced callback pattern validation'"
           ],
           "testCommands": [
-            "echo 'Phase 1: Ultra-Fast TCC Header Validation'",
-            "echo 'Creating minimal kernel header stubs for TCC...'",
+            "echo 'Phase 1: TCC Header Validation'",
             "mkdir -p /tmp/linux",
             "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
-            "echo '#define KERN_ERR' >> /tmp/linux/kernel.h",
             "echo 'int printk(const char *fmt, ...);' >> /tmp/linux/kernel.h",
             "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
-            "echo '#define MODULE_AUTHOR(x)' >> /tmp/linux/module.h",
-            "echo '#define MODULE_DESCRIPTION(x)' >> /tmp/linux/module.h",
-            "echo '#define MODULE_VERSION(x)' >> /tmp/linux/module.h",
             "echo '#define module_init(x)' >> /tmp/linux/module.h",
             "echo '#define module_exit(x)' >> /tmp/linux/module.h",
             "echo '#define module_param(name, type, perm)' >> /tmp/linux/module.h",
             "echo '#define MODULE_PARM_DESC(var, desc)' >> /tmp/linux/module.h",
             "echo '#define __init' > /tmp/linux/init.h",
             "echo '#define __exit' >> /tmp/linux/init.h",
-            "echo 'typedef int bool;' > /tmp/linux/types.h",
-            "echo 'typedef unsigned char uint8_t;' >> /tmp/linux/types.h",
-            "echo 'typedef unsigned short uint16_t;' >> /tmp/linux/types.h",
+            "echo 'typedef unsigned char uint8_t;' > /tmp/linux/types.h",
             "echo 'typedef unsigned int uint32_t;' >> /tmp/linux/types.h",
-            "echo 'typedef unsigned long size_t;' >> /tmp/linux/types.h",
-            "echo '#define true 1' >> /tmp/linux/types.h",
-            "echo '#define false 0' >> /tmp/linux/types.h",
-            "echo '#define MAX_NAME_LEN 32' >> /tmp/linux/types.h",
-            "echo 'Creating test file that includes function pointers header...'",
-            "echo '#include \"/lib/modules/function_pointers.h\"' > /tmp/test.c",
-            "echo 'int main() { sensor_processor = (record_processor_t)0; register_processor(1, (record_processor_t)0); process_record_with_function_pointer((void*)0, 1001); call_processor_function((record_processor_t)0, (void*)0, 1001); return 0; }' >> /tmp/test.c",
-            "echo 'Running TCC validation...'",
+            "echo '#include \"/lib/modules/function_dispatch.h\"' > /tmp/test.c",
+            "echo 'int main() { register_event_handler(1, (event_handler_t)0, \"test\"); dispatch_event(1, (void*)0, 128); show_registered_handlers(); return 0; }' >> /tmp/test.c",
             "/usr/bin/tcc -I/tmp -Wimplicit-function-declaration -Werror -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
             "TCC_EXIT_CODE=$?",
-            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Function or variable declaration missing or commented in header'; echo 'TCC Error Details:'; cat /tmp/tcc_error.log; else echo 'PASS: All function and variable declarations found in header file'; fi",
-            "echo 'Phase 2: Anti-Hardcoding Dynamic Function Pointer Test'",
-            "/bin/function_pointer_dynamic_tester > /tmp/test_output.log",
+            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Function or variable declaration missing in header'; cat /tmp/tcc_error.log; else echo 'PASS: All declarations found in header'; fi",
+            "echo 'Phase 2: Anti-Hardcoding Dynamic Callback Test'",
+            "/bin/callback_dynamic_tester > /tmp/test_output.log",
             "cat /tmp/test_output.log",
-            "echo 'Phase 3: Random Value Extraction and Validation'",
-            "echo 'Adding delay to ensure dmesg messages are written...'",
             "sleep 1",
-            "echo 'Extracting random test values from output...'",
-            "RECORD_ID1=$(grep -o 'Sensor function pointer dispatch (ID=[0-9]*' /tmp/test_output.log | cut -d'=' -f2)",
-            "RECORD_ID2=$(grep -o 'Device function pointer dispatch (ID=[0-9]*)' /tmp/test_output.log | cut -d'=' -f2 | cut -d')' -f1)",
-            "echo 'Extracted values: SENSOR_ID='$RECORD_ID1', DEVICE_ID='$RECORD_ID2",
-            "if [ -z \"$RECORD_ID1\" ] || [ -z \"$RECORD_ID2\" ]; then echo 'FAIL: Could not extract random test values'; else echo 'PASS: Random values extracted successfully'; fi",
-            "echo 'Phase 4: Anti-Hardcoding Validation with Random Values'",
-            "echo 'Validating sensor function pointer with random ID '$RECORD_ID1",
-            "dmesg | grep \"Processing sensor record ID: $RECORD_ID1\" && echo 'PASS: Sensor function pointer with random ID working' || echo 'FAIL: Sensor function pointer with random ID broken'",
-            "echo 'Validating device function pointer with random ID '$RECORD_ID2",
-            "DEVICE_ID_OFFSET=$((RECORD_ID2 + 100))",
-            "dmesg | grep \"Processing device record ID: $DEVICE_ID_OFFSET\" && echo 'PASS: Device function pointer with random ID working' || echo 'FAIL: Device function pointer with random ID broken'",
-            "echo 'Phase 5: Function Pointer and Casting Validation'",
-            "dmesg | grep 'Registered sensor processor' && echo 'PASS: Sensor processor registration working' || echo 'FAIL: Sensor processor registration broken'",
-            "dmesg | grep 'Registered device processor' && echo 'PASS: Device processor registration working' || echo 'FAIL: Device processor registration broken'",
-            "dmesg | grep 'Found sensor record, calling sensor processor' && echo 'PASS: Casting + function pointer dispatch working' || echo 'FAIL: Casting + function pointer dispatch broken'",
-            "dmesg | grep 'Found device record, calling device processor' && echo 'PASS: Device casting + function pointer dispatch working' || echo 'FAIL: Device casting + function pointer dispatch broken'",
-            "dmesg | grep 'Calling processor function through pointer' && echo 'PASS: Direct function pointer calling working' || echo 'FAIL: Direct function pointer calling broken'",
-            "echo 'Phase 6: Module Validation'",
-            "dmesg | grep 'Function pointers module loaded' && echo 'PASS: Module initialization working' || echo 'FAIL: Module initialization broken'",
-            "dmesg | grep 'Function pointers module unloaded' && echo 'PASS: Module cleanup working' || echo 'FAIL: Module cleanup broken'",
-            "echo 'All function pointer with casting implementation validations completed'"
+            "echo 'Phase 3: Extracting Random Test Values'",
+            "EVENT_TYPE=$(grep -o 'type=[0-9]*' /tmp/test_output.log | cut -d'=' -f2)",
+            "EVENT_COUNT=$(grep -o 'count=[0-9]*' /tmp/test_output.log | cut -d'=' -f2)",
+            "echo 'Extracted: EVENT_TYPE='$EVENT_TYPE', EVENT_COUNT='$EVENT_COUNT",
+            "if [ -z \"$EVENT_TYPE\" ] || [ -z \"$EVENT_COUNT\" ]; then echo 'FAIL: Could not extract test values'; else echo 'PASS: Random values extracted'; fi",
+            "echo 'Phase 4: Validating Callback Registration'",
+            "dmesg | grep 'Registered handler' && echo 'PASS: Callback registration working' || echo 'FAIL: Callback registration broken'",
+            "dmesg | grep 'Total registered handlers: 3' && echo 'PASS: Handler count correct' || echo 'FAIL: Handler count incorrect'",
+            "echo 'Phase 5: Validating Function Pointer Dispatch'",
+            "HANDLER_CALLS=$(dmesg | grep -c 'Processing event type '$EVENT_TYPE)",
+            "echo 'Handler was called '$HANDLER_CALLS' times for event type '$EVENT_TYPE",
+            "if [ \"$HANDLER_CALLS\" -ge \"$EVENT_COUNT\" ]; then echo 'PASS: Function pointer dispatch with random values working'; else echo 'FAIL: Function pointer dispatch count mismatch'; fi",
+            "echo 'Phase 6: Validating Set Once Use Forever Pattern'",
+            "dmesg | grep 'Set Once, Use Forever' && echo 'PASS: Pattern demonstration present' || echo 'FAIL: Pattern demonstration missing'",
+            "echo 'Phase 7: Final Validation'",
+            "dmesg | grep 'Function dispatch demonstration complete' && echo 'PASS: Module demonstration complete' || echo 'FAIL: Module demonstration incomplete'",
+            "echo 'PASS: All advanced callback pattern validation successful'"
           ],
           "expected": {
             "dmesg": [
-              "Function pointers module loaded",
-              "Registered sensor processor",
-              "Registered device processor",
-              "Testing function pointer dispatch with record type: .*, ID: .*",
-              "Found sensor record, calling sensor processor",
-              "Found device record, calling device processor",
-              "Processing sensor record ID: .*",
-              "Processing device record ID: .*",
-              "Sensor data processed successfully",
-              "Device data processed successfully",
-              "Calling processor function through pointer"
+              "Function dispatch module loaded",
+              "Registered handler 'SensorData' for event type 1",
+              "Registered handler 'MotorControl' for event type 2",
+              "Registered handler 'SystemStatus' for event type 3",
+              "Total registered handlers: 3",
+              "Function dispatch demonstration complete"
             ],
             "stdout": [
-              "PASS: All function and variable declarations found in header file",
-              "SUCCESS: Anti-hardcoding function pointer test completed",
-              "PASS: Random values extracted successfully",
-              "PASS: Sensor function pointer with random ID working",
-              "PASS: Device function pointer with random ID working",
-              "PASS: Sensor processor registration working",
-              "PASS: Device processor registration working",
-              "PASS: Casting \\+ function pointer dispatch working",
-              "PASS: Device casting \\+ function pointer dispatch working",
-              "PASS: Direct function pointer calling working",
-              "PASS: Module initialization working",
-              "PASS: Module cleanup working"
+              "PASS: All declarations found in header",
+              "SUCCESS: Anti-hardcoding callback test completed",
+              "PASS: Random values extracted",
+              "PASS: Callback registration working",
+              "PASS: Handler count correct",
+              "PASS: Function pointer dispatch with random values working",
+              "PASS: Pattern demonstration present",
+              "PASS: Module demonstration complete",
+              "PASS: All advanced callback pattern validation successful"
             ]
           },
           "timeout": 15
