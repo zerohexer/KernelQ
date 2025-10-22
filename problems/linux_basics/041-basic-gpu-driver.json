@@ -1,0 +1,100 @@
+{
+  "id": 41,
+  "title": "Basic GPU Driver - PCI Device Initialization (AMD Pattern)",
+  "phase": "linux_basics",
+  "difficulty": 7,
+  "xp": 80,
+  "description": "Write a basic GPU driver following AMD amdgpu initialization patterns. Learn PCI device enumeration, BAR (Base Address Register) mapping, and interrupt handling - the same patterns used in professional GPU drivers from AMD, NVIDIA, and Intel.",
+  "mainFile": "gpu_driver.c",
+  "files": [
+    {
+      "name": "gpu_driver.c",
+      "content": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/pci.h>\n#include <linux/init.h>\n\n/* GPU driver following AMD amdgpu pattern */\n\n/* PCI device ID table - identifies which hardware this driver supports */\nstatic const struct pci_device_id gpu_pci_ids[] = {\n    { PCI_DEVICE(0x1234, 0x1111) },  /* Bochs VGA */\n    { 0 }  /* Terminator */\n};\nMODULE_DEVICE_TABLE(pci, gpu_pci_ids);\n\n/* GPU device structure - stores per-device state */\nstruct student_gpu_device {\n    struct pci_dev *pdev;\n    void __iomem *mmio;  /* BAR0 - MMIO registers */\n    void __iomem *vram;  /* BAR1 - Framebuffer memory (if available) */\n    int irq;\n};\n\n/* TODO: Implement interrupt handler */\nstatic irqreturn_t gpu_irq_handler(int irq, void *dev_id)\n{\n    struct student_gpu_device *gpu = dev_id;\n    \n    printk(KERN_INFO \"GPU Driver: Interrupt received on IRQ %d\\n\", irq);\n    \n    /* TODO: Read interrupt status register */\n    /* TODO: Clear interrupt */\n    \n    return IRQ_HANDLED;\n}\n\n/* TODO: Implement PCI probe function (called when device is detected) */\nstatic int gpu_probe(struct pci_dev *pdev, const struct pci_device_id *id)\n{\n    struct student_gpu_device *gpu;\n    int ret;\n    \n    printk(KERN_INFO \"GPU Driver: Probing device %04x:%04x\\n\", \n           pdev->vendor, pdev->device);\n    \n    /* TODO: 1. Allocate GPU device structure */\n    /* HINT: Use devm_kzalloc() for automatic cleanup */\n    gpu = devm_kzalloc(&pdev->dev, sizeof(*gpu), GFP_KERNEL);\n    if (!gpu)\n        return -ENOMEM;\n    \n    gpu->pdev = pdev;\n    \n    /* TODO: 2. Enable PCI device */\n    /* HINT: ret = pci_enable_device(pdev); */\n    ret = pci_enable_device(pdev);\n    if (ret) {\n        dev_err(&pdev->dev, \"Failed to enable PCI device\\n\");\n        return ret;\n    }\n    \n    /* TODO: 3. Request memory regions (prevents conflicts with other drivers) */\n    /* HINT: ret = pci_request_regions(pdev, \"student_gpu\"); */\n    ret = pci_request_regions(pdev, \"student_gpu\");\n    if (ret) {\n        dev_err(&pdev->dev, \"Failed to request PCI regions\\n\");\n        goto err_disable_device;\n    }\n    \n    /* TODO: 4. Map BAR0 (MMIO registers) */\n    /* HINT: gpu->mmio = pci_iomap(pdev, 0, 0); */\n    gpu->mmio = pci_iomap(pdev, 0, 0);\n    if (!gpu->mmio) {\n        dev_err(&pdev->dev, \"Failed to map BAR0 (MMIO registers)\\n\");\n        ret = -EIO;\n        goto err_release_regions;\n    }\n    printk(KERN_INFO \"GPU Driver: BAR0 (MMIO) mapped successfully\\n\");\n    \n    /* TODO: 5. Optionally map BAR1 (Framebuffer/VRAM) if available */\n    if (pci_resource_len(pdev, 1) > 0) {\n        gpu->vram = pci_iomap(pdev, 1, 0);\n        if (gpu->vram) {\n            printk(KERN_INFO \"GPU Driver: BAR1 (VRAM) mapped successfully\\n\");\n        }\n    }\n    \n    /* TODO: 6. Set DMA mask (for memory addressing) */\n    /* HINT: pci_set_master(pdev); */\n    /* HINT: dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32)); */\n    pci_set_master(pdev);\n    ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));\n    if (ret) {\n        dev_warn(&pdev->dev, \"Failed to set DMA mask, continuing anyway\\n\");\n    }\n    \n    /* TODO: 7. Request IRQ */\n    /* HINT: ret = request_irq(pdev->irq, gpu_irq_handler, IRQF_SHARED, \"student_gpu\", gpu); */\n    gpu->irq = pdev->irq;\n    ret = request_irq(pdev->irq, gpu_irq_handler, IRQF_SHARED, \n                      \"student_gpu\", gpu);\n    if (ret) {\n        dev_err(&pdev->dev, \"Failed to request IRQ %d\\n\", pdev->irq);\n        goto err_unmap;\n    }\n    printk(KERN_INFO \"GPU Driver: IRQ %d requested successfully\\n\", pdev->irq);\n    \n    /* Save GPU device pointer in PCI device */\n    pci_set_drvdata(pdev, gpu);\n    \n    printk(KERN_INFO \"GPU Driver: Device initialized successfully\\n\");\n    return 0;\n\nerr_unmap:\n    if (gpu->vram)\n        pci_iounmap(pdev, gpu->vram);\n    if (gpu->mmio)\n        pci_iounmap(pdev, gpu->mmio);\nerr_release_regions:\n    pci_release_regions(pdev);\nerr_disable_device:\n    pci_disable_device(pdev);\n    return ret;\n}\n\n/* TODO: Implement PCI remove function (called when device is removed) */\nstatic void gpu_remove(struct pci_dev *pdev)\n{\n    struct student_gpu_device *gpu = pci_get_drvdata(pdev);\n    \n    printk(KERN_INFO \"GPU Driver: Removing device\\n\");\n    \n    /* TODO: Free IRQ */\n    free_irq(gpu->irq, gpu);\n    \n    /* TODO: Unmap memory regions */\n    if (gpu->vram)\n        pci_iounmap(pdev, gpu->vram);\n    if (gpu->mmio)\n        pci_iounmap(pdev, gpu->mmio);\n    \n    /* TODO: Release PCI regions */\n    pci_release_regions(pdev);\n    \n    /* TODO: Disable PCI device */\n    pci_disable_device(pdev);\n    \n    printk(KERN_INFO \"GPU Driver: Device removed successfully\\n\");\n}\n\n/* PCI driver structure - registers this driver with kernel */\nstatic struct pci_driver gpu_pci_driver = {\n    .name = \"student_gpu\",\n    .id_table = gpu_pci_ids,\n    .probe = gpu_probe,\n    .remove = gpu_remove,\n};\n\n/* Register/unregister driver using helper macro */\nmodule_pci_driver(gpu_pci_driver);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Basic GPU Driver - AMD Pattern\");\n",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Makefile for GPU driver\nobj-m += gpu_driver.o\n\nKDIR := /lib/modules/$(shell uname -r)/build\n\nall:\n\t$(MAKE) -C $(KDIR) M=$(PWD) modules\n\nclean:\n\t$(MAKE) -C $(KDIR) M=$(PWD) clean\n\n.PHONY: all clean\n",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "PCI device driver architecture",
+    "BAR (Base Address Register) mapping",
+    "MMIO (Memory-Mapped I/O)",
+    "Interrupt handling (IRQ)",
+    "DMA (Direct Memory Access) setup",
+    "Resource management and cleanup",
+    "AMD amdgpu driver patterns"
+  ],
+  "skills": [
+    "pci_enable_device() usage",
+    "pci_request_regions() for resource claiming",
+    "pci_iomap() for MMIO mapping",
+    "request_irq() for interrupt handling",
+    "Proper error handling and cleanup",
+    "devm_* managed resources"
+  ],
+  "validation": {
+    "testCases": [
+      {
+        "id": "gpu_pci_initialization",
+        "name": "GPU PCI Device Initialization (AMD Pattern)",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "qemuArgs": [
+            "-device", "bochs-display,addr=05.0",
+            "-vga", "none"
+          ],
+          "testCommands": [
+            "echo '=== Phase 1: Verify PCI Device Present ==='",
+            "lspci | grep 'VGA' && echo 'PASS: GPU hardware detected' || echo 'FAIL: No GPU found'",
+            "echo ''",
+            "echo '=== Phase 2: Check PCI Device Details ==='",
+            "lspci -v | grep -A 5 'VGA'",
+            "echo ''",
+            "echo '=== Phase 3: Verify Driver Loaded ==='",
+            "lsmod | grep gpu_driver && echo 'PASS: Driver module loaded' || echo 'FAIL: Module not loaded'",
+            "echo ''",
+            "echo '=== Phase 4: Verify Driver Bound to Device ==='",
+            "ls /sys/bus/pci/devices/0000:00:05.0/driver && echo 'PASS: Driver bound to PCI device' || echo 'FAIL: Driver not bound'",
+            "echo ''",
+            "echo '=== Phase 5: Check BAR Mapping (AMD Pattern) ==='",
+            "cat /sys/bus/pci/devices/0000:00:05.0/resource | head -2",
+            "dmesg | grep 'BAR0.*mapped' && echo 'PASS: BAR0 (MMIO) mapping verified' || echo 'FAIL: BAR0 not mapped'",
+            "echo ''",
+            "echo '=== Phase 6: Verify IRQ Request (AMD Pattern) ==='",
+            "cat /proc/interrupts | grep student_gpu && echo 'PASS: IRQ registered' || echo 'WARN: IRQ not visible'",
+            "dmesg | grep 'IRQ.*requested' && echo 'PASS: IRQ request verified' || echo 'FAIL: IRQ not requested'",
+            "echo ''",
+            "echo '=== Phase 7: Final Initialization Check ==='",
+            "dmesg | grep 'initialized successfully' && echo 'PASS: Driver fully initialized' || echo 'FAIL: Initialization incomplete'",
+            "echo ''",
+            "echo '=== Test Summary ==='",
+            "echo 'GPU Driver Testing Complete'"
+          ],
+          "expected": {
+            "dmesg": [
+              "GPU Driver: Probing device",
+              "BAR0.*mapped successfully",
+              "IRQ.*requested successfully",
+              "initialized successfully"
+            ],
+            "stdout": [
+              "PASS: GPU hardware detected",
+              "PASS: Driver module loaded",
+              "PASS: Driver bound to PCI device",
+              "PASS: BAR0.*mapping verified",
+              "PASS: IRQ.*verified",
+              "PASS: Driver fully initialized"
+            ]
+          },
+          "timeout": 45
+        }
+      }
+    ]
+  }
+}

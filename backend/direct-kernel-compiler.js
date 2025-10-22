@@ -135,6 +135,7 @@ help:
                 ['sbin/insmod', '/bin/busybox'],
                 ['sbin/rmmod', '/bin/busybox'],
                 ['sbin/lsmod', '/bin/busybox'],
+                ['sbin/lspci', '/bin/busybox'],  // GPU testing support
                 ['bin/dmesg', '/bin/busybox'],
                 ['bin/mount', '/bin/busybox'],
                 ['bin/sleep', '/bin/busybox'],
@@ -150,7 +151,9 @@ help:
                 ['usr/bin/head', '/bin/busybox'],
                 ['bin/mknod', '/bin/busybox'],
                 ['bin/awk', '/bin/busybox'],
-                ['bin/cut', '/bin/busybox']
+                ['bin/cut', '/bin/busybox'],
+                ['bin/basename', '/bin/busybox'],  // GPU driver binding detection
+                ['bin/readlink', '/bin/busybox']   // GPU driver binding detection
             ];
 
             for (const [link, target] of symlinks) {
@@ -265,6 +268,59 @@ help:
         return initramfsDir;
     }
 
+    // Helper function: Get QEMU args for different GPU device types
+    // This makes problem creation easier - problems can use this helper
+    // or specify qemuArgs directly for maximum flexibility
+    getGPUQemuArgs(deviceType) {
+        const gpuDevices = {
+            // Simple framebuffer device (beginner-friendly)
+            // Teaches: PCI probe, BAR mapping, framebuffer basics
+            // Use for: Problem 41 - Basic GPU driver initialization
+            'bochs': ['-device', 'bochs-display,addr=05.0', '-vga', 'none'],
+
+            // Full virtio GPU with DRM/GEM support (intermediate)
+            // Teaches: DRM device registration, GEM objects, command submission
+            // Use for: Problem 42-44 - DRM/GEM patterns (AMD/NVIDIA/Intel generic)
+            'virtio-gpu': ['-device', 'virtio-gpu-pci,addr=05.0', '-vga', 'none'],
+
+            // VirtIO GPU with VGA compatibility (advanced)
+            // Teaches: KMS/modesetting, legacy VGA + modern DRM
+            // Use for: Problem 45+ - Advanced display management
+            'virtio-vga': ['-device', 'virtio-vga,addr=05.0'],
+
+            // VMware SVGA (alternative pattern)
+            // Teaches: Different vendor approach, SVGA registers
+            // Use for: Optional problems showing vendor diversity
+            'vmware': ['-vga', 'vmware']
+        };
+
+        return gpuDevices[deviceType] || [];
+    }
+
+    // Helper function: Detect if this is a GPU driver problem
+    // Checks module names and test commands for GPU-related keywords
+    isGPUDriverProblem(koFiles, testScenario) {
+        // Check module names for GPU keywords
+        const hasGPUModule = koFiles.some(ko =>
+            ko.includes('gpu') ||
+            ko.includes('drm') ||
+            ko.includes('display') ||
+            ko.includes('video') ||
+            ko.includes('graphics')
+        );
+
+        // Check test commands for GPU-related operations
+        const hasGPUCommands = testScenario?.testCommands?.some(cmd =>
+            cmd.includes('lspci') ||
+            cmd.includes('/dev/dri') ||
+            cmd.includes('/dev/fb') ||
+            cmd.includes('drm') ||
+            cmd.includes('VGA') ||
+            cmd.includes('graphics')
+        );
+
+        return hasGPUModule || hasGPUCommands;
+    }
 
     // Generate truly generic init script for kernel_project_test scenarios
     generateInitScript(moduleName, koFiles, testScenario) {
@@ -278,6 +334,9 @@ help:
             moduleLoadOrder = ['kernel_vector', 'sensor_vector'];
         }
 
+        // Detect if this is a GPU driver problem
+        const isGPUProblem = this.isGPUDriverProblem(koFiles, testScenario);
+
         // Start with the boilerplate for any QEMU test
         let script = `#!/bin/sh
 # Removed 'set -e' to prevent script from dying on any command failure
@@ -290,6 +349,21 @@ echo "Module: ${moduleName}"
 /bin/mount -t sysfs sysfs /sys 2>/dev/null || echo "sysfs mount failed"
 echo ""
 `;
+
+        // **GPU-SPECIFIC: Enumerate PCI devices BEFORE loading driver**
+        // This helps students understand the hardware environment
+        // and verify GPU device is present
+        if (isGPUProblem) {
+            script += `
+echo "=== GPU Testing: PCI Device Enumeration ==="
+echo "Scanning for VGA/Display devices..."
+/sbin/lspci 2>/dev/null | grep -i "VGA\\|Display\\|3D" || echo "No VGA devices found"
+echo ""
+echo "PCI device tree:"
+ls -la /sys/bus/pci/devices/ 2>/dev/null | head -10 || echo "PCI sysfs not available"
+echo ""
+`;
+        }
 
         // **GENERIC PART 1: Run any setup commands defined in the problem**
         if (testScenario?.setupCommands?.length) {
@@ -328,6 +402,30 @@ fi
 
         script += `/bin/dmesg | tail -15 2>/dev/null || echo "dmesg not available"
 `;
+
+        // **GPU-SPECIFIC: Verify driver binding AFTER loading**
+        // This shows students if their driver properly claimed the PCI device
+        if (isGPUProblem) {
+            script += `
+echo ""
+echo "=== GPU Testing: Driver Binding Verification ==="
+echo "Checking if driver bound to PCI device..."
+for dev in /sys/bus/pci/devices/*; do
+    if [ -e "$dev/driver" ]; then
+        DRIVER=$(basename $(readlink $dev/driver))
+        DEVICE=$(basename $dev)
+        echo "Device $DEVICE bound to driver: $DRIVER"
+    fi
+done
+echo ""
+echo "DRM devices:"
+ls -la /dev/dri/ 2>/dev/null || echo "No DRM devices found"
+echo ""
+echo "Framebuffer devices:"
+ls -la /dev/fb* 2>/dev/null || echo "No framebuffer devices found"
+echo ""
+`;
+        }
 
         // **GENERIC PART 3: Run any test commands defined in the problem**
         if (testScenario?.testCommands?.length) {
