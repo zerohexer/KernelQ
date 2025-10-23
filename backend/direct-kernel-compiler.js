@@ -621,12 +621,13 @@ poweroff -f
                         const vmlinuzPath = `/boot/vmlinuz-${kernelVersion}`;
 
                         // Run QEMU with timeout and enhanced arguments support
+                        // Enable KASAN + KMEMLEAK for automatic memory safety validation
                         const baseQemuArgs = [
                             '-kernel', vmlinuzPath,
                             '-initrd', path.join(sessionDir, 'test.cpio.gz'),
                             '-m', '1024',  // Increased memory for GCC compilation
                             '-nographic',
-                            '-append', 'console=ttyS0 init=/init loglevel=7 printk.console_loglevel=7'
+                            '-append', 'console=ttyS0 init=/init loglevel=7 printk.console_loglevel=7 kasan=on kmemleak=on'
                         ];
 
                         // Add custom QEMU arguments from testScenario
@@ -642,7 +643,8 @@ poweroff -f
                         });
 
                         // Set a hard timeout to kill QEMU if it hangs (configurable via testScenario)
-                        const timeoutMs = (testScenario?.timeout || 15) * 1000; // Default 15 seconds
+                        // Increased to 30 seconds to account for KASAN overhead
+                        const timeoutMs = (testScenario?.timeout || 30) * 1000; // Default 30 seconds
                         const killTimer = setTimeout(() => {
                             console.log(`🔪 Killing hanging QEMU process after ${timeoutMs/1000}s timeout...`);
                             qemu.kill('SIGKILL');

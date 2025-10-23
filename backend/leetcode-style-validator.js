@@ -935,11 +935,66 @@ class LeetCodeStyleValidator {
                 code: codeOrFiles
             };
             const postTests = await this.analyzeDirectResults(
-                directResultsWithCode, 
-                testDef, 
+                directResultsWithCode,
+                testDef,
                 sessionId
             );
             results.testResults.push(...postTests.tests);
+
+            // Step 4.5: Automatic memory safety validation (KASAN + KMEMLEAK)
+            // This runs automatically for all problems without needing JSON changes
+            if (compilation.directResults?.testing?.output) {
+                const qemuOutput = compilation.directResults.testing.output;
+                const memoryValidation = await this.validateMemorySafety(qemuOutput, moduleName);
+
+                if (!memoryValidation.passed) {
+                    // Memory safety violation detected - add as critical failure
+                    results.testResults.push({
+                        id: 'memory_safety',
+                        name: 'Memory Safety Validation',
+                        status: 'FAILED',
+                        critical: true,
+                        message: memoryValidation.message,
+                        executionTime: 0
+                    });
+
+                    // Add detailed feedback for student
+                    if (memoryValidation.kasanErrors.length > 0) {
+                        const kasanError = memoryValidation.kasanErrors[0];
+                        results.feedback.push({
+                            type: 'memory_error',
+                            message: `KASAN: ${kasanError.type}`,
+                            details: `${kasanError.explanation}\n\n` +
+                                    `Location: ${kasanError.address}\n\n` +
+                                    `${kasanError.hint}\n\n` +
+                                    `Stack trace:\n${kasanError.stackTrace}`
+                        });
+                    }
+
+                    if (memoryValidation.memoryLeaks.length > 0) {
+                        const leak = memoryValidation.memoryLeaks[0];
+                        results.feedback.push({
+                            type: 'memory_leak',
+                            message: `Memory Leak Detected`,
+                            details: `${leak.explanation}\n\n` +
+                                    `${leak.hint}\n\n` +
+                                    `Leak details:\n${leak.leaks.map(l =>
+                                        `  - ${l.size} bytes at 0x${l.address}\n${l.stack}`
+                                    ).join('\n\n')}`
+                        });
+                    }
+                } else {
+                    // Memory safety passed - add as successful test
+                    results.testResults.push({
+                        id: 'memory_safety',
+                        name: 'Memory Safety Validation',
+                        status: 'PASSED',
+                        critical: false,
+                        message: 'No memory errors or leaks detected (KASAN + KMEMLEAK)',
+                        executionTime: 0
+                    });
+                }
+            }
 
             // Step 5: Calculate score and result
             this.calculateResults(results, testDef);
@@ -1721,6 +1776,160 @@ class LeetCodeStyleValidator {
         } catch (error) {
             console.warn('Cleanup warning:', error.message);
         }
+    }
+
+    /**
+     * Automatic memory safety validation using KASAN + KMEMLEAK
+     * Runs automatically after all test commands complete
+     * Extracts and parses memory safety errors from QEMU output
+     */
+    async validateMemorySafety(qemuOutput, moduleName) {
+        console.log('🔍 Running automatic memory safety checks...');
+
+        const result = {
+            passed: true,
+            kasanErrors: [],
+            memoryLeaks: [],
+            message: ''
+        };
+
+        // Phase 1: Check for KASAN errors in output
+        if (qemuOutput.includes('BUG: KASAN')) {
+            result.passed = false;
+            const kasanDetails = this.parseKASANError(qemuOutput);
+            result.kasanErrors.push(kasanDetails);
+            result.message = 'Memory safety violation detected (KASAN)';
+            return result;
+        }
+
+        // Phase 2: Check for memory leaks in output
+        // Look for kmemleak output patterns
+        if (qemuOutput.includes('unreferenced object')) {
+            result.passed = false;
+            const leakDetails = this.parseKMEMLEAKError(qemuOutput);
+            result.memoryLeaks.push(leakDetails);
+            result.message = 'Memory leak detected (KMEMLEAK)';
+            return result;
+        }
+
+        // Phase 3: Check for other memory-related kernel errors
+        const memoryErrorPatterns = [
+            'use-after-free',
+            'double-free',
+            'buffer overflow',
+            'heap-buffer-overflow',
+            'stack-out-of-bounds',
+            'slab-out-of-bounds'
+        ];
+
+        for (const pattern of memoryErrorPatterns) {
+            if (qemuOutput.toLowerCase().includes(pattern)) {
+                result.passed = false;
+                result.message = `Memory error detected: ${pattern}`;
+                result.kasanErrors.push({
+                    type: pattern,
+                    explanation: this.explainMemoryError(pattern),
+                    rawOutput: qemuOutput.substring(
+                        Math.max(0, qemuOutput.toLowerCase().indexOf(pattern) - 500),
+                        Math.min(qemuOutput.length, qemuOutput.toLowerCase().indexOf(pattern) + 500)
+                    )
+                });
+                return result;
+            }
+        }
+
+        result.message = 'All memory safety checks passed';
+        console.log('✅ Memory safety validation: PASSED');
+        return result;
+    }
+
+    /**
+     * Parse KASAN error report into student-friendly message
+     */
+    parseKASANError(output) {
+        const lines = output.split('\n');
+
+        // Extract error type
+        const errorLine = lines.find(l => l.includes('KASAN:'));
+        const errorType = errorLine?.match(/KASAN: ([\w-]+)/)?.[1] || 'unknown';
+
+        // Extract location
+        const locationLine = lines.find(l => l.includes('at addr'));
+        const address = locationLine?.match(/at addr ([0-9a-fx]+)/)?.[1] || 'unknown';
+
+        // Extract stack trace (first 5 lines with +0x)
+        const stackLines = lines.filter(l => l.includes('+0x')).slice(0, 5);
+
+        const explanations = {
+            'use-after-free': 'You accessed memory AFTER calling kfree(). This is a use-after-free bug.',
+            'slab-out-of-bounds': 'You wrote PAST the end of an allocated buffer. This is a buffer overflow.',
+            'heap-buffer-overflow': 'Buffer overflow detected in heap allocation.',
+            'stack-out-of-bounds': 'Stack buffer overflow detected.',
+            'global-out-of-bounds': 'Accessed memory outside global variable bounds.'
+        };
+
+        const hints = {
+            'use-after-free': 'Check your cleanup order. Are you freeing memory before you\'re done using it? Set pointers to NULL after kfree().',
+            'slab-out-of-bounds': 'Check your array indices and buffer sizes. Are you writing past the allocated size? Verify kmalloc() size matches usage.',
+            'heap-buffer-overflow': 'Verify your kmalloc() size matches how much data you\'re writing.',
+            'stack-out-of-bounds': 'Check your local array sizes and loop bounds.'
+        };
+
+        return {
+            type: errorType,
+            explanation: explanations[errorType] || 'Memory access violation detected.',
+            hint: hints[errorType] || 'Review your memory access patterns.',
+            address: address,
+            stackTrace: stackLines.join('\n'),
+            rawOutput: output
+        };
+    }
+
+    /**
+     * Parse KMEMLEAK error into student-friendly message
+     */
+    parseKMEMLEAKError(output) {
+        const blocks = output.split('unreferenced object').slice(1);
+
+        const leaks = blocks.map(block => {
+            const addrMatch = block.match(/0x([0-9a-f]+)/);
+            const sizeMatch = block.match(/size (\d+)/);
+            const stackLines = block.split('\n')
+                .filter(l => l.trim().length > 0 && l.includes('+0x'))
+                .slice(0, 3);
+
+            return {
+                address: addrMatch?.[1] || 'unknown',
+                size: parseInt(sizeMatch?.[1] || '0'),
+                stack: stackLines.join('\n')
+            };
+        });
+
+        const totalSize = leaks.reduce((sum, leak) => sum + leak.size, 0);
+
+        return {
+            leakCount: leaks.length,
+            totalSize: totalSize,
+            explanation: `You allocated memory but never freed it. ${leaks.length} allocation(s) totaling ${totalSize} bytes were leaked.`,
+            hint: 'Check your cleanup functions. Did you call kfree() for everything you allocated with kmalloc()? Review your error handling paths - do they free memory before returning?',
+            leaks: leaks.slice(0, 3),  // Top 3 leaks
+            rawOutput: output
+        };
+    }
+
+    /**
+     * Explain memory error type in student-friendly language
+     */
+    explainMemoryError(errorType) {
+        const explanations = {
+            'use-after-free': 'Accessing memory after it has been freed with kfree()',
+            'double-free': 'Calling kfree() twice on the same pointer',
+            'buffer overflow': 'Writing past the end of an allocated buffer',
+            'heap-buffer-overflow': 'Writing past the end of a heap-allocated buffer',
+            'stack-out-of-bounds': 'Accessing memory outside stack variable bounds',
+            'slab-out-of-bounds': 'Accessing memory outside slab-allocated object bounds'
+        };
+        return explanations[errorType] || 'Memory safety violation';
     }
 }
 
