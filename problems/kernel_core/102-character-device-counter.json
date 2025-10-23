@@ -1,0 +1,369 @@
+{
+  "id": 102,
+  "title": "Character Device Counter - Your First Device Driver",
+  "phase": "kernel_core",
+  "difficulty": 4,
+  "xp": 30,
+  "description": "Learn the fundamentals of character device drivers by creating a simple counter device. Every time a user reads from /dev/counter, the device returns an incrementing number. This teaches device registration, file operations, and kernel-userspace communication - the foundation for all device drivers including GPU drivers.",
+  "mainFile": "counter_dev.c",
+  "files": [
+    {
+      "name": "counter_dev.h",
+      "content": "#ifndef COUNTER_DEV_H\n#define COUNTER_DEV_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/fs.h>\n#include <linux/uaccess.h>\n\n/* ========================================================================== */\n/* PATTERN SCAFFOLDING: Character Device Fundamentals */\n/* ========================================================================== */\n/* This problem teaches the FOUNDATION of ALL device drivers!\n *\n * WHAT IS A CHARACTER DEVICE?\n * Character devices provide stream-based I/O - they handle data one byte at a time.\n * Examples: /dev/null, /dev/zero, /dev/random, /dev/tty, GPU devices!\n *\n * VS BLOCK DEVICES:\n * Block devices handle data in blocks (hard drives, SSDs) - random access\n * Character devices handle data as streams (keyboards, mice, GPUs) - sequential access\n *\n * REAL-WORLD EXAMPLES:\n * - /dev/null - discards all data written to it\n * - /dev/zero - returns infinite zeros when read\n * - /dev/random - returns random bytes when read\n * - /dev/nvidia0 - NVIDIA GPU character device!\n * - /dev/dri/card0 - AMD/Intel GPU character device (DRM)\n *\n * WHY THIS MATTERS FOR GPU DRIVERS:\n * ALL GPU drivers start as character devices before adding DRM/graphics features!\n * Understanding character devices is the FIRST STEP to GPU driver development.\n */\n\n/* ========================================================================== */\n/* DEVICE CONFIGURATION */\n/* ========================================================================== */\n/* MAJOR AND MINOR DEVICE NUMBERS EXPLAINED:\n *\n * In Linux, devices are identified by TWO numbers:\n * 1. MAJOR NUMBER: Identifies the device driver (which module handles this device)\n * 2. MINOR NUMBER: Identifies specific device instance (first GPU, second GPU, etc.)\n *\n * Example: /dev/nvidia0 (major=195, minor=0), /dev/nvidia1 (major=195, minor=1)\n * Same driver (major 195), different GPU instances (minor 0, 1)\n *\n * MAJOR NUMBER RANGES:\n * - 0-255: Static allocation (some reserved, some available)\n * - 240-254: Available for custom/experimental drivers (we use 240)\n * - Dynamic: Kernel can auto-assign (modern approach, but we use static for learning)\n */\n\n/* TODO: Define device name macro */\n/* #define DEVICE_NAME \"counter\" */\n\n/* TODO: Define major device number */\n/* #define MAJOR_NUM 240 */\n\n/* ========================================================================== */\n/* KERNEL CODING STYLE: Static Functions */\n/* ========================================================================== */\n/* IMPORTANT RULE: \"Variables and functions must be static, unless they have\n * a prototype, and are supposed to be exported.\"\n *\n * For character device drivers:\n * - device_open(), device_release(), device_read() are INTERNAL to our module\n * - They are NOT exported to other modules\n * - Therefore: they MUST be declared as 'static' in the .c file\n * - They are NOT declared in this header file\n * - They are only referenced through the file_operations structure\n *\n * LINUX FILE OPERATIONS MODEL:\n * When user does:           Kernel calls:\n * open(\"/dev/counter\")  -> device_open()    (static function in .c)\n * read(fd, buf, len)    -> device_read()    (static function in .c)\n * close(fd)             -> device_release() (static function in .c)\n *\n * This is standard practice in ALL Linux kernel drivers!\n */\n\n#endif /* COUNTER_DEV_H */\n",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "counter_dev.c",
+      "content": "#include \"counter_dev.h\"\n\n/* ========================================================================== */\n/* GLOBAL DEVICE STATE */\n/* ========================================================================== */\n/* These variables maintain the device state across multiple operations.\n *\n * WHY STATIC?\n * Static variables have:\n * 1. File scope - only visible within this .c file (encapsulation)\n * 2. Persistent lifetime - values retained across function calls\n * 3. Initialized once - at module load time\n *\n * This is the EXACT pattern used in real kernel drivers!\n */\n\n/* TODO: Declare static counter variable */\n/* This holds the current counter value - increments with each read */\n/* static int counter = 0; */\n\n/* TODO: Declare static device_open_count variable */\n/* Tracks how many times the device is currently open */\n/* Used to prevent issues with multiple simultaneous opens (optional but good practice) */\n/* static int device_open_count = 0; */\n\n/* ========================================================================== */\n/* FILE OPERATIONS STRUCTURE */\n/* ========================================================================== */\n/* This is the KEY data structure connecting userspace operations to kernel functions!\n *\n * HOW IT WORKS:\n * 1. We create a struct file_operations with function pointers\n * 2. We register it with the kernel using register_chrdev()\n * 3. When user opens /dev/counter, kernel uses THIS table to call OUR functions\n *\n * FUNCTION POINTER PATTERN (from Problem 21!):\n * struct file_operations {\n *     struct module *owner;           // Module that owns this (THIS_MODULE)\n *     ssize_t (*read)(...);          // Function pointer for read()\n *     int (*open)(...);              // Function pointer for open()\n *     int (*release)(...);           // Function pointer for close()\n *     // ... many more operations (write, ioctl, mmap, etc.)\n * };\n *\n * WHY THIS PATTERN?\n * - Extensibility: New devices just implement their own functions\n * - Polymorphism: Different devices, same interface (like OOP in C!)\n * - Flexibility: Can implement only needed operations (others NULL)\n *\n * REAL KERNEL EXAMPLES:\n * - GPU drivers implement: open, read, write, ioctl, mmap, poll\n * - /dev/null implements: open, read (returns 0), write (discards), release\n * - /dev/zero implements: open, read (returns zeros), release\n */\n\n/* TODO: Define file_operations structure */\n/* REQUIRED FIELDS:\n * - .owner = THIS_MODULE (tells kernel which module owns this)\n * - .read = device_read (function called on read())\n * - .open = device_open (function called on open())\n * - .release = device_release (function called on close())\n *\n * PATTERN:\n * static struct file_operations fops = {\n *     .owner = THIS_MODULE,\n *     .read = device_read,\n *     .open = device_open,\n *     .release = device_release\n * };\n */\n\n/* ========================================================================== */\n/* DEVICE OPERATION FUNCTIONS */\n/* ========================================================================== */\n\n/* TODO: Implement device_open() */\n/* Called when userspace opens /dev/counter with open() system call\n *\n * WHAT THIS FUNCTION SHOULD DO:\n * 1. Increment device_open_count\n * 2. Print message: \"Counter device opened\"\n * 3. Return 0 for success\n *\n * REAL-WORLD USAGE:\n * GPU drivers use open() to:\n * - Allocate per-process GPU context\n * - Set up memory mappings\n * - Initialize command buffers\n * - Track which process owns which GPU resources\n *\n * PATTERN:\n * static int device_open(struct inode *inode, struct file *file) {\n *     device_open_count++;\n *     printk(KERN_INFO \"Counter device opened\\n\");\n *     return 0;\n * }\n */\n\n/* TODO: Implement device_release() */\n/* Called when userspace closes the device with close() system call\n *\n * WHAT THIS FUNCTION SHOULD DO:\n * 1. Decrement device_open_count\n * 2. Print message: \"Counter device closed\"\n * 3. Return 0 for success\n *\n * REAL-WORLD USAGE:\n * GPU drivers use release() to:\n * - Free per-process GPU context\n * - Release GPU memory allocations\n * - Clean up command buffers\n * - Ensure GPU resources are properly freed\n *\n * PATTERN:\n * static int device_release(struct inode *inode, struct file *file) {\n *     device_open_count--;\n *     printk(KERN_INFO \"Counter device closed\\n\");\n *     return 0;\n * }\n */\n\n/* TODO: Implement device_read() */\n/* Called when userspace reads from device with read() system call\n *\n * WHAT THIS FUNCTION SHOULD DO:\n * 1. Format counter as string: \"Counter: %d\\n\"\n * 2. Use copy_to_user() to send string to userspace buffer\n * 3. Print message: \"Counter read: returned %d\" (with counter value)\n * 4. Increment counter for next read\n * 5. Return number of bytes read (length of string)\n *\n * CRITICAL: WHY copy_to_user()?\n * Kernel memory and userspace memory are SEPARATE!\n * - Kernel cannot directly write to userspace pointers\n * - copy_to_user() safely transfers data across this boundary\n * - It handles page faults and memory protection\n * - Using it wrong = kernel crash!\n *\n * COPY_TO_USER SYNTAX:\n * int copy_to_user(void __user *to, const void *from, unsigned long n)\n * - to: Userspace buffer pointer (from function parameter)\n * - from: Kernel buffer with our data\n * - n: Number of bytes to copy\n * Returns: 0 on success, number of bytes NOT copied on failure\n *\n * ALGORITHM:\n * 1. Create kernel buffer: char msg[64];\n * 2. Format message: sprintf(msg, \"Counter: %d\\n\", counter);\n * 3. Get length: int len = strlen(msg);\n * 4. Copy to user: if (copy_to_user(buffer, msg, len)) return -EFAULT;\n * 5. Log the read: printk(KERN_INFO \"Counter read: returned %d\\n\", counter);\n * 6. Increment: counter++;\n * 7. Return bytes read: return len;\n *\n * REAL-WORLD USAGE:\n * GPU drivers use read() to:\n * - Read GPU register values\n * - Get error/debug information\n * - Read performance counters\n * - Return GPU status information\n *\n * PATTERN:\n * static ssize_t device_read(struct file *file, char __user *buffer, size_t len, loff_t *offset) {\n *     char msg[64];\n *     int msg_len;\n *     \n *     sprintf(msg, \"Counter: %d\\n\", counter);\n *     msg_len = strlen(msg);\n *     \n *     if (copy_to_user(buffer, msg, msg_len)) {\n *         return -EFAULT;  // Bad address\n *     }\n *     \n *     printk(KERN_INFO \"Counter read: returned %d\\n\", counter);\n *     counter++;\n *     \n *     return msg_len;\n * }\n */\n\n/* ========================================================================== */\n/* MODULE INITIALIZATION AND CLEANUP */\n/* ========================================================================== */\n\n/* TODO: Implement counter_init() */\n/* Module initialization - called when module is loaded with insmod\n *\n * WHAT THIS FUNCTION SHOULD DO:\n * 1. Register character device with register_chrdev()\n * 2. Check if registration succeeded (returns negative on error)\n * 3. Print success message with major number\n * 4. Print instruction for creating device node\n * 5. Return 0 on success, error code on failure\n *\n * REGISTER_CHRDEV EXPLAINED:\n * int register_chrdev(unsigned int major, const char *name, struct file_operations *fops)\n * - major: Major device number (MAJOR_NUM, 240 in our case)\n * - name: Device name (appears in /proc/devices)\n * - fops: Pointer to our file_operations structure\n * Returns: 0 on success, negative error code on failure\n *\n * DEVICE NODE CREATION:\n * After registering the driver, we need to create a device node in /dev/\n * This is done with mknod command:\n * mknod /dev/counter c 240 0\n *        ↑           ↑  ↑   ↑\n *        device      c  maj min\n *        name        h  or  or\n *                    a  num num\n *                    r\n *\n * WHY SEPARATE STEPS?\n * - Driver registration: Tells kernel \"I can handle major number 240\"\n * - Device node: Creates /dev/counter file that userspace can open()\n * - Modern systems use udev to auto-create nodes (we do it manually for learning)\n *\n * ALGORITHM:\n * 1. Call register_chrdev(MAJOR_NUM, DEVICE_NAME, &fops)\n * 2. Check if result < 0 (error)\n * 3. If error, print error message and return error code\n * 4. If success, print: \"Counter device registered with major number %d\"\n * 5. Print: \"Create device with: mknod /dev/counter c %d 0\" (with MAJOR_NUM)\n * 6. Return 0\n *\n * PATTERN:\n * static int __init counter_init(void) {\n *     int result = register_chrdev(MAJOR_NUM, DEVICE_NAME, &fops);\n *     \n *     if (result < 0) {\n *         printk(KERN_ERR \"Failed to register character device\\n\");\n *         return result;\n *     }\n *     \n *     printk(KERN_INFO \"Counter device registered with major number %d\\n\", MAJOR_NUM);\n *     printk(KERN_INFO \"Create device with: mknod /dev/counter c %d 0\\n\", MAJOR_NUM);\n *     \n *     return 0;\n * }\n */\n\n/* TODO: Implement counter_exit() */\n/* Module cleanup - called when module is unloaded with rmmod\n *\n * WHAT THIS FUNCTION SHOULD DO:\n * 1. Unregister character device with unregister_chrdev()\n * 2. Print cleanup message\n *\n * UNREGISTER_CHRDEV SYNTAX:\n * void unregister_chrdev(unsigned int major, const char *name)\n * - major: Same major number used in register_chrdev()\n * - name: Same device name used in register_chrdev()\n *\n * CRITICAL CLEANUP:\n * ALWAYS unregister devices in exit function!\n * If you don't:\n * - Kernel keeps reference to our module\n * - Module cannot be reloaded properly\n * - System may crash on next access\n *\n * PATTERN:\n * static void __exit counter_exit(void) {\n *     unregister_chrdev(MAJOR_NUM, DEVICE_NAME);\n *     printk(KERN_INFO \"Counter device unregistered\\n\");\n * }\n */\n\n/* TODO: Register module_init and module_exit */\n/* module_init(counter_init); */\n/* module_exit(counter_exit); */\n\n/* TODO: Add module metadata */\n/* MODULE_LICENSE(\"GPL\"); */\n/* MODULE_AUTHOR(\"Student\"); */\n/* MODULE_DESCRIPTION(\"Simple counter character device driver\"); */\n/* MODULE_VERSION(\"1.0\"); */\n",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Counter character device Makefile\nobj-m += counter_dev.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help\n",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "character device drivers",
+    "device registration with register_chrdev",
+    "file_operations structure",
+    "device open and release operations",
+    "device read operation",
+    "copy_to_user for kernel-userspace communication",
+    "major and minor device numbers",
+    "device node creation with mknod",
+    "device state management",
+    "device cleanup with unregister_chrdev"
+  ],
+  "skills": [
+    "Creating character device drivers",
+    "Using register_chrdev and unregister_chrdev",
+    "Implementing file_operations callbacks",
+    "Using copy_to_user safely",
+    "Managing device state across operations",
+    "Understanding major/minor device numbers",
+    "Creating device nodes manually",
+    "Proper device driver cleanup"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "counter_init",
+        "counter_exit",
+        "device_open",
+        "device_release",
+        "device_read"
+      ],
+      "macro_declarations": [
+        {
+          "name": "DEVICE_NAME",
+          "type": "constant",
+          "value": "\"counter\"",
+          "description": "Character device name"
+        },
+        {
+          "name": "MAJOR_NUM",
+          "type": "constant",
+          "value": "240",
+          "description": "Major device number"
+        }
+      ],
+      "variables": [
+        {
+          "name": "counter",
+          "type": "int",
+          "value": "0",
+          "storageClass": "static"
+        },
+        {
+          "name": "device_open_count",
+          "type": "int",
+          "value": "0",
+          "storageClass": "static"
+        },
+        {
+          "name": "fops",
+          "type": "struct file_operations",
+          "value": "{.owner = THIS_MODULE, .read = device_read, .open = device_open, .release = device_release}",
+          "storageClass": "static"
+        }
+      ],
+      "outputMessages": [
+        "Counter device registered with major number 240",
+        "Create device with: mknod /dev/counter c 240 0",
+        "Counter device opened",
+        "Counter read: returned 0",
+        "Counter read: returned 1",
+        "Counter read: returned 2",
+        "Counter device closed",
+        "Counter device unregistered"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/fs.h",
+        "linux/uaccess.h"
+      ],
+      "mustContain": [
+        "register_chrdev",
+        "unregister_chrdev",
+        "copy_to_user",
+        "struct file_operations",
+        ".read",
+        ".open",
+        ".release",
+        "THIS_MODULE",
+        "device_open_count++",
+        "device_open_count--",
+        "counter++"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "macro_definitions",
+        "name": "Macro Definitions",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "#define DEVICE_NAME \"counter\"",
+          "#define MAJOR_NUM 240"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Implementations in Source",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "static int device_open(struct inode *inode, struct file *file)",
+          "static int device_release(struct inode *inode, struct file *file)",
+          "static ssize_t device_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)",
+          "static int __init counter_init(void)",
+          "static void __exit counter_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "file_operations_structure",
+        "name": "file_operations Structure",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "struct file_operations",
+          ".owner = THIS_MODULE",
+          ".read = device_read",
+          ".open = device_open",
+          ".release = device_release"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "device_registration",
+        "name": "Device Registration Implementation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "register_chrdev",
+          "MAJOR_NUM",
+          "DEVICE_NAME",
+          "&fops"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "copy_to_user_usage",
+        "name": "copy_to_user Implementation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "copy_to_user",
+          "buffer",
+          "sprintf",
+          "Counter:"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {
+            "pattern": "Counter device registered with major number 240",
+            "exact": true,
+            "linkedFunction": "static int __init counter_init(void)"
+          },
+          {
+            "pattern": "Create device with: mknod /dev/counter c 240 0",
+            "exact": true,
+            "linkedFunction": "static int __init counter_init(void)"
+          },
+          {
+            "pattern": "Counter device opened",
+            "exact": true,
+            "linkedFunction": "int device_open(struct inode *inode, struct file *file)"
+          },
+          {
+            "pattern": "Counter read: returned 0",
+            "exact": true,
+            "linkedFunction": "ssize_t device_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)"
+          },
+          {
+            "pattern": "Counter read: returned 1",
+            "exact": true,
+            "linkedFunction": "ssize_t device_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)"
+          },
+          {
+            "pattern": "Counter read: returned 2",
+            "exact": true,
+            "linkedFunction": "ssize_t device_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)"
+          },
+          {
+            "pattern": "Counter device closed",
+            "exact": true,
+            "linkedFunction": "int device_release(struct inode *inode, struct file *file)"
+          },
+          {
+            "pattern": "Counter device unregistered",
+            "exact": true,
+            "linkedFunction": "static void __exit counter_exit(void)"
+          }
+        ]
+      },
+      {
+        "id": "character_device_integration",
+        "name": "Character Device Integration Test",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "counter_device_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <fcntl.h>\\n#include <unistd.h>\\n#include <string.h>\\n\\nint main() {\\n    int fd;\\n    char buffer[128];\\n    int bytes_read;\\n    int i;\\n    \\n    printf(\\\"=== Character Device Counter Test ===\\\\n\\\");\\n    \\n    /* Open the device */\\n    printf(\\\"Opening /dev/counter...\\\\n\\\");\\n    fd = open(\\\"/dev/counter\\\", O_RDONLY);\\n    if (fd < 0) {\\n        printf(\\\"ERROR: Failed to open /dev/counter\\\\n\\\");\\n        return 1;\\n    }\\n    printf(\\\"Device opened successfully\\\\n\\\");\\n    \\n    /* Read from device 3 times */\\n    for (i = 0; i < 3; i++) {\\n        memset(buffer, 0, sizeof(buffer));\\n        bytes_read = read(fd, buffer, sizeof(buffer) - 1);\\n        \\n        if (bytes_read < 0) {\\n            printf(\\\"ERROR: Failed to read from device\\\\n\\\");\\n            close(fd);\\n            return 1;\\n        }\\n        \\n        printf(\\\"Read %d bytes: %s\\\", bytes_read, buffer);\\n    }\\n    \\n    /* Close the device */\\n    printf(\\\"Closing device...\\\\n\\\");\\n    close(fd);\\n    printf(\\\"Device closed successfully\\\\n\\\");\\n    \\n    printf(\\\"SUCCESS: All character device operations completed\\\\n\\\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting character device counter validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: TCC Header Validation'",
+            "mkdir -p /tmp/linux",
+            "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
+            "echo '#define KERN_ERR' >> /tmp/linux/kernel.h",
+            "echo 'int printk(const char *fmt, ...);' >> /tmp/linux/kernel.h",
+            "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
+            "echo '#define MODULE_AUTHOR(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_DESCRIPTION(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_VERSION(x)' >> /tmp/linux/module.h",
+            "echo '#define module_init(x)' >> /tmp/linux/module.h",
+            "echo '#define module_exit(x)' >> /tmp/linux/module.h",
+            "echo '#define THIS_MODULE ((struct module *)0)' >> /tmp/linux/module.h",
+            "echo '#define __init' > /tmp/linux/init.h",
+            "echo '#define __exit' >> /tmp/linux/init.h",
+            "echo 'typedef long long loff_t;' > /tmp/linux/types.h",
+            "echo 'typedef unsigned long size_t;' >> /tmp/linux/types.h",
+            "echo 'typedef long ssize_t;' >> /tmp/linux/types.h",
+            "echo '#define __user' >> /tmp/linux/types.h",
+            "echo '#include <linux/types.h>' > /tmp/linux/fs.h",
+            "echo 'struct inode { int dummy; };' >> /tmp/linux/fs.h",
+            "echo 'struct file { int dummy; };' >> /tmp/linux/fs.h",
+            "echo 'struct file_operations { void *owner; void *read; void *open; void *release; };' >> /tmp/linux/fs.h",
+            "echo 'int register_chrdev(unsigned int major, const char *name, struct file_operations *fops);' >> /tmp/linux/fs.h",
+            "echo 'void unregister_chrdev(unsigned int major, const char *name);' >> /tmp/linux/fs.h",
+            "echo 'unsigned long copy_to_user(void *to, const void *from, unsigned long n);' > /tmp/linux/uaccess.h",
+            "echo '#define EFAULT 14' >> /tmp/linux/uaccess.h",
+            "echo 'Creating TCC test file to validate header includes...'",
+            "echo '#include \"/lib/modules/counter_dev.h\"' > /tmp/test.c",
+            "echo 'int main() { return 0; }' >> /tmp/test.c",
+            "/usr/bin/tcc -I/tmp -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
+            "TCC_EXIT_CODE=$?",
+            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Header file has errors (check for uncommented function declarations)'; cat /tmp/tcc_error.log; else echo 'PASS: Header file compiles successfully'; fi",
+            "",
+            "echo 'Phase 2: Module Loading and Device Registration'",
+            "insmod /lib/modules/counter_dev.ko",
+            "sleep 1",
+            "",
+            "echo 'Phase 3: Device Registration Validation'",
+            "dmesg | grep 'Counter device registered with major number 240' && echo 'PASS: Device registered successfully' || echo 'FAIL: Device registration message missing'",
+            "dmesg | grep 'Create device with: mknod /dev/counter c 240 0' && echo 'PASS: mknod instruction present' || echo 'FAIL: mknod instruction missing'",
+            "",
+            "echo 'Phase 4: Device Node Creation'",
+            "mknod /dev/counter c 240 0",
+            "ls -l /dev/counter && echo 'PASS: Device node created' || echo 'FAIL: Device node creation failed'",
+            "",
+            "echo 'Phase 5: Character Device Functional Testing'",
+            "/bin/counter_device_tester > /tmp/device_test_output.log 2>&1",
+            "cat /tmp/device_test_output.log",
+            "sleep 1",
+            "",
+            "echo 'Phase 6: Validate Device Operations'",
+            "dmesg | grep 'Counter device opened' && echo 'PASS: Device open working' || echo 'FAIL: Device open broken'",
+            "dmesg | grep 'Counter read: returned 0' && echo 'PASS: First counter read (0) working' || echo 'FAIL: First read broken'",
+            "dmesg | grep 'Counter read: returned 1' && echo 'PASS: Second counter read (1) working' || echo 'FAIL: Second read broken'",
+            "dmesg | grep 'Counter read: returned 2' && echo 'PASS: Third counter read (2) working' || echo 'FAIL: Third read broken'",
+            "dmesg | grep 'Counter device closed' && echo 'PASS: Device release working' || echo 'FAIL: Device release broken'",
+            "",
+            "echo 'Phase 7: Validate Userspace Counter Output'",
+            "grep 'Counter: 0' /tmp/device_test_output.log && echo 'PASS: Userspace received counter 0' || echo 'FAIL: Counter 0 not received'",
+            "grep 'Counter: 1' /tmp/device_test_output.log && echo 'PASS: Userspace received counter 1' || echo 'FAIL: Counter 1 not received'",
+            "grep 'Counter: 2' /tmp/device_test_output.log && echo 'PASS: Userspace received counter 2' || echo 'FAIL: Counter 2 not received'",
+            "grep 'SUCCESS: All character device operations completed' /tmp/device_test_output.log && echo 'PASS: All operations succeeded' || echo 'FAIL: Operations incomplete'",
+            "",
+            "echo 'Phase 8: Module Cleanup'",
+            "rm /dev/counter",
+            "rmmod counter_dev",
+            "sleep 1",
+            "dmesg | grep 'Counter device unregistered' && echo 'PASS: Device unregistered successfully' || echo 'FAIL: Device unregistration message missing'",
+            "",
+            "echo 'PASS: All character device integration tests completed successfully'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Counter device registered with major number 240",
+              "Create device with: mknod /dev/counter c 240 0",
+              "Counter device opened",
+              "Counter read: returned 0",
+              "Counter read: returned 1",
+              "Counter read: returned 2",
+              "Counter device closed",
+              "Counter device unregistered"
+            ],
+            "stdout": [
+              "PASS: Header file compiles successfully",
+              "PASS: Device registered successfully",
+              "PASS: mknod instruction present",
+              "PASS: Device node created",
+              "Device opened successfully",
+              "Counter: 0",
+              "Counter: 1",
+              "Counter: 2",
+              "Device closed successfully",
+              "SUCCESS: All character device operations completed",
+              "PASS: Device open working",
+              "PASS: First counter read \\(0\\) working",
+              "PASS: Second counter read \\(1\\) working",
+              "PASS: Third counter read \\(2\\) working",
+              "PASS: Device release working",
+              "PASS: Userspace received counter 0",
+              "PASS: Userspace received counter 1",
+              "PASS: Userspace received counter 2",
+              "PASS: All operations succeeded",
+              "PASS: Device unregistered successfully",
+              "PASS: All character device integration tests completed successfully"
+            ]
+          },
+          "timeout": 30
+        }
+      }
+    ]
+  }
+}

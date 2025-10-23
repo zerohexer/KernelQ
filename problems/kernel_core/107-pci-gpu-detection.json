@@ -1,0 +1,376 @@
+{
+  "id": 107,
+  "title": "Basic PCI GPU Detection - Your First Graphics Driver",
+  "phase": "kernel_core",
+  "difficulty": 6,
+  "xp": 50,
+  "description": "Learn the absolute basics of GPU driver development by detecting a PCI graphics device. This is the first step every GPU driver takes - whether AMD, NVIDIA, or Intel. You'll learn PCI enumeration, vendor/device IDs, and basic PCI device structure.",
+  "mainFile": "pci_gpu_detect.c",
+  "files": [
+    {
+      "name": "pci_gpu_detect.h",
+      "content": "#ifndef PCI_GPU_DETECT_H\n#define PCI_GPU_DETECT_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/pci.h>\n\n/* PCI Device ID for our virtual GPU */\n/* bochs-display uses vendor 0x1234, device 0x1111 */\n#define GPU_VENDOR_ID 0x1234\n#define GPU_DEVICE_ID 0x1111\n\n/* NOTE: Probe and remove functions are static (internal to the driver module)\n * They are NOT declared in the header because they're only referenced by\n * the pci_driver structure within pci_gpu_detect.c. This is standard practice\n * for PCI drivers in the Linux kernel.\n */\n\n#endif /* PCI_GPU_DETECT_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "pci_gpu_detect.c",
+      "content": "#include \"pci_gpu_detect.h\"\n\n/* WHAT IS PCI AND WHY DO WE NEED IT? */\n/* PCI (Peripheral Component Interconnect) is the bus system that connects */\n/* hardware devices like GPUs to your computer's CPU and memory. */\n/* */\n/* Think of PCI like a highway system: */\n/* - CPU/Memory = City center */\n/* - PCI Bus = Highway */\n/* - GPU = Suburb that needs highway access */\n/* */\n/* Every PCI device (GPU, network card, disk controller) needs: */\n/* 1. A way to identify itself (vendor ID + device ID) */\n/* 2. A driver to control it */\n/* 3. Memory-mapped I/O regions to communicate */\n\n/* PCI DEVICE IDENTIFICATION */\n/* Every PCI device has two identifying numbers: */\n/* - Vendor ID: Who made the device? (AMD=0x1002, NVIDIA=0x10de, Intel=0x8086) */\n/* - Device ID: Which specific device is it? (RTX 3070=0x2484, RX 6800=0x73bf) */\n/* */\n/* Our virtual GPU (bochs-display): */\n/* - Vendor ID: 0x1234 (QEMU's vendor ID) */\n/* - Device ID: 0x1111 (bochs VGA device ID) */\n\n/* PCI DEVICE TABLE - CRITICAL CONCEPT */\n/* This table tells the kernel: \"My driver can handle these devices\" */\n/* The kernel automatically calls your probe() function when it finds a match! */\n/* */\n/* Real-world examples: */\n/* AMD amdgpu driver supports ~200 device IDs (all AMD GPUs) */\n/* NVIDIA nouveau driver supports ~300 device IDs (all NVIDIA GPUs) */\n/* Intel i915 driver supports ~150 device IDs (all Intel GPUs) */\n\n/* TODO: Create PCI device table */\n/* PATTERN: Define which devices your driver supports */\n/* static const struct pci_device_id gpu_pci_table[] = { */\n/*     { PCI_DEVICE(GPU_VENDOR_ID, GPU_DEVICE_ID) }, */\n/*     { 0, }  // Terminator entry (always required!) */\n/* }; */\n/* MODULE_DEVICE_TABLE(pci, gpu_pci_table); */\n/* Your implementation here */\n\n/* WHAT HAPPENS DURING DEVICE PROBE? */\n/* When kernel finds your GPU: */\n/* 1. Kernel: \"I found device 0x1234:0x1111 on PCI bus!\" */\n/* 2. Kernel: \"Does any driver support this device?\" */\n/* 3. Kernel: \"Yes! gpu_pci_detect driver says it supports 0x1234:0x1111\" */\n/* 4. Kernel: \"Calling gpu_pci_probe() function...\" */\n/* 5. Your probe function: Initialize the device, allocate resources */\n\n/* PCI PROBE FUNCTION - DRIVER ENTRY POINT */\n/* This function is called AUTOMATICALLY by the kernel when: */\n/* - System boots and finds your GPU */\n/* - You load your driver module with 'insmod' */\n/* - GPU is hot-plugged (rare for desktop GPUs, common for external GPUs) */\n\n/* TODO: Implement probe function */\n/* WHAT YOUR PROBE FUNCTION SHOULD DO (simplified for learning): */\n/* 1. Print that probe was called (you've been chosen!) */\n/* 2. Print device location (which PCI slot/address) */\n/* 3. Print vendor ID and device ID (confirm it's the right device) */\n/* 4. Print device name (helpful for users to see what was detected) */\n/* 5. Enable the PCI device (tell hardware we want to use it) */\n/* 6. Print success message */\n/* */\n/* PARAMETERS EXPLAINED: */\n/* - struct pci_dev *pdev: Pointer to PCI device structure (contains all device info) */\n/* - const struct pci_device_id *id: Which entry from gpu_pci_table matched */\n/* */\n/* RETURN VALUE: */\n/* - Return 0 on success (device initialized correctly) */\n/* - Return negative error code on failure (like -ENOMEM for out of memory) */\n/* */\n/* DEVICE STRUCTURE FIELDS YOU'LL USE: */\n/* - pdev->bus->number: Which PCI bus this device is on (0, 1, 2...) */\n/* - pdev->devfn: Device and function number combined */\n/*   - PCI_SLOT(pdev->devfn): Extract device number (0-31) */\n/*   - PCI_FUNC(pdev->devfn): Extract function number (0-7) */\n/* - pdev->vendor: Vendor ID (should be 0x1234) */\n/* - pdev->device: Device ID (should be 0x1111) */\n/* */\n/* REAL-WORLD EXAMPLE FROM AMD AMDGPU DRIVER: */\n/* static int amdgpu_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent) { */\n/*     printk(\"amdgpu: Probing device %04x:%04x\", pdev->vendor, pdev->device); */\n/*     ret = pci_enable_device(pdev);  // Enable the device */\n/*     // ... lots more initialization code ... */\n/*     return 0; */\n/* } */\n/* */\n/* WHAT pci_enable_device() DOES: */\n/* - Turns on power to the device */\n/* - Enables device to access PCI bus */\n/* - Enables device to generate interrupts */\n/* - Prepares device for memory-mapped I/O */\n/* Without this, the device is present but inactive! */\nstatic int gpu_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)\n{\n    int ret;\n    \n    /* TODO: Step 1 - Print probe message */\n    /* HINT: printk(KERN_INFO \"GPU Driver: Probing device...\\n\"); */\n    \n    /* TODO: Step 2 - Print PCI location */\n    /* HINT: printk(KERN_INFO \"GPU Driver: Found at %04x:%02x:%02x.%d\\n\", */\n    /*              pci_domain_nr(pdev->bus), pdev->bus->number, */\n    /*              PCI_SLOT(pdev->devfn), PCI_FUNC(pdev->devfn)); */\n    /* */\n    /* EXPLANATION OF PCI ADDRESS FORMAT: %04x:%02x:%02x.%d */\n    /* - %04x = Domain (usually 0000, used in multi-domain systems) */\n    /* - %02x = Bus number (0-255) */\n    /* - %02x = Device/Slot number (0-31) */\n    /* - %d  = Function number (0-7) */\n    /* Example: 0000:00:05.0 means domain 0, bus 0, slot 5, function 0 */\n    \n    /* TODO: Step 3 - Print vendor and device ID */\n    /* HINT: printk(KERN_INFO \"GPU Driver: Device %04x:%04x\\n\", */\n    /*              pdev->vendor, pdev->device); */\n    \n    /* TODO: Step 4 - Enable the PCI device */\n    /* HINT: ret = pci_enable_device(pdev); */\n    /*       if (ret) { */\n    /*           printk(KERN_ERR \"GPU Driver: Failed to enable device\\n\"); */\n    /*           return ret; */\n    /*       } */\n    \n    /* TODO: Step 5 - Print success message */\n    /* HINT: printk(KERN_INFO \"GPU Driver: Device initialized successfully\\n\"); */\n    \n    /* Your implementation here */\n    return 0;\n}\n\n/* PCI REMOVE FUNCTION - CLEANUP */\n/* This function is called when: */\n/* - You unload your driver module with 'rmmod' */\n/* - System shuts down */\n/* - Device is hot-unplugged */\n/* */\n/* IMPORTANT: Always cleanup resources in remove! */\n/* - Disable interrupts */\n/* - Free allocated memory */\n/* - Release PCI regions */\n/* - Disable device */\n\n/* TODO: Implement remove function */\n/* WHAT YOUR REMOVE FUNCTION SHOULD DO: */\n/* 1. Print that device is being removed */\n/* 2. Disable the PCI device (reverse of pci_enable_device) */\n/* 3. Print cleanup complete message */\n/* */\n/* REAL-WORLD EXAMPLE FROM AMD AMDGPU: */\n/* static void amdgpu_pci_remove(struct pci_dev *pdev) { */\n/*     printk(\"amdgpu: Removing device\"); */\n/*     amdgpu_driver_unload_kms(pdev);  // Unload driver */\n/*     pci_disable_device(pdev);        // Disable device */\n/* } */\nstatic void gpu_pci_remove(struct pci_dev *pdev)\n{\n    /* TODO: Step 1 - Print removal message */\n    /* HINT: printk(KERN_INFO \"GPU Driver: Removing device\\n\"); */\n    \n    /* TODO: Step 2 - Disable PCI device */\n    /* HINT: pci_disable_device(pdev); */\n    \n    /* TODO: Step 3 - Print cleanup message */\n    /* HINT: printk(KERN_INFO \"GPU Driver: Device cleanup complete\\n\"); */\n    \n    /* Your implementation here */\n}\n\n/* PCI DRIVER STRUCTURE - GLUES EVERYTHING TOGETHER */\n/* This structure tells the kernel: */\n/* - What your driver is called */\n/* - Which devices it supports (id_table) */\n/* - What functions to call for probe/remove */\n/* */\n/* The kernel uses this structure to manage your driver */\n\n/* TODO: Create PCI driver structure */\n/* PATTERN: Define your driver's properties */\n/* static struct pci_driver gpu_pci_driver = { */\n/*     .name     = \"simple_gpu_driver\", */\n/*     .id_table = gpu_pci_table, */\n/*     .probe    = gpu_pci_probe, */\n/*     .remove   = gpu_pci_remove, */\n/* }; */\n/* Your implementation here */\n\n/* MODULE REGISTRATION MACRO */\n/* This macro automatically generates module_init() and module_exit() */\n/* functions that register/unregister your PCI driver */\n/* */\n/* module_pci_driver(gpu_pci_driver) expands to: */\n/* static int __init gpu_init(void) { return pci_register_driver(&gpu_pci_driver); } */\n/* static void __exit gpu_exit(void) { pci_unregister_driver(&gpu_pci_driver); } */\n/* module_init(gpu_init); */\n/* module_exit(gpu_exit); */\n\n/* TODO: Register PCI driver using convenience macro */\n/* HINT: module_pci_driver(gpu_pci_driver); */\n/* Your implementation here */\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"KernelQ Student\");\nMODULE_DESCRIPTION(\"Simple PCI GPU Detection Driver - Learning GPU Driver Basics\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# PCI GPU detection driver Makefile\nobj-m += pci_gpu_detect.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "PCI device enumeration",
+    "PCI vendor and device IDs",
+    "PCI driver structure",
+    "Device probe and remove functions",
+    "GPU driver initialization basics",
+    "pci_enable_device() usage"
+  ],
+  "skills": [
+    "Understanding PCI bus architecture",
+    "Creating PCI device ID tables",
+    "Implementing probe and remove functions",
+    "Using pci_dev structure members",
+    "Basic GPU driver registration",
+    "PCI address interpretation"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "gpu_pci_probe",
+        "gpu_pci_remove"
+      ],
+      "macro_declarations": [
+        {
+          "name": "GPU_VENDOR_ID",
+          "type": "constant",
+          "value": "0x1234",
+          "description": "PCI vendor ID for QEMU (bochs-display GPU)"
+        },
+        {
+          "name": "GPU_DEVICE_ID",
+          "type": "constant",
+          "value": "0x1111",
+          "description": "PCI device ID for bochs VGA device"
+        }
+      ],
+      "variables": [
+        {
+          "name": "gpu_pci_table",
+          "type": "const struct pci_device_id",
+          "value": "[{ PCI_DEVICE(GPU_VENDOR_ID, GPU_DEVICE_ID) }, { 0, }]",
+          "storageClass": "static"
+        },
+        {
+          "name": "gpu_pci_driver",
+          "type": "struct pci_driver",
+          "value": "{.name = \"simple_gpu_driver\", .id_table = gpu_pci_table, .probe = gpu_pci_probe, .remove = gpu_pci_remove}",
+          "storageClass": "static"
+        }
+      ],
+      "outputMessages": [
+        "GPU Driver: Probing device",
+        "GPU Driver: Found at 0000:00:05.0",
+        "GPU Driver: Device 1234:1111",
+        "GPU Driver: Device initialized successfully",
+        "GPU Driver: Removing device",
+        "GPU Driver: Device cleanup complete"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/pci.h"
+      ],
+      "mustContain": [
+        "static const struct pci_device_id gpu_pci_table[]",
+        "{ PCI_DEVICE(GPU_VENDOR_ID, GPU_DEVICE_ID) }",
+        "{ 0, }",
+        "MODULE_DEVICE_TABLE(pci, gpu_pci_table)",
+        "static struct pci_driver gpu_pci_driver",
+        ".name = \"simple_gpu_driver\"",
+        ".id_table = gpu_pci_table",
+        ".probe = gpu_pci_probe",
+        ".remove = gpu_pci_remove",
+        "module_pci_driver(gpu_pci_driver)",
+        "pci_enable_device(pdev)",
+        "pci_disable_device(pdev)",
+        "pci_domain_nr(pdev->bus)",
+        "PCI_SLOT(pdev->devfn)",
+        "PCI_FUNC(pdev->devfn)"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "macro_definitions_header",
+        "name": "Macro Definitions in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "#define GPU_VENDOR_ID 0x1234",
+          "#define GPU_DEVICE_ID 0x1111"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "header_includes",
+        "name": "Required Header File Includes",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "#include <linux/module.h>",
+          "#include <linux/kernel.h>",
+          "#include <linux/init.h>",
+          "#include <linux/pci.h>"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "pci_device_table_structure",
+        "name": "PCI Device ID Table Structure",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "static const struct pci_device_id gpu_pci_table",
+          "PCI_DEVICE",
+          "GPU_VENDOR_ID",
+          "GPU_DEVICE_ID",
+          "{ 0, }",
+          "MODULE_DEVICE_TABLE",
+          "pci",
+          "gpu_pci_table"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "pci_driver_structure",
+        "name": "PCI Driver Structure Definition",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "static struct pci_driver gpu_pci_driver",
+          ".name",
+          "simple_gpu_driver",
+          ".id_table",
+          "gpu_pci_table",
+          ".probe",
+          "gpu_pci_probe",
+          ".remove",
+          "gpu_pci_remove",
+          "module_pci_driver",
+          "gpu_pci_driver"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "probe_function_implementation",
+        "name": "Probe Function Implementation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "static int gpu_pci_probe",
+          "struct pci_dev *pdev",
+          "const struct pci_device_id *id",
+          "pci_enable_device",
+          "pci_domain_nr",
+          "pdev->bus",
+          "PCI_SLOT",
+          "PCI_FUNC",
+          "pdev->vendor",
+          "pdev->device",
+          "GPU Driver: Probing device",
+          "GPU Driver: Found at",
+          "GPU Driver: Device",
+          "GPU Driver: Device initialized successfully"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "remove_function_implementation",
+        "name": "Remove Function Implementation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "static void gpu_pci_remove",
+          "struct pci_dev *pdev",
+          "pci_disable_device",
+          "GPU Driver: Removing device",
+          "GPU Driver: Device cleanup complete"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "pci_api_calls",
+        "name": "Required PCI API Function Calls",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "ret = pci_enable_device(pdev)",
+          "pci_disable_device(pdev)",
+          "pdev->vendor",
+          "pdev->device",
+          "pdev->bus->number",
+          "pdev->devfn"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "static int gpu_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)",
+          "static void gpu_pci_remove(struct pci_dev *pdev)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Messages with Function Attribution",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {
+            "pattern": "GPU Driver: Probing device",
+            "exact": true,
+            "linkedFunction": "static int gpu_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)"
+          },
+          {
+            "pattern": "GPU Driver: Found at 0000:00:05.0",
+            "exact": true,
+            "linkedFunction": "static int gpu_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)"
+          },
+          {
+            "pattern": "GPU Driver: Device 1234:1111",
+            "exact": true,
+            "linkedFunction": "static int gpu_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)"
+          },
+          {
+            "pattern": "GPU Driver: Device initialized successfully",
+            "exact": true,
+            "linkedFunction": "static int gpu_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)"
+          },
+          {
+            "pattern": "GPU Driver: Removing device",
+            "exact": true,
+            "linkedFunction": "static void gpu_pci_remove(struct pci_dev *pdev)"
+          },
+          {
+            "pattern": "GPU Driver: Device cleanup complete",
+            "exact": true,
+            "linkedFunction": "static void gpu_pci_remove(struct pci_dev *pdev)"
+          }
+        ]
+      },
+      {
+        "id": "pci_gpu_detection_test",
+        "name": "PCI GPU Device Detection and Initialization",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "qemuArgs": [
+            "-device",
+            "bochs-display,addr=05.0",
+            "-vga",
+            "none"
+          ],
+          "userspaceApps": [
+            {
+              "name": "pci_gpu_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n\\nint main() {\\n    printf(\\\"=== PCI GPU Detection Test ===\\\\n\\\");\\n    \\n    printf(\\\"Phase 1: Checking PCI device presence\\\\n\\\");\\n    system(\\\"ls /sys/bus/pci/devices/0000:00:05.0 > /dev/null 2>&1 && echo 'PASS: PCI device found' || echo 'FAIL: PCI device not found'\\\");\\n    \\n    printf(\\\"Phase 2: Loading GPU driver module\\\\n\\\");\\n    system(\\\"insmod /lib/modules/pci_gpu_detect.ko\\\");\\n    system(\\\"sleep 1\\\");\\n    system(\\\"lsmod | grep pci_gpu_detect && echo 'PASS: Module loaded' || echo 'FAIL: Module not loaded'\\\");\\n    \\n    printf(\\\"Phase 3: Checking driver binding\\\\n\\\");\\n    system(\\\"if [ -e /sys/bus/pci/devices/0000:00:05.0/driver ]; then echo 'PASS: Driver bound to device'; else echo 'FAIL: Driver not bound'; fi\\\");\\n    \\n    printf(\\\"SUCCESS: PCI GPU driver test completed\\\\n\\\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting PCI GPU detection validation'"
+          ],
+          "testCommands": [
+            "echo '=== Phase 1: TCC Header Validation ==='",
+            "mkdir -p /tmp/linux",
+            "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
+            "echo '#define KERN_ERR' >> /tmp/linux/kernel.h",
+            "echo 'int printk(const char *fmt, ...);' >> /tmp/linux/kernel.h",
+            "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
+            "echo '#define MODULE_AUTHOR(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_DESCRIPTION(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_VERSION(x)' >> /tmp/linux/module.h",
+            "echo '#define module_init(x)' >> /tmp/linux/module.h",
+            "echo '#define module_exit(x)' >> /tmp/linux/module.h",
+            "echo '#define __init' > /tmp/linux/init.h",
+            "echo '#define __exit' >> /tmp/linux/init.h",
+            "echo 'struct pci_dev { unsigned short vendor; unsigned short device; struct pci_bus *bus; unsigned int devfn; };' > /tmp/linux/pci.h",
+            "echo 'struct pci_device_id { unsigned int vendor; unsigned int device; };' >> /tmp/linux/pci.h",
+            "echo 'struct pci_bus { int number; };' >> /tmp/linux/pci.h",
+            "echo '#define PCI_DEVICE(vend,dev) .vendor = (vend), .device = (dev)' >> /tmp/linux/pci.h",
+            "echo 'int pci_enable_device(struct pci_dev *dev);' >> /tmp/linux/pci.h",
+            "echo 'void pci_disable_device(struct pci_dev *dev);' >> /tmp/linux/pci.h",
+            "echo 'int pci_domain_nr(struct pci_bus *bus);' >> /tmp/linux/pci.h",
+            "echo '#define PCI_SLOT(devfn) (((devfn) >> 3) & 0x1f)' >> /tmp/linux/pci.h",
+            "echo '#define PCI_FUNC(devfn) ((devfn) & 0x07)' >> /tmp/linux/pci.h",
+            "echo '#include \"/lib/modules/pci_gpu_detect.h\"' > /tmp/test.c",
+            "echo 'int main() { unsigned short vendor = GPU_VENDOR_ID; unsigned short device = GPU_DEVICE_ID; return (vendor == 0x1234 && device == 0x1111) ? 0 : 1; }' >> /tmp/test.c",
+            "/usr/bin/tcc -I/tmp -Wimplicit-function-declaration -Werror -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
+            "TCC_EXIT_CODE=$?",
+            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Header file validation failed'; cat /tmp/tcc_error.log; else echo 'PASS: Header file includes and macros validated'; fi",
+            "",
+            "echo '=== Phase 2: PCI Device Enumeration Check ==='",
+            "ls /sys/bus/pci/devices/0000:00:05.0 && echo 'PASS: GPU device present on PCI bus' || echo 'FAIL: GPU device not found'",
+            "",
+            "echo '=== Phase 3: Vendor and Device ID Verification ==='",
+            "VENDOR=$(cat /sys/bus/pci/devices/0000:00:05.0/vendor)",
+            "DEVICE=$(cat /sys/bus/pci/devices/0000:00:05.0/device)",
+            "echo \"Detected Vendor: $VENDOR, Device: $DEVICE\"",
+            "if [ \"$VENDOR\" = \"0x1234\" ] && [ \"$DEVICE\" = \"0x1111\" ]; then echo 'PASS: Correct GPU vendor/device IDs'; else echo 'FAIL: Wrong vendor/device IDs'; fi",
+            "",
+            "echo '=== Phase 4: Module Loading and Probe Test ==='",
+            "/bin/pci_gpu_tester",
+            "sleep 1",
+            "",
+            "echo '=== Phase 5: Driver Output Validation ==='",
+            "dmesg | grep 'GPU Driver: Probing device' && echo 'PASS: Probe function called' || echo 'FAIL: Probe not called'",
+            "dmesg | grep 'GPU Driver: Found at 0000:00:05.0' && echo 'PASS: PCI address detection working' || echo 'FAIL: PCI address not detected'",
+            "dmesg | grep 'GPU Driver: Device 1234:1111' && echo 'PASS: Vendor/Device ID detection working' || echo 'FAIL: IDs not detected'",
+            "dmesg | grep 'GPU Driver: Device initialized successfully' && echo 'PASS: PCI device enabled successfully' || echo 'FAIL: Device init failed'",
+            "",
+            "echo '=== All GPU detection tests completed ==='",
+            "echo 'PASS: GPU PCI detection validation successful'"
+          ],
+          "expected": {
+            "dmesg": [
+              "GPU Driver: Probing device",
+              "GPU Driver: Found at 0000:00:05.0",
+              "GPU Driver: Device 1234:1111",
+              "GPU Driver: Device initialized successfully"
+            ],
+            "stdout": [
+              "PASS: Header file includes and macros validated",
+              "PASS: GPU device present on PCI bus",
+              "PASS: Correct GPU vendor/device IDs",
+              "PASS: PCI device found",
+              "PASS: Module loaded",
+              "PASS: Driver bound to device",
+              "SUCCESS: PCI GPU driver test completed",
+              "PASS: Probe function called",
+              "PASS: PCI address detection working",
+              "PASS: Vendor/Device ID detection working",
+              "PASS: PCI device enabled successfully",
+              "PASS: GPU PCI detection validation successful"
+            ]
+          },
+          "timeout": 15
+        }
+      }
+    ]
+  }
+}

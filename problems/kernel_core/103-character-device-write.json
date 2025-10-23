@@ -1,0 +1,380 @@
+{
+  "id": 103,
+  "title": "Character Device with Write - Bidirectional Communication",
+  "phase": "kernel_core",
+  "difficulty": 5,
+  "xp": 35,
+  "description": "Expand your character device skills by adding write operations. Create a device that stores a message written by the user and returns it when read. This teaches bidirectional kernel-userspace communication, buffer management, and state persistence - essential skills for real device drivers including GPUs. Learn kmalloc/kfree, copy_from_user, and proper resource cleanup.",
+  "mainFile": "message_dev.c",
+  "files": [
+    {
+      "name": "message_dev.h",
+      "content": "#ifndef MESSAGE_DEV_H\n#define MESSAGE_DEV_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/fs.h>\n#include <linux/uaccess.h>\n#include <linux/slab.h>\n\n/* Device configuration */\n#define DEVICE_NAME \"message\"\n#define MAJOR_NUM 241\n#define MAX_MESSAGE_SIZE 1024\n\n/* ========================================================================== */\n/* PATTERN SCAFFOLDING: Bidirectional Character Device */\n/* ========================================================================== */\n/* This problem teaches you to create devices that BOTH read AND write!\n *\n * EVOLUTION FROM PROBLEM 102:\n * Problem 102: Read-only counter device\n *   - Only device_read() implemented\n *   - Data flows: kernel → userspace\n *   - Simple, unidirectional\n *\n * Problem 103: Read/Write message device\n *   - Both device_read() AND device_write() implemented\n *   - Data flows: userspace ↔ kernel (bidirectional)\n *   - Stateful: stores data between operations\n *   - Requires dynamic memory management\n *\n * REAL-WORLD ANALOGY:\n * Problem 102 = Thermometer (read-only sensor)\n * Problem 103 = Notepad (read and write messages)\n */\n\n/* ========================================================================== */\n/* MEMORY MANAGEMENT IN KERNEL SPACE */\n/* ========================================================================== */\n/* CRITICAL DIFFERENCE: Kernel vs Userspace Memory\n *\n * USERSPACE (normal programs):\n *   char *buffer = kmalloc(1024);  // Userspace allocation\n *   kfree(buffer);                  // Userspace deallocation\n *\n * KERNEL SPACE (device drivers):\n *   char *buffer = kmalloc(1024, GFP_KERNEL);  // Kernel allocation\n *   kfree(buffer);                              // Kernel deallocation\n *\n * WHY DIFFERENT?\n * - Kernel runs in protected memory space\n * - Cannot use userspace malloc/free\n * - Must use kernel-specific allocators (kmalloc/kfree)\n * - Kernel memory is PHYSICAL memory (no virtual memory tricks)\n *\n * GFP_KERNEL FLAG EXPLAINED:\n * GFP = Get Free Pages\n * GFP_KERNEL = Standard allocation, can sleep (safe for most uses)\n * Other flags:\n *   - GFP_ATOMIC: Cannot sleep (use in interrupt handlers)\n *   - GFP_USER: Userspace allocation\n *   - GFP_DMA: DMA-capable memory\n */\n\n/* ========================================================================== */\n/* COPY_FROM_USER vs COPY_TO_USER */\n/* ========================================================================== */\n/* CRITICAL SECURITY PATTERN: Never trust userspace pointers!\n *\n * WHY WE NEED THESE FUNCTIONS:\n * - Kernel cannot directly access userspace memory (segmentation fault!)\n * - Userspace pointers may be invalid, malicious, or paged out\n * - Must use safe copy functions with validation\n *\n * COPY_TO_USER (kernel → userspace) - Used in READ:\n *   int copy_to_user(void __user *to, const void *from, unsigned long n)\n *   - to:   userspace destination pointer\n *   - from: kernel source pointer\n *   - n:    number of bytes to copy\n *   - Returns: 0 on success, bytes NOT copied on failure\n *\n *   Example in device_read():\n *   if (copy_to_user(buffer, message_buffer, message_size)) {\n *       return -EFAULT;  // Bad userspace address\n *   }\n *\n * COPY_FROM_USER (userspace → kernel) - Used in WRITE:\n *   unsigned long copy_from_user(void *to, const void __user *from, unsigned long n)\n *   - to:   kernel destination pointer\n *   - from: userspace source pointer\n *   - n:    number of bytes to copy\n *   - Returns: 0 on success, bytes NOT copied on failure\n *\n *   Example in device_write():\n *   if (copy_from_user(message_buffer, buffer, len)) {\n *       kfree(message_buffer);  // Clean up on error!\n *       return -EFAULT;\n *   }\n */\n\n/* ========================================================================== */\n/* DEVICE OPERATIONS: READ vs WRITE */\n/* ========================================================================== */\n/* UNDERSTANDING THE FLOW:\n *\n * USER WRITES TO DEVICE (echo \"Hello\" > /dev/message):\n * 1. Shell calls write() system call\n * 2. Kernel routes to device_write()\n * 3. device_write() uses copy_from_user() to get data\n * 4. Stores data in kernel buffer (message_buffer)\n * 5. Returns number of bytes written\n *\n * USER READS FROM DEVICE (cat /dev/message):\n * 1. Shell calls read() system call\n * 2. Kernel routes to device_read()\n * 3. device_read() uses copy_to_user() to send data\n * 4. Returns number of bytes read\n *\n * VISUAL FLOW:\n * echo \"Hello\" > /dev/message     cat /dev/message\n *        ↓                              ↑\n *   write() syscall                read() syscall\n *        ↓                              ↑\n *   device_write()                 device_read()\n *        ↓                              ↑\n *   copy_from_user()              copy_to_user()\n *        ↓                              ↑\n *   [message_buffer in kernel memory]\n */\n\n/* ========================================================================== */\n/* NOTE: Function Declarations */\n/* ========================================================================== */\n/* For character device drivers, the device operation functions (open, release,\n * read, write) are declared as 'static' in the .c file and are NOT declared\n * in the header file. They are internal to the driver module and only\n * referenced through the file_operations structure.\n *\n * This is standard practice in Linux kernel drivers:\n * - device_open(), device_release(), device_read(), device_write() -> static in .c\n * - Only public API functions (if any) go in headers\n * - module_init/module_exit are also internal (static __init/__exit)\n */\n\n#endif /* MESSAGE_DEV_H */\n",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "message_dev.c",
+      "content": "#include \"message_dev.h\"\n\n/* Global state variables */\nstatic char *message_buffer = NULL;  /* Dynamically allocated message storage */\nstatic size_t message_size = 0;      /* Current message length */\nstatic int device_open_count = 0;    /* Number of times device is open */\n\n/* ========================================================================== */\n/* PATTERN SCAFFOLDING: Device Operations Implementation */\n/* ========================================================================== */\n\n/* TODO: Implement device_open function */\n/* REQUIREMENTS:\n * - Function signature: static int device_open(struct inode *inode, struct file *file)\n * - Increment device_open_count\n * - Print: \"Message device opened\"\n * - Return 0 for success\n *\n * This is IDENTICAL to Problem 102 - you've done this before!\n */\nstatic int device_open(struct inode *inode, struct file *file)\n{\n    /* TODO: Increment open count */\n    /* TODO: Print open message using printk(KERN_INFO, ...) */\n    /* TODO: Return 0 */\n    return 0;\n}\n\n/* TODO: Implement device_release function */\n/* REQUIREMENTS:\n * - Function signature: static int device_release(struct inode *inode, struct file *file)\n * - Decrement device_open_count\n * - Print: \"Message device closed\"\n * - Return 0 for success\n *\n * Also IDENTICAL to Problem 102!\n */\nstatic int device_release(struct inode *inode, struct file *file)\n{\n    /* TODO: Decrement open count */\n    /* TODO: Print close message using printk(KERN_INFO, ...) */\n    /* TODO: Return 0 */\n    return 0;\n}\n\n/* ========================================================================== */\n/* DEVICE_READ: Kernel → Userspace Data Transfer */\n/* ========================================================================== */\n/* TODO: Implement device_read function */\n/* REQUIREMENTS:\n * - Function signature: static ssize_t device_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)\n * - Check if message exists: if (!message_buffer || message_size == 0) return 0;\n * - Check if already read (EOF): if (*offset > 0) return 0;\n * - Determine bytes to read: min(len, message_size)\n * - Copy to userspace: if (copy_to_user(buffer, message_buffer, bytes_to_read)) return -EFAULT;\n * - Update offset: *offset += bytes_to_read;\n * - Print: \"Message read: X bytes\"\n * - Return bytes_to_read\n *\n * ALGORITHM:\n * 1. Validate message exists\n * 2. Check EOF condition (offset)\n * 3. Calculate bytes to copy\n * 4. Copy safely to userspace\n * 5. Update offset\n * 6. Return bytes copied\n */\nstatic ssize_t device_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)\n{\n    /* TODO: Check if message exists */\n    /* if (!message_buffer || message_size == 0) return 0; */\n    \n    /* TODO: Check if already read (EOF) */\n    /* if (*offset > 0) return 0; */\n    \n    /* TODO: Calculate bytes to read */\n    /* size_t bytes_to_read = (len < message_size) ? len : message_size; */\n    \n    /* TODO: Copy to userspace with error checking */\n    /* if (copy_to_user(buffer, message_buffer, bytes_to_read)) return -EFAULT; */\n    \n    /* TODO: Update offset */\n    /* *offset += bytes_to_read; */\n    \n    /* TODO: Print read message */\n    /* printk(KERN_INFO \"Message read: %zu bytes\\n\", bytes_to_read); */\n    \n    /* TODO: Return bytes read */\n    return 0;\n}\n\n/* ========================================================================== */\n/* DEVICE_WRITE: Userspace → Kernel Data Transfer (NEW!) */\n/* ========================================================================== */\n/* TODO: Implement device_write function */\n/* REQUIREMENTS:\n * - Function signature: static ssize_t device_write(struct file *file, const char __user *buffer, size_t len, loff_t *offset)\n * - Validate length: if (len > MAX_MESSAGE_SIZE) len = MAX_MESSAGE_SIZE;\n * - Free old buffer: if (message_buffer) kfree(message_buffer);\n * - Allocate new buffer: message_buffer = kmalloc(len, GFP_KERNEL);\n * - Check allocation: if (!message_buffer) return -ENOMEM;\n * - Copy from userspace: if (copy_from_user(message_buffer, buffer, len)) { kfree(message_buffer); return -EFAULT; }\n * - Store size: message_size = len;\n * - Print: \"Message written: X bytes\"\n * - Return len\n *\n * ALGORITHM:\n * 1. Validate input length\n * 2. Free old message buffer (if exists)\n * 3. Allocate new buffer with kmalloc\n * 4. Check allocation success\n * 5. Copy data from userspace\n * 6. Store message size\n * 7. Return bytes written\n *\n * CRITICAL MEMORY MANAGEMENT:\n * - Always free old buffer before allocating new one (prevent memory leak)\n * - Check kmalloc return value (allocation can fail!)\n * - On copy_from_user error, free the buffer before returning\n * - This prevents memory leaks on error conditions\n */\nstatic ssize_t device_write(struct file *file, const char __user *buffer, size_t len, loff_t *offset)\n{\n    /* TODO: Validate and cap length */\n    /* if (len > MAX_MESSAGE_SIZE) len = MAX_MESSAGE_SIZE; */\n    \n    /* TODO: Free old buffer if exists */\n    /* if (message_buffer) kfree(message_buffer); */\n    \n    /* TODO: Allocate new buffer */\n    /* message_buffer = kmalloc(len, GFP_KERNEL); */\n    /* if (!message_buffer) return -ENOMEM; */\n    \n    /* TODO: Copy from userspace with error checking */\n    /* if (copy_from_user(message_buffer, buffer, len)) { */\n    /*     kfree(message_buffer); */\n    /*     message_buffer = NULL; */\n    /*     return -EFAULT; */\n    /* } */\n    \n    /* TODO: Store message size */\n    /* message_size = len; */\n    \n    /* TODO: Print write message */\n    /* printk(KERN_INFO \"Message written: %zu bytes\\n\", len); */\n    \n    /* TODO: Return bytes written */\n    return 0;\n}\n\n/* ========================================================================== */\n/* FILE OPERATIONS STRUCTURE */\n/* ========================================================================== */\n/* TODO: Define file_operations structure */\n/* REQUIREMENTS:\n * - Include .owner = THIS_MODULE\n * - Include .read = device_read\n * - Include .write = device_write  (NEW!)\n * - Include .open = device_open\n * - Include .release = device_release\n *\n * This tells the kernel which functions to call for each operation.\n */\nstatic struct file_operations fops = {\n    /* TODO: Set .owner = THIS_MODULE */\n    /* TODO: Set .read = device_read */\n    /* TODO: Set .write = device_write */\n    /* TODO: Set .open = device_open */\n    /* TODO: Set .release = device_release */\n};\n\n/* ========================================================================== */\n/* MODULE INITIALIZATION */\n/* ========================================================================== */\n/* TODO: Implement message_init function */\n/* REQUIREMENTS:\n * - Function signature: static int __init message_init(void)\n * - Register character device: register_chrdev(MAJOR_NUM, DEVICE_NAME, &fops)\n * - Check registration result (< 0 means error)\n * - Initialize message_buffer to NULL\n * - Print success message with major number\n * - Print device creation instructions\n * - Return 0 on success, negative error code on failure\n *\n * Same pattern as Problem 102!\n */\nstatic int __init message_init(void)\n{\n    int result;\n    \n    /* TODO: Register character device */\n    /* result = register_chrdev(MAJOR_NUM, DEVICE_NAME, &fops); */\n    /* if (result < 0) { */\n    /*     printk(KERN_ALERT \"Message device registration failed: %d\\n\", result); */\n    /*     return result; */\n    /* } */\n    \n    /* TODO: Initialize message buffer */\n    /* message_buffer = NULL; */\n    /* message_size = 0; */\n    \n    /* TODO: Print success messages */\n    /* printk(KERN_INFO \"Message device registered with major number %d\\n\", MAJOR_NUM); */\n    /* printk(KERN_INFO \"Create device with: mknod /dev/%s c %d 0\\n\", DEVICE_NAME, MAJOR_NUM); */\n    \n    return 0;\n}\n\n/* ========================================================================== */\n/* MODULE CLEANUP */\n/* ========================================================================== */\n/* TODO: Implement message_exit function */\n/* REQUIREMENTS:\n * - Function signature: static void __exit message_exit(void)\n * - Free message buffer if allocated: if (message_buffer) kfree(message_buffer);\n * - Unregister device: unregister_chrdev(MAJOR_NUM, DEVICE_NAME)\n * - Print cleanup message\n *\n * CRITICAL: Must free allocated memory before unloading!\n * This prevents memory leaks in the kernel.\n */\nstatic void __exit message_exit(void)\n{\n    /* TODO: Free message buffer if allocated */\n    /* if (message_buffer) { */\n    /*     kfree(message_buffer); */\n    /*     message_buffer = NULL; */\n    /* } */\n    \n    /* TODO: Unregister device */\n    /* unregister_chrdev(MAJOR_NUM, DEVICE_NAME); */\n    \n    /* TODO: Print cleanup message */\n    /* printk(KERN_INFO \"Message device unregistered\\n\"); */\n}\n\n/* Register init and exit functions */\nmodule_init(message_init);\nmodule_exit(message_exit);\n\n/* Module metadata */\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Character device with read/write operations\");\nMODULE_VERSION(\"1.0\");\n",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Message device module Makefile\nobj-m += message_dev.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help\n",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "Bidirectional device communication",
+    "Write operation implementation",
+    "Kernel memory allocation (kmalloc/kfree)",
+    "GFP_KERNEL allocation flags",
+    "copy_from_user() - userspace to kernel",
+    "copy_to_user() - kernel to userspace",
+    "Buffer management and state persistence",
+    "Resource cleanup and memory leak prevention",
+    "file_operations structure with read and write",
+    "Character device driver patterns"
+  ],
+  "skills": [
+    "Implementing device_write() operation",
+    "Using kmalloc() for dynamic kernel memory allocation",
+    "Using kfree() for proper memory deallocation",
+    "Using copy_from_user() safely",
+    "Managing device state across operations",
+    "Preventing memory leaks in kernel code",
+    "Error handling in memory allocation",
+    "Building stateful character devices",
+    "Understanding bidirectional data flow",
+    "Professional kernel memory management"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "message_init",
+        "message_exit",
+        "device_open",
+        "device_release",
+        "device_read",
+        "device_write"
+      ],
+      "macro_declarations": [
+        {
+          "name": "DEVICE_NAME",
+          "type": "constant",
+          "value": "\"message\"",
+          "description": "Character device name"
+        },
+        {
+          "name": "MAJOR_NUM",
+          "type": "constant",
+          "value": "241",
+          "description": "Device major number"
+        },
+        {
+          "name": "MAX_MESSAGE_SIZE",
+          "type": "constant",
+          "value": "1024",
+          "description": "Maximum message buffer size"
+        }
+      ],
+      "variables": [
+        {
+          "name": "message_buffer",
+          "type": "char *",
+          "value": "NULL",
+          "storageClass": "static"
+        },
+        {
+          "name": "message_size",
+          "type": "size_t",
+          "value": "0",
+          "storageClass": "static"
+        },
+        {
+          "name": "device_open_count",
+          "type": "int",
+          "value": "0",
+          "storageClass": "static"
+        },
+        {
+          "name": "fops",
+          "type": "struct file_operations",
+          "value": "{.owner = THIS_MODULE, .read = device_read, .write = device_write, .open = device_open, .release = device_release}",
+          "storageClass": "static"
+        }
+      ],
+      "outputMessages": [
+        "Message device registered with major number 241",
+        "Create device with: mknod /dev/message c 241 0",
+        "Message device opened",
+        "Message written: 13 bytes",
+        "Message read: 13 bytes",
+        "Message device closed",
+        "Message device unregistered"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/fs.h",
+        "linux/uaccess.h",
+        "linux/slab.h"
+      ],
+      "mustContain": [
+        "register_chrdev(MAJOR_NUM, DEVICE_NAME, &fops)",
+        "unregister_chrdev(MAJOR_NUM, DEVICE_NAME)",
+        "copy_to_user",
+        "copy_from_user",
+        "kmalloc",
+        "kfree",
+        "GFP_KERNEL",
+        ".write = device_write",
+        "if (message_buffer)",
+        "message_size = len"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "macro_definitions",
+        "name": "Macro Definitions",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "#define DEVICE_NAME \"message\"",
+          "#define MAJOR_NUM 241",
+          "#define MAX_MESSAGE_SIZE 1024"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Implementations in Source",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "static int device_open(struct inode *inode, struct file *file)",
+          "static int device_release(struct inode *inode, struct file *file)",
+          "static ssize_t device_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)",
+          "static ssize_t device_write(struct file *file, const char __user *buffer, size_t len, loff_t *offset)",
+          "static int __init message_init(void)",
+          "static void __exit message_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "file_operations_structure",
+        "name": "File Operations Structure with Write",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "static struct file_operations fops",
+          ".owner = THIS_MODULE",
+          ".read = device_read",
+          ".write = device_write",
+          ".open = device_open",
+          ".release = device_release"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "memory_management_api",
+        "name": "Memory Management API Usage",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "kmalloc",
+          "kfree",
+          "GFP_KERNEL",
+          "copy_from_user",
+          "copy_to_user",
+          "if (message_buffer)",
+          "message_buffer = NULL"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {
+            "pattern": "Message device registered with major number 241",
+            "exact": true,
+            "linkedFunction": "static int __init message_init(void)"
+          },
+          {
+            "pattern": "Create device with: mknod /dev/message c 241 0",
+            "exact": true,
+            "linkedFunction": "static int __init message_init(void)"
+          },
+          {
+            "pattern": "Message device opened",
+            "exact": true,
+            "linkedFunction": "static int device_open(struct inode *inode, struct file *file)"
+          },
+          {
+            "pattern": "Message written: .* bytes",
+            "exact": false,
+            "linkedFunction": "static ssize_t device_write(struct file *file, const char __user *buffer, size_t len, loff_t *offset)"
+          },
+          {
+            "pattern": "Message read: .* bytes",
+            "exact": false,
+            "linkedFunction": "static ssize_t device_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)"
+          },
+          {
+            "pattern": "Message device closed",
+            "exact": true,
+            "linkedFunction": "static int device_release(struct inode *inode, struct file *file)"
+          },
+          {
+            "pattern": "Message device unregistered",
+            "exact": true,
+            "linkedFunction": "static void __exit message_exit(void)"
+          }
+        ]
+      },
+      {
+        "id": "comprehensive_message_device_validation",
+        "name": "Comprehensive Message Device Write/Read Validation",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [],
+          "setupCommands": [
+            "echo 'Starting comprehensive message device validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: TCC Header Validation'",
+            "mkdir -p /tmp/linux",
+            "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
+            "echo '#define KERN_ALERT' >> /tmp/linux/kernel.h",
+            "echo 'int printk(const char *fmt, ...);' >> /tmp/linux/kernel.h",
+            "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
+            "echo '#define MODULE_AUTHOR(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_DESCRIPTION(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_VERSION(x)' >> /tmp/linux/module.h",
+            "echo '#define module_init(x)' >> /tmp/linux/module.h",
+            "echo '#define module_exit(x)' >> /tmp/linux/module.h",
+            "echo '#define THIS_MODULE ((void*)0)' >> /tmp/linux/module.h",
+            "echo '#define __init' > /tmp/linux/init.h",
+            "echo '#define __exit' >> /tmp/linux/init.h",
+            "echo 'typedef long long loff_t;' > /tmp/linux/types.h",
+            "echo 'typedef unsigned long size_t;' >> /tmp/linux/types.h",
+            "echo 'typedef long ssize_t;' >> /tmp/linux/types.h",
+            "echo '#define __user' >> /tmp/linux/types.h",
+            "echo '#include <linux/types.h>' > /tmp/linux/fs.h",
+            "echo 'struct inode { int i_rdev; };' >> /tmp/linux/fs.h",
+            "echo 'struct file { void *private_data; };' >> /tmp/linux/fs.h",
+            "echo 'struct file_operations { void *owner; int (*open)(struct inode*, struct file*); int (*release)(struct inode*, struct file*); ssize_t (*read)(struct file*, char*, size_t, loff_t*); ssize_t (*write)(struct file*, const char*, size_t, loff_t*); };' >> /tmp/linux/fs.h",
+            "echo 'int register_chrdev(unsigned int major, const char *name, struct file_operations *fops);' >> /tmp/linux/fs.h",
+            "echo 'void unregister_chrdev(unsigned int major, const char *name);' >> /tmp/linux/fs.h",
+            "echo 'unsigned long copy_to_user(void *to, const void *from, unsigned long n);' > /tmp/linux/uaccess.h",
+            "echo 'unsigned long copy_from_user(void *to, const void *from, unsigned long n);' >> /tmp/linux/uaccess.h",
+            "echo 'void *kmalloc(size_t size, int flags);' > /tmp/linux/slab.h",
+            "echo 'void kfree(const void *ptr);' >> /tmp/linux/slab.h",
+            "echo '#define GFP_KERNEL 0' >> /tmp/linux/slab.h",
+            "echo '#include \"/lib/modules/message_dev.h\"' > /tmp/test.c",
+            "echo 'int main() { return 0; }' >> /tmp/test.c",
+            "/usr/bin/tcc -I/tmp -Wimplicit-function-declaration -Werror -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
+            "TCC_EXIT_CODE=$?",
+            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Header file has compilation errors'; cat /tmp/tcc_error.log; else echo 'PASS: Header file compiles successfully'; fi",
+            "",
+            "echo 'Phase 2: Module Loading and Device Creation'",
+            "insmod /lib/modules/message_dev.ko",
+            "sleep 1",
+            "dmesg | grep 'Message device registered with major number 241' && echo 'PASS: Device registration successful' || echo 'FAIL: Device registration failed'",
+            "dmesg | grep 'Create device with: mknod /dev/message c 241 0' && echo 'PASS: Device creation instructions printed' || echo 'FAIL: Missing instructions'",
+            "",
+            "echo 'Phase 3: Create Device Node'",
+            "mknod /dev/message c 241 0",
+            "chmod 666 /dev/message",
+            "ls -l /dev/message && echo 'PASS: Device node created' || echo 'FAIL: Device node creation failed'",
+            "",
+            "echo 'Phase 4: Write First Message'",
+            "echo -n 'Hello Kernel!' > /dev/message",
+            "sleep 1",
+            "dmesg | grep 'Message written: 13 bytes' && echo 'PASS: First write successful (13 bytes)' || echo 'FAIL: First write failed'",
+            "",
+            "echo 'Phase 5: Read First Message'",
+            "READ_OUTPUT=$(cat /dev/message)",
+            "echo \"Read output: '$READ_OUTPUT'\"",
+            "if [ \"$READ_OUTPUT\" = 'Hello Kernel!' ]; then echo 'PASS: Read returned correct message'; else echo 'FAIL: Read returned wrong message'; fi",
+            "dmesg | grep 'Message read: 13 bytes' && echo 'PASS: Read byte count correct' || echo 'FAIL: Read byte count wrong'",
+            "",
+            "echo 'Phase 6: Write Second Message (Buffer Replacement)'",
+            "echo -n 'New Message' > /dev/message",
+            "sleep 1",
+            "dmesg | grep 'Message written: 11 bytes' && echo 'PASS: Second write successful (11 bytes)' || echo 'FAIL: Second write failed'",
+            "",
+            "echo 'Phase 7: Read Second Message'",
+            "READ_OUTPUT2=$(cat /dev/message)",
+            "echo \"Read output: '$READ_OUTPUT2'\"",
+            "if [ \"$READ_OUTPUT2\" = 'New Message' ]; then echo 'PASS: Read returned updated message'; else echo 'FAIL: Read returned wrong message'; fi",
+            "dmesg | grep 'Message read: 11 bytes' && echo 'PASS: Updated read byte count correct' || echo 'FAIL: Updated read byte count wrong'",
+            "",
+            "echo 'Phase 8: Write Long Message (Size Limit)'",
+            "dd if=/dev/zero bs=1 count=2048 2>/dev/null | tr '\\000' 'A' > /tmp/longmsg",
+            "cat /tmp/longmsg > /dev/message",
+            "sleep 1",
+            "WRITTEN_BYTES=$(dmesg | grep 'Message written:' | tail -1 | grep -o '[0-9]* bytes' | grep -o '[0-9]*')",
+            "if [ \"$WRITTEN_BYTES\" -le 1024 ]; then echo 'PASS: Message size capped at MAX_MESSAGE_SIZE'; else echo 'FAIL: Message size not capped properly'; fi",
+            "",
+            "echo 'Phase 9: Device Open/Close Tracking'",
+            "dmesg | grep 'Message device opened' && echo 'PASS: Device open logged' || echo 'FAIL: Device open not logged'",
+            "dmesg | grep 'Message device closed' && echo 'PASS: Device close logged' || echo 'FAIL: Device close not logged'",
+            "",
+            "echo 'Phase 10: Module Unload and Cleanup'",
+            "rm -f /dev/message",
+            "rmmod message_dev",
+            "sleep 1",
+            "dmesg | grep 'Message device unregistered' && echo 'PASS: Device unregistered successfully' || echo 'FAIL: Device unregistration failed'",
+            "",
+            "echo 'Phase 11: Memory Management Validation'",
+            "dmesg | grep 'kfree' && echo 'INFO: kfree calls detected (good cleanup)' || echo 'INFO: kfree not in logs (expected if optimized)'",
+            "",
+            "echo 'PASS: All comprehensive message device validation phases completed successfully'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Message device registered with major number 241",
+              "Create device with: mknod /dev/message c 241 0",
+              "Message device opened",
+              "Message written: 13 bytes",
+              "Message read: 13 bytes",
+              "Message written: 11 bytes",
+              "Message read: 11 bytes",
+              "Message device closed",
+              "Message device unregistered"
+            ],
+            "stdout": [
+              "PASS: Header file compiles successfully",
+              "PASS: Device registration successful",
+              "PASS: Device creation instructions printed",
+              "PASS: Device node created",
+              "PASS: First write successful \\(13 bytes\\)",
+              "PASS: Read returned correct message",
+              "PASS: Read byte count correct",
+              "PASS: Second write successful \\(11 bytes\\)",
+              "PASS: Read returned updated message",
+              "PASS: Updated read byte count correct",
+              "PASS: Message size capped at MAX_MESSAGE_SIZE",
+              "PASS: Device open logged",
+              "PASS: Device close logged",
+              "PASS: Device unregistered successfully",
+              "PASS: All comprehensive message device validation phases completed successfully"
+            ]
+          },
+          "timeout": 30
+        }
+      }
+    ]
+  }
+}
