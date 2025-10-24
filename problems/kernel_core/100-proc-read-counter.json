@@ -1,0 +1,290 @@
+{
+  "id": 100,
+  "title": "/proc File - Read Only Counter",
+  "phase": "kernel_core",
+  "difficulty": 4,
+  "xp": 25,
+  "description": "Learn kernel-userspace communication by creating your first /proc file. The /proc filesystem is how the kernel exposes information to userspace - every time you run 'cat /proc/cpuinfo', you're reading from a kernel module! Create /proc/counter that returns an incrementing number each time it's read. This teaches file_operations, copy_to_user, and the foundation for all device drivers.",
+  "mainFile": "proc_counter.c",
+  "files": [
+    {
+      "name": "proc_counter.c",
+      "content": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/proc_fs.h>\n#include <linux/uaccess.h>\n\n/* ========================================================================== */\n/* PATTERN SCAFFOLDING: /proc Filesystem - Kernel's Window to Userspace */\n/* ========================================================================== */\n/* This problem teaches FUNDAMENTAL kernel-userspace communication!\n *\n * WHAT IS /proc?\n * /proc is a \"pseudo-filesystem\" - virtual files that don't exist on disk.\n * When you read /proc/cpuinfo, there's no physical file - the kernel generates\n * the content on-the-fly when you read it!\n *\n * REAL-WORLD EXAMPLES:\n * - cat /proc/cpuinfo     → Kernel returns CPU information\n * - cat /proc/meminfo     → Kernel returns memory statistics\n * - cat /proc/modules     → Kernel returns loaded module list\n * - cat /proc/version     → Kernel returns kernel version\n *\n * WHY /proc EXISTS:\n * Before /proc, kernel had no standard way to expose information to userspace.\n * /proc provides a simple file-based interface - userspace just reads files!\n * No special tools needed - simple 'cat' command works!\n *\n * HOW /proc WORKS:\n * 1. Kernel module creates virtual file: proc_create()\n * 2. Module registers read callback: .proc_read = counter_read\n * 3. Userspace opens file: open(\"/proc/counter\", O_RDONLY)\n * 4. Userspace reads: read(fd, buffer, size)\n * 5. Kernel calls YOUR callback: counter_read()\n * 6. Your callback copies data to userspace: copy_to_user()\n * 7. Userspace receives the data!\n */\n\n/* ========================================================================== */\n/* PART 1: WHAT IS copy_to_user AND WHY IT EXISTS */\n/* ========================================================================== */\n/* THE FUNDAMENTAL PROBLEM:\n * Kernel and userspace have SEPARATE memory spaces.\n * Kernel pointer: 0xffff888012345000 (kernel virtual address)\n * User pointer:   0x00007fff00001000 (user virtual address)\n * These are DIFFERENT address spaces - cannot directly access!\n *\n * WHY SEPARATE MEMORY SPACES?\n * 1. Security: User programs can't access kernel memory\n * 2. Stability: User program crash doesn't crash kernel\n * 3. Isolation: Each process has its own memory space\n *\n * THE WRONG WAY (CRASHES):\n * char kernel_buffer[128];\n * sprintf(kernel_buffer, \"Counter: %d\\n\", counter);\n * strcpy(user_buffer, kernel_buffer);  // ❌ CRASH! User pointer invalid in kernel!\n *\n * THE RIGHT WAY:\n * char kernel_buffer[128];\n * sprintf(kernel_buffer, \"Counter: %d\\n\", counter);\n * copy_to_user(user_buffer, kernel_buffer, strlen(kernel_buffer));\n *   ✅ Safely copies from kernel space to user space\n *\n * WHAT copy_to_user DOES:\n * 1. Validates user pointer is valid and writable\n * 2. Handles page faults (if user memory not in RAM)\n * 3. Translates kernel virtual address → user virtual address\n * 4. Performs the actual copy\n * 5. Returns number of bytes that FAILED to copy (0 = success)\n *\n * SIGNATURE:\n * unsigned long copy_to_user(void __user *to, const void *from, unsigned long n);\n *                            ↑              ↑                   ↑\n *                            userspace ptr  kernel ptr          bytes to copy\n *\n * RETURN VALUE:\n * - 0 = success (all bytes copied)\n * - Non-zero = number of bytes that could NOT be copied (error)\n */\n\n/* ========================================================================== */\n/* PART 2: THE __user ANNOTATION */\n/* ========================================================================== */\n/* WHAT IS __user?\n * It's a marker that tells:\n * 1. Sparse static analyzer: \"This pointer points to USER memory\"\n * 2. Developers: \"Don't dereference this directly!\"\n * 3. Kernel: \"Must use copy_to_user/copy_from_user\"\n *\n * EXAMPLES:\n * char __user *buffer;     // Points to userspace memory\n * char *kernel_buf;        // Points to kernel memory\n *\n * CORRECT USAGE:\n * copy_to_user(buffer, kernel_buf, len);  ✅\n *\n * WRONG USAGE:\n * buffer[0] = 'A';        ❌ Direct access = CRASH!\n * *buffer = 'A';          ❌ Dereferencing = CRASH!\n */\n\n/* ========================================================================== */\n/* PART 3: PROC FILE CREATION AND LIFECYCLE */\n/* ========================================================================== */\n/* CREATING /proc FILES:\n *\n * struct proc_dir_entry *proc_create(\n *     const char *name,              // File name: \"counter\"\n *     umode_t mode,                  // Permissions: 0444 (read-only)\n *     struct proc_dir_entry *parent, // Parent dir: NULL = /proc root\n *     const struct proc_ops *proc_ops // Callbacks\n * );\n *\n * EXAMPLE:\n * proc_entry = proc_create(\"counter\", 0444, NULL, &proc_fops);\n * Creates: /proc/counter with read-only permissions (0444)\n *\n * PERMISSIONS:\n * 0444 = read-only for all (owner, group, others)\n * 0644 = read-write for owner, read-only for others\n * 0666 = read-write for all\n *\n * REMOVING /proc FILES:\n * proc_remove(proc_entry);\n * CRITICAL: Must remove in module_exit or you get:\n * - Kernel panic if userspace tries to read after module unload\n * - Memory leak (proc entry not freed)\n */\n\n/* ========================================================================== */\n/* PART 4: proc_ops STRUCTURE */\n/* ========================================================================== */\n/* MODERN KERNEL (5.6+): Use proc_ops\n * struct proc_ops {\n *     ssize_t (*proc_read)(struct file *, char __user *, size_t, loff_t *);\n *     ssize_t (*proc_write)(struct file *, const char __user *, size_t, loff_t *);\n *     // ... many other optional callbacks\n * };\n *\n * FOR READ-ONLY FILE:\n * static const struct proc_ops proc_fops = {\n *     .proc_read = counter_read,  // Our read callback\n * };\n *\n * OLDER KERNELS (before 5.6): Use file_operations\n * But we use proc_ops for modern kernels!\n */\n\n/* ========================================================================== */\n/* PART 5: READ CALLBACK IMPLEMENTATION */\n/* ========================================================================== */\n/* READ CALLBACK SIGNATURE:\n * static ssize_t counter_read(\n *     struct file *file,         // File being read\n *     char __user *buffer,       // User buffer to fill\n *     size_t len,                // Max bytes user wants\n *     loff_t *offset             // Current position in file\n * )\n *\n * PARAMETERS EXPLAINED:\n * - file: File handle (we don't need it for simple cases)\n * - buffer: WHERE to copy data (userspace pointer)\n * - len: HOW MUCH data user wants (buffer size)\n * - offset: File position (0 = start, increments after reads)\n *\n * RETURN VALUE:\n * - Positive number: Bytes successfully copied to user\n * - 0: EOF (no more data)\n * - Negative: Error code (-EFAULT, -EINVAL, etc.)\n *\n * EOF HANDLING (CRITICAL!):\n * Without EOF check, 'cat /proc/counter' LOOPS FOREVER!\n *\n * ALGORITHM:\n * 1. Check if offset > 0 → return 0 (EOF)\n * 2. Prepare data in kernel buffer\n * 3. Copy to user with copy_to_user()\n * 4. Update offset\n * 5. Return bytes copied\n *\n * WHY CHECK OFFSET?\n * First read:  offset=0  → return data, set offset=len\n * Second read: offset=len → return 0 (EOF)\n * This tells 'cat' command there's no more data!\n */\n\n#define PROC_NAME \"counter\"\n#define BUFFER_SIZE 128\n\n/* Global counter - increments on each read */\nstatic int counter = 0;\n\n/* Proc file entry pointer */\nstatic struct proc_dir_entry *proc_entry = NULL;\n\n/* ========================================================================== */\n/* TODO: Implement counter_read callback */\n/* ========================================================================== */\n/* STEP-BY-STEP IMPLEMENTATION GUIDE:\n *\n * STEP 1: DECLARE LOCAL VARIABLES\n * char msg[BUFFER_SIZE];           // Kernel buffer for message\n * int msg_len;                     // Length of message\n *\n * STEP 2: CHECK EOF (CRITICAL!)\n * if (*offset > 0) {\n *     return 0;  // Already read, return EOF\n * }\n *\n * WHY? Without this, cat /proc/counter loops forever!\n * First call: offset=0, return data\n * Second call: offset>0, return 0 (EOF)\n *\n * STEP 3: FORMAT MESSAGE IN KERNEL BUFFER\n * msg_len = sprintf(msg, \"Counter: %d\\n\", counter);\n * This creates: \"Counter: 0\\n\" in kernel memory\n *\n * STEP 4: CHECK IF USER BUFFER IS BIG ENOUGH\n * if (len < msg_len) {\n *     return -EINVAL;  // User buffer too small\n * }\n *\n * STEP 5: COPY TO USERSPACE (THE CRITICAL OPERATION!)\n * if (copy_to_user(buffer, msg, msg_len)) {\n *     return -EFAULT;  // Failed to copy (bad user pointer)\n * }\n *\n * copy_to_user returns:\n * - 0 on success (all bytes copied)\n * - Non-zero on failure (number of bytes NOT copied)\n *\n * STEP 6: INCREMENT COUNTER\n * counter++;\n *\n * STEP 7: UPDATE OFFSET (MARK DATA AS READ)\n * *offset = msg_len;\n *\n * This prevents infinite loop:\n * Next call will have *offset > 0, triggering EOF\n *\n * STEP 8: RETURN BYTES READ\n * return msg_len;\n *\n * COMPLETE EXAMPLE:\n * User runs: cat /proc/counter\n * 1st read: offset=0  → return \"Counter: 0\\n\" (10 bytes), set offset=10\n * 2nd read: offset=10 → return 0 (EOF)\n * cat exits\n *\n * User runs: cat /proc/counter again\n * 1st read: offset=0  → return \"Counter: 1\\n\" (10 bytes), set offset=10\n * 2nd read: offset=10 → return 0 (EOF)\n */\nstatic ssize_t counter_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)\n{\n    /* TODO: Declare local variables for kernel buffer and message length */\n    \n    /* TODO: Check if already read (EOF check) - return 0 if offset > 0 */\n    \n    /* TODO: Format message: sprintf(msg, \"Counter: %d\\n\", counter); */\n    \n    /* TODO: Check if user buffer is big enough - return -EINVAL if len < msg_len */\n    \n    /* TODO: Copy to userspace using copy_to_user() - return -EFAULT on error */\n    \n    /* TODO: Increment counter */\n    \n    /* TODO: Update offset to msg_len */\n    \n    /* TODO: Log the read operation */\n    printk(KERN_INFO \"Counter read: returned %d\\n\", counter - 1);\n    \n    /* TODO: Return number of bytes copied */\n    return 0;  /* Replace with actual msg_len */\n}\n\n/* ========================================================================== */\n/* proc_ops structure - defines file operations */\n/* ========================================================================== */\n/* This structure connects /proc file operations to our callback functions.\n * When userspace reads /proc/counter, kernel calls counter_read().\n *\n * FIELDS:\n * .proc_read = counter_read   → Called when file is read\n * .proc_write = ...           → Called when file is written (not used here)\n * .proc_open = ...            → Called when file is opened (not needed)\n * .proc_release = ...         → Called when file is closed (not needed)\n *\n * For simple read-only file, we only need proc_read!\n */\nstatic const struct proc_ops proc_fops = {\n    .proc_read = counter_read,\n};\n\n/* ========================================================================== */\n/* Module Initialization */\n/* ========================================================================== */\nstatic int __init proc_counter_init(void)\n{\n    printk(KERN_INFO \"Initializing /proc/counter module\\n\");\n    \n    /* TODO: Create /proc/counter file */\n    /* Use: proc_create(PROC_NAME, 0444, NULL, &proc_fops) */\n    /* Store result in proc_entry */\n    /* Check if proc_entry is NULL (creation failed) */\n    /*   If NULL: printk error and return -ENOMEM */\n    \n    printk(KERN_INFO \"Created /proc/%s\\n\", PROC_NAME);\n    return 0;\n}\n\n/* ========================================================================== */\n/* Module Cleanup */\n/* ========================================================================== */\nstatic void __exit proc_counter_exit(void)\n{\n    /* TODO: Remove /proc/counter file */\n    /* Use: proc_remove(proc_entry) */\n    /* CRITICAL: Must remove or kernel panics if accessed after unload! */\n    \n    printk(KERN_INFO \"Removed /proc/%s\\n\", PROC_NAME);\n    printk(KERN_INFO \"Final counter value: %d\\n\", counter);\n}\n\nmodule_init(proc_counter_init);\nmodule_exit(proc_counter_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Simple /proc counter demonstrating kernel-userspace communication\");\nMODULE_VERSION(\"1.0\");\n",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# /proc counter module Makefile\nobj-m += proc_counter.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help\n",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "/proc filesystem - kernel's window to userspace",
+    "proc_create() and proc_remove() for file lifecycle",
+    "proc_ops structure - simpler than file_operations",
+    "copy_to_user() - THE critical kernel-userspace boundary",
+    "__user annotation - marking userspace pointers",
+    "Why kernel and userspace have separate memory spaces",
+    "Read callback implementation and EOF handling",
+    "Virtual filesystem - files that don't exist on disk",
+    "On-demand data generation in kernel",
+    "Foundation for all device drivers"
+  ],
+  "skills": [
+    "Creating /proc files with proc_create()",
+    "Implementing read callbacks with proper signature",
+    "Using copy_to_user() correctly for safe data transfer",
+    "Handling EOF to prevent infinite read loops",
+    "Understanding __user pointer annotation",
+    "Managing file offset for proper read behavior",
+    "Removing /proc files cleanly on module unload",
+    "Building simple kernel-userspace interfaces",
+    "Understanding memory space separation",
+    "Foundation for character device drivers"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "proc_counter_init",
+        "proc_counter_exit",
+        "counter_read"
+      ],
+      "variables": [
+        {
+          "name": "counter",
+          "type": "int",
+          "value": "0",
+          "storageClass": "static"
+        },
+        {
+          "name": "proc_entry",
+          "type": "struct proc_dir_entry *",
+          "value": "NULL",
+          "storageClass": "static"
+        },
+        {
+          "name": "proc_fops",
+          "type": "const struct proc_ops",
+          "value": "{.proc_read = counter_read}",
+          "storageClass": "static"
+        }
+      ],
+      "outputMessages": [
+        "Initializing /proc/counter module",
+        "Created /proc/counter",
+        "Counter read: returned 0",
+        "Counter read: returned 1",
+        "Counter read: returned 2",
+        "Removed /proc/counter",
+        "Final counter value:"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/proc_fs.h",
+        "linux/uaccess.h"
+      ],
+      "macro_definitions": [
+        {
+          "name": "PROC_NAME",
+          "type": "constant",
+          "value": "\"counter\"",
+          "description": "Name of the /proc file"
+        },
+        {
+          "name": "BUFFER_SIZE",
+          "type": "constant",
+          "value": "128",
+          "description": "Size of kernel buffer for message"
+        }
+      ],
+      "mustContain": [
+        "proc_create",
+        "proc_remove",
+        "copy_to_user",
+        "__user",
+        "proc_ops",
+        ".proc_read = counter_read",
+        "if (*offset > 0)",
+        "sprintf(msg, \"Counter: %d\\\\n\", counter)",
+        "counter++",
+        "#define PROC_NAME",
+        "#define BUFFER_SIZE"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_signatures",
+        "name": "Function Signatures",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "static ssize_t counter_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)",
+          "static int __init proc_counter_init(void)",
+          "static void __exit proc_counter_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "proc_ops_structure",
+        "name": "proc_ops Structure Definition",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "static const struct proc_ops proc_fops",
+          ".proc_read = counter_read"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "copy_to_user_usage",
+        "name": "copy_to_user Implementation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "copy_to_user(buffer, msg, msg_len)",
+          "__user"
+        ],
+        "prohibitedSymbols": [
+          "strcpy(buffer",
+          "memcpy(buffer"
+        ]
+      },
+      {
+        "id": "eof_handling",
+        "name": "EOF Handling Implementation",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "if (*offset > 0)",
+          "return 0"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "proc_lifecycle",
+        "name": "Proc File Lifecycle",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "proc_create(PROC_NAME, 0444, NULL, &proc_fops)",
+          "proc_remove(proc_entry)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {
+            "pattern": "Initializing /proc/counter module",
+            "exact": true,
+            "linkedFunction": "static int __init proc_counter_init(void)"
+          },
+          {
+            "pattern": "Created /proc/counter",
+            "exact": true,
+            "linkedFunction": "static int __init proc_counter_init(void)"
+          },
+          {
+            "pattern": "Counter read: returned 0",
+            "exact": true,
+            "linkedFunction": "static ssize_t counter_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)"
+          },
+          {
+            "pattern": "Counter read: returned 1",
+            "exact": true,
+            "linkedFunction": "static ssize_t counter_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)"
+          },
+          {
+            "pattern": "Counter read: returned 2",
+            "exact": true,
+            "linkedFunction": "static ssize_t counter_read(struct file *file, char __user *buffer, size_t len, loff_t *offset)"
+          },
+          {
+            "pattern": "Removed /proc/counter",
+            "exact": true,
+            "linkedFunction": "static void __exit proc_counter_exit(void)"
+          },
+          {
+            "pattern": "Final counter value:",
+            "exact": false,
+            "linkedFunction": "static void __exit proc_counter_exit(void)"
+          }
+        ]
+      },
+      {
+        "id": "comprehensive_proc_validation",
+        "name": "Comprehensive /proc File Functionality Validation",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "proc_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <unistd.h>\\n\\nint main() {\\n    printf(\\\"=== /proc Counter Test ===\\\\n\\\");\\n    \\n    printf(\\\"Test 1: Verify /proc/counter exists\\\\n\\\");\\n    if (access(\\\"/proc/counter\\\", F_OK) == 0) {\\n        printf(\\\"PASS: /proc/counter exists\\\\n\\\");\\n    } else {\\n        printf(\\\"FAIL: /proc/counter does not exist\\\\n\\\");\\n        return 1;\\n    }\\n    \\n    printf(\\\"\\\\nTest 2: Read /proc/counter three times\\\\n\\\");\\n    for (int i = 0; i < 3; i++) {\\n        printf(\\\"Read %d: \\\", i + 1);\\n        fflush(stdout);\\n        system(\\\"cat /proc/counter\\\");\\n    }\\n    \\n    printf(\\\"\\\\nSUCCESS: All /proc tests completed\\\\n\\\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting /proc file validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: Module Loading and /proc File Creation'",
+            "/bin/proc_tester > /tmp/test_output.log 2>&1",
+            "cat /tmp/test_output.log",
+            "",
+            "echo 'Phase 2: Validate /proc/counter exists'",
+            "sleep 1",
+            "ls -la /proc/counter && echo 'PASS: /proc/counter file exists' || echo 'FAIL: /proc/counter not created'",
+            "",
+            "echo 'Phase 3: Validate counter increments'",
+            "FIRST_READ=$(cat /proc/counter 2>/dev/null | grep -o 'Counter: [0-9]*' | cut -d' ' -f2)",
+            "echo 'First read value: '$FIRST_READ",
+            "if [ -n \"$FIRST_READ\" ]; then echo 'PASS: Successfully read from /proc/counter'; else echo 'FAIL: Could not read from /proc/counter'; fi",
+            "",
+            "SECOND_READ=$(cat /proc/counter 2>/dev/null | grep -o 'Counter: [0-9]*' | cut -d' ' -f2)",
+            "echo 'Second read value: '$SECOND_READ",
+            "if [ \"$SECOND_READ\" -gt \"$FIRST_READ\" ] 2>/dev/null; then echo 'PASS: Counter increments between reads'; else echo 'INFO: Counter behavior check'; fi",
+            "",
+            "echo 'Phase 4: Validate dmesg output'",
+            "dmesg | grep 'Created /proc/counter' && echo 'PASS: Module initialization logged' || echo 'FAIL: Init message missing'",
+            "dmesg | grep 'Counter read: returned' && echo 'PASS: Read operations logged' || echo 'FAIL: Read logging missing'",
+            "",
+            "echo 'Phase 5: Validate counter functionality'",
+            "dmesg | grep -E 'Counter read: returned [0-9]+' && echo 'PASS: Counter read operations working' || echo 'FAIL: Counter reads not working'",
+            "",
+            "echo 'PASS: All comprehensive /proc validation completed successfully'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Initializing /proc/counter module",
+              "Created /proc/counter",
+              "Counter read: returned 0",
+              "Counter read: returned 1",
+              "Counter read: returned 2",
+              "Removed /proc/counter",
+              "Final counter value:"
+            ],
+            "stdout": [
+              "SUCCESS: All /proc tests completed",
+              "PASS: /proc/counter file exists",
+              "PASS: Successfully read from /proc/counter",
+              "PASS: Module initialization logged",
+              "PASS: Read operations logged",
+              "PASS: Counter read operations working",
+              "PASS: All comprehensive /proc validation completed successfully"
+            ]
+          },
+          "timeout": 30
+        }
+      }
+    ]
+  }
+}

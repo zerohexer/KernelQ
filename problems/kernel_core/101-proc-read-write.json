@@ -1,0 +1,196 @@
+{
+  "id": 101,
+  "title": "/proc File - Read/Write Message Communication",
+  "phase": "kernel_core",
+  "difficulty": 6,
+  "xp": 55,
+  "description": "Master bidirectional kernel-userspace communication by implementing both read and write operations for /proc files. Learn copy_from_user() to safely receive data from userspace, completing the /proc interface that allows users to both send messages to and retrieve messages from the kernel. This builds on /proc read-only concepts by adding write capability.",
+  "mainFile": "proc_message.c",
+  "files": [
+    {
+      "name": "proc_message.c",
+      "content": "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/proc_fs.h>\n#include <linux/uaccess.h>\n#include <linux/slab.h>\n\n#define PROC_NAME \"message\"\n#define BUFFER_SIZE 256\n\n/* ========================================================================== */\n/* PATTERN SCAFFOLDING: Bidirectional /proc File Implementation */\n/* ========================================================================== */\n/* This teaches COMPLETE /proc file interface with both READ and WRITE!\n *\n * WHAT YOU'VE LEARNED (Problem 100):\n * - Creating /proc files\n * - copy_to_user() - sending data FROM kernel TO userspace\n * - .proc_read callback\n *\n * WHAT THIS PROBLEM TEACHES:\n * - copy_from_user() - receiving data FROM userspace TO kernel\n * - .proc_write callback\n * - Message buffer management in kernel\n * - Bidirectional communication patterns\n *\n * REAL-WORLD USAGE:\n * This is EXACTLY how kernel configuration works:\n * - Read /proc/sys/net/ipv4/ip_forward to check forwarding status\n * - Write to /proc/sys/net/ipv4/ip_forward to enable/disable it\n * - Many kernel tunables use this read/write /proc pattern\n *\n * THE FLOW:\n * 1. User writes: echo \"Hello\" > /proc/message\n * 2. Kernel receives via message_write() using copy_from_user()\n * 3. Kernel stores in message_buffer\n * 4. User reads: cat /proc/message\n * 5. Kernel returns via message_read() using copy_to_user()\n */\n\n/* ========================================================================== */\n/* SECTION 1: MESSAGE STORAGE */\n/* ========================================================================== */\n/* We need to STORE the user's message so we can return it on read\n *\n * STORAGE REQUIREMENTS:\n * - Buffer to hold the message text\n * - Length tracker to know how many bytes are valid\n * - Must persist between read/write operations\n *\n * WHY STATIC?\n * - Static variables persist across function calls\n * - Shared between message_read() and message_write()\n * - File-scope (only visible in this .c file)\n */\n\n/* TODO: Declare message storage buffer */\n/* static char message_buffer[BUFFER_SIZE]; */\n\n/* TODO: Declare message length tracker */\n/* static size_t message_len = 0; */\n\n/* TODO: Declare proc_dir_entry pointer */\n/* static struct proc_dir_entry *proc_entry; */\n\n/* ========================================================================== */\n/* SECTION 2: READ CALLBACK - Return Stored Message */\n/* ========================================================================== */\n/* This is similar to Problem 100, but instead of generating data,\n * we return the stored message from message_buffer.\n *\n * FUNCTION SIGNATURE:\n * static ssize_t message_read(struct file *file, char __user *user_buffer,\n *                             size_t count, loff_t *offset)\n *\n * PARAMETERS:\n * - file: File structure (not used here)\n * - user_buffer: Userspace buffer to write to (has __user annotation)\n * - count: Maximum bytes user wants to read\n * - offset: Current position in file (for sequential reads)\n *\n * RETURN VALUE:\n * - Number of bytes successfully copied to userspace\n * - 0 means \"end of file\" (no more data)\n * - Negative value means error\n *\n * OFFSET HANDLING:\n * - First call: *offset = 0, we copy data and update *offset\n * - Second call: *offset != 0, we return 0 (EOF)\n * - This prevents infinite reading\n */\n\n/* TODO: Implement message_read function */\nstatic ssize_t message_read(struct file *file, char __user *user_buffer,\n                           size_t count, loff_t *offset)\n{\n    /* STEP 1: Check for end-of-file condition */\n    /* TODO: If *offset != 0, return 0 (already read, EOF) */\n    /* TODO: If message_len == 0, return 0 (no message stored) */\n\n    /* STEP 2: Determine how many bytes to copy */\n    /* TODO: bytes_to_copy = min(count, message_len) */\n    /* TODO: We can't copy more than what's stored OR what user requested */\n\n    /* STEP 3: Copy message to userspace */\n    /* TODO: Use copy_to_user(user_buffer, message_buffer, bytes_to_copy) */\n    /* TODO: Check if copy_to_user returns non-zero (indicates failure) */\n    /* TODO: If failed, return -EFAULT */\n\n    /* STEP 4: Update offset and return bytes copied */\n    /* TODO: *offset += bytes_to_copy */\n    /* TODO: return bytes_to_copy */\n\n    return 0; /* TODO: Replace with actual implementation */\n}\n\n/* ========================================================================== */\n/* SECTION 3: WRITE CALLBACK - Store User's Message */\n/* ========================================================================== */\n/* This is the NEW functionality! Receiving data from userspace.\n *\n * FUNCTION SIGNATURE:\n * static ssize_t message_write(struct file *file, const char __user *user_buffer,\n *                              size_t count, loff_t *offset)\n *\n * PARAMETERS:\n * - file: File structure (not used here)\n * - user_buffer: Userspace buffer to read from (has __user annotation)\n * - count: Number of bytes user wants to write\n * - offset: Current position in file (usually ignored for simple write)\n *\n * RETURN VALUE:\n * - Number of bytes successfully copied from userspace\n * - This tells user how many bytes were written\n * - Negative value means error\n *\n * COPY_FROM_USER EXPLAINED:\n * copy_from_user(kernel_dest, __user *user_src, size)\n * - Opposite of copy_to_user()\n * - Safely copies data FROM userspace TO kernel\n * - Returns: number of bytes that FAILED to copy (0 = success!)\n * - Must check return value for security!\n *\n * BUFFER OVERFLOW PROTECTION:\n * - User might try to write more than BUFFER_SIZE\n * - We must limit bytes_to_copy to (BUFFER_SIZE - 1)\n * - Leave room for null terminator\n */\n\n/* TODO: Implement message_write function */\nstatic ssize_t message_write(struct file *file, const char __user *user_buffer,\n                            size_t count, loff_t *offset)\n{\n    /* STEP 1: Validate input size */\n    /* TODO: If count == 0, return 0 (nothing to write) */\n    /* TODO: If count >= BUFFER_SIZE, limit to (BUFFER_SIZE - 1) */\n    /* TODO: size_t bytes_to_copy = min(count, (size_t)(BUFFER_SIZE - 1)) */\n\n    /* STEP 2: Clear the message buffer */\n    /* TODO: memset(message_buffer, 0, BUFFER_SIZE) */\n    /* TODO: This ensures clean state before writing new message */\n\n    /* STEP 3: Copy data from userspace to kernel buffer */\n    /* TODO: if (copy_from_user(message_buffer, user_buffer, bytes_to_copy)) */\n    /* TODO:     return -EFAULT (copy failed) */\n    /* TODO: Note: copy_from_user returns non-zero on failure! */\n\n    /* STEP 4: Handle newline character (if present) */\n    /* TODO: When user does \"echo Hello > /proc/message\", it includes \\n */\n    /* TODO: if (bytes_to_copy > 0 && message_buffer[bytes_to_copy - 1] == '\\n') */\n    /* TODO:     message_buffer[bytes_to_copy - 1] = '\\0' (replace with null) */\n    /* TODO:     bytes_to_copy-- (reduce length) */\n    /* TODO: else */\n    /* TODO:     message_buffer[bytes_to_copy] = '\\0' (add null terminator) */\n\n    /* STEP 5: Update message length */\n    /* TODO: message_len = bytes_to_copy */\n\n    /* STEP 6: Log the received message */\n    /* TODO: printk(KERN_INFO \"Received message: %s (length=%zu)\\n\", message_buffer, message_len) */\n\n    /* STEP 7: Return bytes written */\n    /* TODO: Return count (not bytes_to_copy) - report what user tried to write */\n    /* TODO: This matches standard write() semantics */\n\n    return 0; /* TODO: Replace with actual implementation */\n}\n\n/* ========================================================================== */\n/* SECTION 4: PROC OPS STRUCTURE - Register Both Callbacks */\n/* ========================================================================== */\n/* This is where we connect our read AND write functions!\n *\n * PROC_OPS FIELDS:\n * .proc_read  = message_read   <- Called when user reads from /proc/message\n * .proc_write = message_write  <- Called when user writes to /proc/message\n *\n * COMPARISON TO PROBLEM 100:\n * Problem 100: Only .proc_read (read-only /proc file)\n * Problem 101: Both .proc_read and .proc_write (bidirectional)\n *\n * PERMISSIONS:\n * - Read-only file: 0444 (everyone can read)\n * - Read-write file: 0666 (everyone can read and write)\n * - We'll use 0666 since we support both operations\n */\n\n/* TODO: Define proc_ops structure with both read and write */\nstatic const struct proc_ops message_ops = {\n    /* TODO: .proc_read = message_read, */\n    /* TODO: .proc_write = message_write, */\n};\n\n/* ========================================================================== */\n/* SECTION 5: MODULE INIT - Create /proc Entry */\n/* ========================================================================== */\nstatic int __init proc_message_init(void)\n{\n    printk(KERN_INFO \"Initializing /proc/%s module\\n\", PROC_NAME);\n\n    /* TODO: Create /proc entry with read-write permissions */\n    /* TODO: proc_entry = proc_create(PROC_NAME, 0666, NULL, &message_ops) */\n    /* TODO: Check if proc_entry is NULL (creation failed) */\n    /* TODO: If failed, return -ENOMEM */\n\n    /* TODO: Initialize message buffer and length */\n    /* TODO: memset(message_buffer, 0, BUFFER_SIZE) */\n    /* TODO: message_len = 0 */\n\n    /* TODO: Print success message */\n    /* TODO: printk(KERN_INFO \"/proc/%s created successfully\\n\", PROC_NAME) */\n\n    return 0;\n}\n\n/* ========================================================================== */\n/* SECTION 6: MODULE EXIT - Remove /proc Entry */\n/* ========================================================================== */\nstatic void __exit proc_message_exit(void)\n{\n    /* TODO: Remove /proc entry */\n    /* TODO: proc_remove(proc_entry) */\n\n    printk(KERN_INFO \"/proc/%s removed\\n\", PROC_NAME);\n}\n\nmodule_init(proc_message_init);\nmodule_exit(proc_message_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"/proc file with read and write operations\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# /proc read-write message module Makefile\nobj-m += proc_message.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "bidirectional kernel-userspace communication",
+    "copy_from_user() function",
+    "proc_write callback",
+    "message buffer management",
+    "complete /proc file implementation",
+    "buffer overflow protection",
+    "userspace data validation"
+  ],
+  "skills": [
+    "Implementing .proc_write callback",
+    "Using copy_from_user() safely",
+    "Managing kernel message buffers",
+    "Handling newline characters from echo",
+    "Creating read-write /proc files",
+    "Understanding bidirectional communication",
+    "Proper buffer size validation"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "proc_message_init",
+        "proc_message_exit",
+        "message_read",
+        "message_write"
+      ],
+      "variables": [
+        { "name": "message_buffer", "type": "char", "value": "[BUFFER_SIZE]", "storageClass": "static" },
+        { "name": "message_len", "type": "size_t", "value": "0", "storageClass": "static" },
+        { "name": "proc_entry", "type": "struct proc_dir_entry *", "value": "NULL", "storageClass": "static" }
+      ],
+      "outputMessages": [
+        "Initializing /proc/message module",
+        "/proc/message created successfully",
+        "Received message:",
+        "/proc/message removed"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/proc_fs.h",
+        "linux/uaccess.h"
+      ],
+      "mustContain": [
+        "copy_from_user",
+        "copy_to_user",
+        "proc_create",
+        "proc_remove",
+        ".proc_read = message_read",
+        ".proc_write = message_write",
+        "message_buffer[BUFFER_SIZE]",
+        "message_len",
+        "BUFFER_SIZE - 1"
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "static ssize_t message_read",
+          "struct file *file",
+          "char __user *user_buffer",
+          "size_t count",
+          "loff_t *offset",
+          "static ssize_t message_write",
+          "const char __user *user_buffer",
+          "static int __init proc_message_init(void)",
+          "static void __exit proc_message_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "proc_ops_structure",
+        "name": "proc_ops Structure with Read and Write",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "static const struct proc_ops message_ops",
+          ".proc_read = message_read",
+          ".proc_write = message_write"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Function-Linked Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Initializing /proc/message module", "exact": true, "linkedFunction": "static int __init proc_message_init(void)" },
+          { "pattern": "/proc/message created successfully", "exact": true, "linkedFunction": "static int __init proc_message_init(void)" },
+          { "pattern": "Received message:", "exact": false, "linkedFunction": "static ssize_t message_write()" },
+          { "pattern": "/proc/message removed", "exact": true, "linkedFunction": "static void __exit proc_message_exit(void)" }
+        ]
+      },
+      {
+        "id": "proc_bidirectional_validation",
+        "name": "Complete /proc Read-Write Validation",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "proc_rw_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <string.h>\\n#include <time.h>\\n\\nint main() {\\n    FILE *fp;\\n    char buffer[256];\\n    \\n    printf(\\\"=== /proc Read-Write Bidirectional Test ===\\\\n\\\");\\n    \\n    /* Generate dynamic test messages */\\n    srand(time(NULL));\\n    int random_num = (rand() % 900) + 100;\\n    char test_msg1[256];\\n    char test_msg2[256];\\n    snprintf(test_msg1, sizeof(test_msg1), \\\"TestMessage_%d\\\", random_num);\\n    snprintf(test_msg2, sizeof(test_msg2), \\\"UpdatedMessage_%d\\\", random_num + 1);\\n    \\n    printf(\\\"Test 1: Writing first message: %s\\\\n\\\", test_msg1);\\n    fp = fopen(\\\"/proc/message\\\", \\\"w\\\");\\n    if (!fp) {\\n        printf(\\\"FAIL: Cannot open /proc/message for writing\\\\n\\\");\\n        return 1;\\n    }\\n    fprintf(fp, \\\"%s\\\", test_msg1);\\n    fclose(fp);\\n    \\n    printf(\\\"Test 2: Reading first message back...\\\\n\\\");\\n    fp = fopen(\\\"/proc/message\\\", \\\"r\\\");\\n    if (!fp) {\\n        printf(\\\"FAIL: Cannot open /proc/message for reading\\\\n\\\");\\n        return 1;\\n    }\\n    memset(buffer, 0, sizeof(buffer));\\n    if (fgets(buffer, sizeof(buffer), fp)) {\\n        /* Remove newline if present */\\n        buffer[strcspn(buffer, \\\"\\\\n\\\")] = 0;\\n        printf(\\\"Read: %s\\\\n\\\", buffer);\\n        if (strcmp(buffer, test_msg1) == 0) {\\n            printf(\\\"PASS: First message read correctly\\\\n\\\");\\n        } else {\\n            printf(\\\"FAIL: First message mismatch (expected: %s, got: %s)\\\\n\\\", test_msg1, buffer);\\n        }\\n    } else {\\n        printf(\\\"FAIL: Could not read first message\\\\n\\\");\\n    }\\n    fclose(fp);\\n    \\n    printf(\\\"Test 3: Overwriting with second message: %s\\\\n\\\", test_msg2);\\n    fp = fopen(\\\"/proc/message\\\", \\\"w\\\");\\n    if (!fp) {\\n        printf(\\\"FAIL: Cannot reopen /proc/message for writing\\\\n\\\");\\n        return 1;\\n    }\\n    fprintf(fp, \\\"%s\\\", test_msg2);\\n    fclose(fp);\\n    \\n    printf(\\\"Test 4: Reading second message back...\\\\n\\\");\\n    fp = fopen(\\\"/proc/message\\\", \\\"r\\\");\\n    if (!fp) {\\n        printf(\\\"FAIL: Cannot reopen /proc/message for reading\\\\n\\\");\\n        return 1;\\n    }\\n    memset(buffer, 0, sizeof(buffer));\\n    if (fgets(buffer, sizeof(buffer), fp)) {\\n        buffer[strcspn(buffer, \\\"\\\\n\\\")] = 0;\\n        printf(\\\"Read: %s\\\\n\\\", buffer);\\n        if (strcmp(buffer, test_msg2) == 0) {\\n            printf(\\\"PASS: Second message read correctly\\\\n\\\");\\n        } else {\\n            printf(\\\"FAIL: Second message mismatch (expected: %s, got: %s)\\\\n\\\", test_msg2, buffer);\\n        }\\n    } else {\\n        printf(\\\"FAIL: Could not read second message\\\\n\\\");\\n    }\\n    fclose(fp);\\n    \\n    printf(\\\"SUCCESS: All bidirectional /proc tests completed\\\\n\\\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting /proc read-write bidirectional validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: Module Loading'",
+            "insmod /lib/modules/proc_message.ko",
+            "sleep 1",
+            "dmesg | grep 'Initializing /proc/message module' && echo 'PASS: Module init message' || echo 'FAIL: Module init message missing'",
+            "dmesg | grep '/proc/message created successfully' && echo 'PASS: /proc file created' || echo 'FAIL: /proc creation failed'",
+            "",
+            "echo 'Phase 2: /proc File Existence Check'",
+            "ls /proc/message && echo 'PASS: /proc/message file exists' || echo 'FAIL: /proc/message file missing'",
+            "",
+            "echo 'Phase 3: Bidirectional Communication Test'",
+            "/bin/proc_rw_tester",
+            "sleep 1",
+            "",
+            "echo 'Phase 4: Kernel Message Logging Validation'",
+            "dmesg | grep 'Received message: TestMessage_' && echo 'PASS: Write callback logged first message' || echo 'FAIL: First write logging missing'",
+            "dmesg | grep 'Received message: UpdatedMessage_' && echo 'PASS: Write callback logged second message' || echo 'FAIL: Second write logging missing'",
+            "",
+            "echo 'Phase 5: Module Cleanup'",
+            "rmmod proc_message",
+            "sleep 1",
+            "dmesg | grep '/proc/message removed' && echo 'PASS: Module cleanup message' || echo 'FAIL: Cleanup message missing'",
+            "",
+            "echo 'PASS: All /proc read-write bidirectional validation completed successfully'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Initializing /proc/message module",
+              "/proc/message created successfully",
+              "Received message: TestMessage_.*",
+              "Received message: UpdatedMessage_.*",
+              "/proc/message removed"
+            ],
+            "stdout": [
+              "/proc Read-Write Bidirectional Test",
+              "Test 1: Writing first message: TestMessage_.*",
+              "Test 2: Reading first message back",
+              "PASS: First message read correctly",
+              "Test 3: Overwriting with second message: UpdatedMessage_.*",
+              "Test 4: Reading second message back",
+              "PASS: Second message read correctly",
+              "SUCCESS: All bidirectional /proc tests completed",
+              "PASS: Module init message",
+              "PASS: /proc file created",
+              "PASS: /proc/message file exists",
+              "PASS: Write callback logged first message",
+              "PASS: Write callback logged second message",
+              "PASS: Module cleanup message",
+              "PASS: All /proc read-write bidirectional validation completed successfully"
+            ]
+          },
+          "timeout": 20
+        }
+      }
+    ]
+  }
+}
