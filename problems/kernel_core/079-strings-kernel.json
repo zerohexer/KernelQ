@@ -1,7 +1,7 @@
 {
   "id": 79,
   "title": "Secure String Handling - Modern Kernel Text Operations",
-  "phase": "foundations",
+  "phase": "kernel_core",
   "difficulty": 4,
   "xp": 40,
   "description": "Learn modern, secure string handling in kernel space using current best practices. Master strscpy(), snprintf(), and safe string operations essential for handling device names, user messages, and configuration data in kernel modules.",
