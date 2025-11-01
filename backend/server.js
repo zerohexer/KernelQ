@@ -2,8 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt'); // For password hashing
 const DirectKernelCompiler = require('./direct-kernel-compiler');
-const TestCaseSystem = require('./test-case-system');
-const TestExecutionEngine = require('./test-execution-engine');
 const LeetCodeStyleValidator = require('./leetcode-style-validator');
 const { initializeDatabase, getDatabase } = require('./database');
 const {
@@ -24,10 +22,6 @@ app.set('trust proxy', true);
 
 // Initialize the direct kernel compiler
 const compiler = new DirectKernelCompiler('./work');
-
-// Initialize LeetCode-style test system
-const testCaseSystem = new TestCaseSystem();
-const testExecutionEngine = new TestExecutionEngine('/home/zerohexer/WebstormProjects/kernel-learning/backend/work');
 
 // Initialize the new comprehensive LeetCode-style validator
 const leetcodeValidator = new LeetCodeStyleValidator('./work');
@@ -174,142 +168,6 @@ app.post('/api/compile-kernel-module', async (req, res) => {
             success: false,
             error: error.message,
             stage: 'internal_error'
-        });
-    }
-});
-
-// LeetCode-style problem validation endpoint
-app.post('/api/validate-solution', async (req, res) => {
-    const { code, moduleName, problemId } = req.body;
-    
-    if (!code || !moduleName || !problemId) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'Code, module name, and problem ID are required' 
-        });
-    }
-
-    try {
-        // Security check
-        const securityCheck = validateKernelCode(code);
-        if (!securityCheck.safe) {
-            return res.status(400).json({
-                success: false,
-                error: `Security violation: ${securityCheck.reason}`,
-                stage: 'security_check'
-            });
-        }
-
-        // Get test cases for the problem
-        const testCases = testCaseSystem.getAllTestCases(problemId);
-        if (testCases.length === 0) {
-            return res.status(404).json({
-                success: false,
-                error: `No test cases found for problem: ${problemId}`,
-                stage: 'test_case_lookup'
-            });
-        }
-
-        // Execute test cases using LeetCode-style system
-        const validationResults = await testExecutionEngine.executeTestCases(
-            code, 
-            moduleName, 
-            testCases
-        );
-        
-        res.json({
-            success: true,
-            ...validationResults
-        });
-
-    } catch (error) {
-        console.error('Validation error:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-            stage: 'validation_execution'
-        });
-    }
-});
-
-// Get visible test cases for a problem (for frontend display)
-app.get('/api/test-cases/:problemId', async (req, res) => {
-    try {
-        const { problemId } = req.params;
-        const visibleTestCases = testCaseSystem.getVisibleTestCases(problemId);
-        
-        res.json({
-            success: true,
-            problemId,
-            testCases: visibleTestCases,
-            totalVisible: visibleTestCases.length,
-            totalHidden: testCaseSystem.getAllTestCases(problemId).length - visibleTestCases.length
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// Get test case statistics
-app.get('/api/test-stats/:problemId', async (req, res) => {
-    try {
-        const { problemId } = req.params;
-        const stats = testCaseSystem.getTestCaseStats(problemId);
-        
-        res.json({
-            success: true,
-            problemId,
-            ...stats
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// Quick compile check (without test execution)
-app.post('/api/quick-compile', async (req, res) => {
-    const { code, moduleName } = req.body;
-    
-    if (!code || !moduleName) {
-        return res.status(400).json({ 
-            success: false, 
-            error: 'Code and module name are required' 
-        });
-    }
-
-    try {
-        // Security check
-        const securityCheck = validateKernelCode(code);
-        if (!securityCheck.safe) {
-            return res.status(400).json({
-                success: false,
-                error: `Security violation: ${securityCheck.reason}`,
-                stage: 'security_check'
-            });
-        }
-
-        // Quick compilation check only
-        const sessionId = Math.random().toString(36).substr(2, 9);
-        const compilationResult = await testExecutionEngine.compileModule(code, moduleName, sessionId);
-        
-        res.json({
-            success: compilationResult.success,
-            compilation: compilationResult,
-            stage: 'compilation_only'
-        });
-
-    } catch (error) {
-        console.error('Quick compile error:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-            stage: 'quick_compile'
         });
     }
 });
