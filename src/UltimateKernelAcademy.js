@@ -486,9 +486,15 @@ const UnlimitedKernelAcademy = () => {
                     output += "\n\n💡 Fix the compilation errors and try again.\n";
                     output += "This is real GCC output with kernel headers!\n";
                 } else {
-                    output += `❌ ${result.error}\n`;
-                    if (result.output) {
-                        output += "\nOutput:\n" + result.output;
+                    // Playground compilation failed - show compilation output
+                    output += "❌ Compilation failed\n\n";
+
+                    // Get error from compilation.output or fallback to error field
+                    const errorOutput = result.compilation?.output || result.output || result.error || "Unknown compilation error";
+                    output += errorOutput;
+
+                    if (!errorOutput.includes('make') && !errorOutput.includes('error:')) {
+                        output += "\n\n💡 Fix the compilation errors and try again.";
                     }
                 }
             }
