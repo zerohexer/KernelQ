@@ -241,7 +241,7 @@ app.post('/api/playground-compile', async (req, res) => {
                 ...response,
                 compilation: {
                     success: false,
-                    output: result.feedback?.map(f => f.message).join('\n') || 'Compilation failed'
+                    output: result.output || result.error || 'Compilation failed'
                 }
             });
         }
