@@ -4,10 +4,10 @@ import FileExplorer from './FileExplorer';
 import CodeMirrorKernelEditor from './CodeMirrorKernelEditor';
 import { Maximize2, Minimize2, FileText, Book } from 'lucide-react';
 
-const MultiFileEditor = ({ 
-  files, 
-  mainFile, 
-  onFilesChange, 
+const MultiFileEditor = ({
+  files,
+  mainFile,
+  onFilesChange,
   premiumStyles,
   readOnly = false,
   showFileExplorer = true,
@@ -17,7 +17,11 @@ const MultiFileEditor = ({
   allowFileDeletion = false,
   parentFullScreen = false,
   editorFullScreen = false,
-  onEditorFullScreenChange = null
+  onEditorFullScreenChange = null,
+  activeFile: controlledActiveFile = null,
+  onActiveFileChange = null,
+  scrollPositions: controlledScrollPositions = null,
+  onScrollPositionsChange = null
 }) => {
   // Generate unique session ID for this editor instance
   const sessionId = useRef(crypto.randomUUID()).current;
@@ -29,9 +33,32 @@ const MultiFileEditor = ({
       : 'wss://lsp.kernelq.com';
     return `${baseUri}/?stack=clangd11&session=${sessionId}`;
   };
-  const [activeFile, setActiveFile] = useState(mainFile || (files && files[0] ? files[0].name : ''));
+  const [internalActiveFile, setInternalActiveFile] = useState(mainFile || (files && files[0] ? files[0].name : ''));
   const [fileContents, setFileContents] = useState({});
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [internalScrollPositions, setInternalScrollPositions] = useState({});
+  const editorRef = useRef(null);
+  const markdownScrollRef = useRef(null);
+
+  // Use controlled activeFile if provided, otherwise use internal state
+  const activeFile = controlledActiveFile !== null ? controlledActiveFile : internalActiveFile;
+  const setActiveFile = (newFile) => {
+    if (onActiveFileChange) {
+      onActiveFileChange(newFile);
+    } else {
+      setInternalActiveFile(newFile);
+    }
+  };
+
+  // Use controlled scrollPositions if provided, otherwise use internal state
+  const scrollPositions = controlledScrollPositions !== null ? controlledScrollPositions : internalScrollPositions;
+  const setScrollPositions = (newPositions) => {
+    if (onScrollPositionsChange) {
+      onScrollPositionsChange(newPositions);
+    } else {
+      setInternalScrollPositions(newPositions);
+    }
+  };
   
   // Use external full-screen state if provided
   const effectiveIsFullScreen = onEditorFullScreenChange ? editorFullScreen : isFullScreen;
@@ -89,6 +116,42 @@ const MultiFileEditor = ({
       window.removeEventListener('resize', handleResize);
       clearTimeout(resizeTimeoutRef.current);
     };
+  }, [activeFile]);
+
+  // Restore scroll position for markdown files when switching files
+  useEffect(() => {
+    if (activeFile && activeFile.endsWith('.md') && markdownScrollRef.current) {
+      const scrollContainer = markdownScrollRef.current;
+      const savedScrollTop = scrollPositions[activeFile] || 0;
+
+      // Apply scroll immediately using requestAnimationFrame for smoothness
+      requestAnimationFrame(() => {
+        if (scrollContainer) {
+          scrollContainer.scrollTop = savedScrollTop;
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFile]); // Only run when activeFile changes, not when scrollPositions changes!
+
+  // Attach scroll event listener for markdown files
+  useEffect(() => {
+    if (activeFile && activeFile.endsWith('.md') && markdownScrollRef.current) {
+      const scrollContainer = markdownScrollRef.current;
+
+      const handleScroll = () => {
+        setScrollPositions(prev => ({
+          ...prev,
+          [activeFile]: scrollContainer.scrollTop
+        }));
+      };
+
+      scrollContainer.addEventListener('scroll', handleScroll);
+
+      return () => {
+        scrollContainer.removeEventListener('scroll', handleScroll);
+      };
+    }
   }, [activeFile]);
 
   const handleFileSelect = (fileName) => {
@@ -369,14 +432,17 @@ const MultiFileEditor = ({
         }}>
           {activeFile && activeFile.endsWith('.md') ? (
             // Render markdown files with ReactMarkdown
-            <div style={{
-              height: '100%',
-              overflowY: 'auto',
-              padding: '24px 32px',
-              background: '#1e1e1e',
-              color: '#d4d4d4',
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-            }}>
+            <div
+              ref={markdownScrollRef}
+              style={{
+                height: '100%',
+                overflowY: 'auto',
+                padding: '24px 32px',
+                background: '#1e1e1e',
+                color: '#d4d4d4',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+              }}
+            >
               <ReactMarkdown
                 components={{
                   h1: ({node, ...props}) => <h1 style={{
@@ -498,6 +564,13 @@ const MultiFileEditor = ({
               fileContents={fileContents} // Pass current file contents
               placeholder={`// Start coding in ${activeFile}...`}
               className="multi-file-editor-codemirror"
+              initialScrollTop={scrollPositions[activeFile] || 0}
+              onScrollChange={(scrollTop) => {
+                setScrollPositions({
+                  ...scrollPositions,
+                  [activeFile]: scrollTop
+                });
+              }}
             />
           )}
         </div>

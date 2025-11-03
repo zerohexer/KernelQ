@@ -26,6 +26,8 @@ const ChallengeView = ({
     const [showFloatingHelp, setShowFloatingHelp] = useState(false); // Floating help modal
     const [completedRequirements, setCompletedRequirements] = useState(new Set()); // Track completed requirements
     const [editorFullScreen, setEditorFullScreen] = useState(false); // Editor full-screen within main full-screen
+    const [activeFile, setActiveFile] = useState(challenge.mainFile || null); // Track active file across fullscreen toggles
+    const [scrollPositions, setScrollPositions] = useState({}); // Track scroll positions per file across fullscreen toggles
     const scrollContainerRef = useRef(null); // Ref for scroll position preservation
     const floatingHelpScrollRef = useRef(null); // Ref for FloatingHelp modal scroll position
 
@@ -1220,6 +1222,7 @@ const ChallengeView = ({
                                         }}>
                                             {codeEditor.files && codeEditor.files.length > 0 ? (
                                                 <MultiFileEditor
+                                                    key={challenge.id || challenge.title || 'multi-file-editor'}
                                                     files={codeEditor.files}
                                                     mainFile={challenge.mainFile}
                                                     onFilesChange={onCodeChange}
@@ -1231,6 +1234,10 @@ const ChallengeView = ({
                                                     parentFullScreen={true}
                                                     editorFullScreen={editorFullScreen}
                                                     onEditorFullScreenChange={setEditorFullScreen}
+                                                    activeFile={activeFile}
+                                                    onActiveFileChange={setActiveFile}
+                                                    scrollPositions={scrollPositions}
+                                                    onScrollPositionsChange={setScrollPositions}
                                                 />
                                             ) : (
                                                 <SemanticCodeEditor
@@ -2401,6 +2408,7 @@ const ChallengeView = ({
                                         {/* Multi-file editor for projects with multiple files */}
                                         {codeEditor.files && codeEditor.files.length > 0 ? (
                                             <MultiFileEditor
+                                                key={challenge.id || challenge.title || 'multi-file-editor'}
                                                 files={codeEditor.files}
                                                 mainFile={challenge.mainFile}
                                                 onFilesChange={onCodeChange}
@@ -2410,6 +2418,10 @@ const ChallengeView = ({
                                                 allowFileCreation={challenge.requiredFiles && challenge.requiredFiles.length > 0}
                                                 allowFileDeletion={challenge.requiredFiles && challenge.requiredFiles.length > 0}
                                                 parentFullScreen={false}
+                                                activeFile={activeFile}
+                                                onActiveFileChange={setActiveFile}
+                                                scrollPositions={scrollPositions}
+                                                onScrollPositionsChange={setScrollPositions}
                                             />
                                         ) : (
                                             /* Legacy single-file editor */

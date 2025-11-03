@@ -65,7 +65,9 @@ const CodeMirrorKernelEditor = ({
     documentUri = 'file:///kernel/main.c',
     sessionId = 'default',
     allFiles = [],
-    fileContents = {}
+    fileContents = {},
+    initialScrollTop = 0,
+    onScrollChange = null
 }) => {
     const containerRef = useRef(null);
     const editorRef = useRef(null);
@@ -640,6 +642,23 @@ const CodeMirrorKernelEditor = ({
                 });
 
                 editorRef.current = view;
+
+                // Restore initial scroll position
+                if (initialScrollTop > 0) {
+                    setTimeout(() => {
+                        if (view.scrollDOM) {
+                            view.scrollDOM.scrollTop = initialScrollTop;
+                        }
+                    }, 0);
+                }
+
+                // Listen to scroll events
+                if (onScrollChange && view.scrollDOM) {
+                    const handleScroll = () => {
+                        onScrollChange(view.scrollDOM.scrollTop);
+                    };
+                    view.scrollDOM.addEventListener('scroll', handleScroll);
+                }
 
                 if (mounted) {
                     setStatus('ready');
