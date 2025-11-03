@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import FileExplorer from './FileExplorer';
 import CodeMirrorKernelEditor from './CodeMirrorKernelEditor';
-import { Maximize2, Minimize2, FileText } from 'lucide-react';
+import { Maximize2, Minimize2, FileText, Book } from 'lucide-react';
 
 const MultiFileEditor = ({ 
   files, 
@@ -358,7 +359,7 @@ const MultiFileEditor = ({
         </div>
 
         {/* Editor - Completely separated with absolute positioning */}
-        <div style={{ 
+        <div style={{
           position: 'absolute',
           top: '49px', // Start after header
           left: 0,
@@ -366,22 +367,139 @@ const MultiFileEditor = ({
           bottom: 0, // Fill remaining space
           overflow: 'hidden' // Constrain editor
         }}>
-          <CodeMirrorKernelEditor
-            key={activeFile}
-            value={getCurrentFileContent()}
-            onChange={handleCodeChange}
-            readOnly={isCurrentFileReadOnly}
-            theme="dark"
-            height="100%"
-            enableLSP={true} // Enable LSP for clangd server
-            lspServerUri={getLspServerUri()} // Clangd WebSocket server
-            documentUri={`file:///kernel-${sessionId}/${activeFile}`}
-            sessionId={sessionId} // Pass session ID for isolation
-            allFiles={files} // Pass all files for multi-file LSP support
-            fileContents={fileContents} // Pass current file contents
-            placeholder={`// Start coding in ${activeFile}...`}
-            className="multi-file-editor-codemirror"
-          />
+          {activeFile && activeFile.endsWith('.md') ? (
+            // Render markdown files with ReactMarkdown
+            <div style={{
+              height: '100%',
+              overflowY: 'auto',
+              padding: '24px 32px',
+              background: '#1e1e1e',
+              color: '#d4d4d4',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            }}>
+              <ReactMarkdown
+                components={{
+                  h1: ({node, ...props}) => <h1 style={{
+                    fontSize: '2.5rem',
+                    fontWeight: 700,
+                    margin: '0 0 1.5rem 0',
+                    color: '#ffffff',
+                    borderBottom: '2px solid #007acc',
+                    paddingBottom: '0.5rem'
+                  }} {...props} />,
+                  h2: ({node, ...props}) => <h2 style={{
+                    fontSize: '2rem',
+                    fontWeight: 600,
+                    margin: '2rem 0 1rem 0',
+                    color: '#ffffff',
+                    borderBottom: '1px solid #444'
+                  }} {...props} />,
+                  h3: ({node, ...props}) => <h3 style={{
+                    fontSize: '1.5rem',
+                    fontWeight: 600,
+                    margin: '1.5rem 0 0.75rem 0',
+                    color: '#4ec9b0'
+                  }} {...props} />,
+                  h4: ({node, ...props}) => <h4 style={{
+                    fontSize: '1.25rem',
+                    fontWeight: 600,
+                    margin: '1.25rem 0 0.5rem 0',
+                    color: '#4ec9b0'
+                  }} {...props} />,
+                  p: ({node, ...props}) => <p style={{
+                    margin: '0 0 1rem 0',
+                    lineHeight: '1.7',
+                    fontSize: '1rem'
+                  }} {...props} />,
+                  code: ({node, inline, ...props}) => inline ? (
+                    <code style={{
+                      background: '#2d2d30',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      color: '#ce9178',
+                      fontFamily: '"Cascadia Code", Consolas, "Courier New", monospace',
+                      fontSize: '0.9em'
+                    }} {...props} />
+                  ) : (
+                    <code style={{
+                      display: 'block',
+                      background: '#2d2d30',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      overflowX: 'auto',
+                      color: '#d4d4d4',
+                      fontFamily: '"Cascadia Code", Consolas, "Courier New", monospace',
+                      fontSize: '0.9em',
+                      lineHeight: '1.5',
+                      border: '1px solid #444'
+                    }} {...props} />
+                  ),
+                  pre: ({node, ...props}) => <pre style={{
+                    margin: '1rem 0',
+                    background: '#2d2d30',
+                    borderRadius: '8px',
+                    overflow: 'hidden'
+                  }} {...props} />,
+                  ul: ({node, ...props}) => <ul style={{
+                    margin: '1rem 0',
+                    paddingLeft: '2rem',
+                    lineHeight: '1.7'
+                  }} {...props} />,
+                  ol: ({node, ...props}) => <ol style={{
+                    margin: '1rem 0',
+                    paddingLeft: '2rem',
+                    lineHeight: '1.7'
+                  }} {...props} />,
+                  li: ({node, ...props}) => <li style={{
+                    margin: '0.25rem 0'
+                  }} {...props} />,
+                  blockquote: ({node, ...props}) => <blockquote style={{
+                    margin: '1rem 0',
+                    padding: '0.5rem 1rem',
+                    borderLeft: '4px solid #007acc',
+                    background: '#2d2d30',
+                    fontStyle: 'italic'
+                  }} {...props} />,
+                  a: ({node, ...props}) => <a style={{
+                    color: '#3794ff',
+                    textDecoration: 'none'
+                  }} {...props} />,
+                  hr: ({node, ...props}) => <hr style={{
+                    margin: '2rem 0',
+                    border: 'none',
+                    borderTop: '1px solid #444'
+                  }} {...props} />,
+                  strong: ({node, ...props}) => <strong style={{
+                    color: '#ffffff',
+                    fontWeight: 700
+                  }} {...props} />,
+                  em: ({node, ...props}) => <em style={{
+                    color: '#9cdcfe'
+                  }} {...props} />
+                }}
+              >
+                {getCurrentFileContent()}
+              </ReactMarkdown>
+            </div>
+          ) : (
+            // Render code files with CodeMirror
+            <CodeMirrorKernelEditor
+              key={activeFile}
+              value={getCurrentFileContent()}
+              onChange={handleCodeChange}
+              readOnly={isCurrentFileReadOnly}
+              theme="dark"
+              height="100%"
+              enableLSP={true} // Enable LSP for clangd server
+              lspServerUri={getLspServerUri()} // Clangd WebSocket server
+              documentUri={`file:///kernel-${sessionId}/${activeFile}`}
+              sessionId={sessionId} // Pass session ID for isolation
+              allFiles={files} // Pass all files for multi-file LSP support
+              fileContents={fileContents} // Pass current file contents
+              placeholder={`// Start coding in ${activeFile}...`}
+              className="multi-file-editor-codemirror"
+            />
+          )}
         </div>
       </div>
     </div>
