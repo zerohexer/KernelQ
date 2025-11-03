@@ -989,7 +989,19 @@ const UnlimitedKernelAcademy = () => {
                             codeEditor={codeEditor}
                             onCodeChange={(codeOrFiles) => {
                                 if (Array.isArray(codeOrFiles)) {
-                                    setCodeEditor(prev => ({ ...prev, files: codeOrFiles }));
+                                    // Validate that incoming files match current challenge to prevent stale data overwrite
+                                    setCodeEditor(prev => {
+                                        const incomingFileNames = codeOrFiles.map(f => f.name).sort().join(',');
+                                        const challengeFileNames = currentChallenge?.files?.map(f => f.name).sort().join(',');
+
+                                        // Only update if files match the current challenge
+                                        if (incomingFileNames !== challengeFileNames) {
+                                            console.warn('[KernelQ] Ignoring file update - files do not match current challenge');
+                                            return prev;
+                                        }
+
+                                        return { ...prev, files: codeOrFiles };
+                                    });
                                 } else {
                                     setCodeEditor(prev => ({ ...prev, code: codeOrFiles }));
                                 }
