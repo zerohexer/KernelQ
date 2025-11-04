@@ -12,9 +12,10 @@ This guide documents the comprehensive approach to creating effective kernel pro
 - [Validation Types and Strategies](#validation-types-and-strategies)
 - [QEMU Infrastructure Guide](#qemu-infrastructure-guide)
 - [Anti-Hardcoding Protection](#anti-hardcoding-protection)
+- [Problem Structure Template](#problem-structure-template)
+- [Markdown Documentation Files](#markdown-documentation-files)
 - [Preprocessor Macros Implementation & Validation](#preprocessor-macros-implementation--validation)
 - [Variables Declarations: Universal Pattern](#variables-declarations-universal-pattern)
-- [Problem Structure Template](#problem-structure-template)
 - [Best Practices](#best-practices)
 - [Common Pitfalls and Solutions](#common-pitfalls-and-solutions)
 - [AI Troubleshooting Guide](#ai-troubleshooting-guide)
@@ -380,6 +381,16 @@ int main() {
       "language": "makefile"
     }
   ],
+  "markdown_documentation": {
+    "note": "For markdown documentation files (.md), use 'txt' as the language field",
+    "example": {
+      "name": "BEGINNER_GUIDE.md",
+      "content": "# Your Markdown Content\n\nMarkdown will be rendered properly in the frontend.",
+      "readOnly": true,
+      "language": "txt"
+    },
+    "explanation": "The .md extension triggers markdown rendering in MultiFileEditor.js, while language='txt' prevents CodeMirror syntax highlighting conflicts"
+  },
   "requiredFiles": [
     {
       "name": "student_created_file.c",
@@ -415,6 +426,111 @@ int main() {
   }
 }
 ```
+
+## Markdown Documentation Files
+
+### Overview
+
+KernelQ supports including markdown documentation files (.md) within problem file sets. These files are automatically rendered as formatted markdown in the frontend editor instead of being shown as plain text in CodeMirror.
+
+### Implementation Pattern
+
+**Critical Configuration**: Markdown files (.md) must use `"language": "txt"` in the JSON configuration.
+
+```json
+{
+  "files": [
+    {
+      "name": "BEGINNER_GUIDE.md",
+      "content": "# Markdown content here...",
+      "readOnly": true,
+      "language": "txt"
+    }
+  ]
+}
+```
+
+### Why `language: "txt"` for .md Files?
+
+**Technical Reason**:
+- The `.md` file extension triggers markdown rendering in `MultiFileEditor.js`
+- Setting `language: "txt"` prevents CodeMirror from applying syntax highlighting
+- This avoids conflicts between markdown rendering and code highlighting
+
+**Rendering Logic** (in MultiFileEditor.js):
+```javascript
+if (activeFile && activeFile.endsWith('.md')) {
+  // Render with ReactMarkdown component
+  return <MarkdownContainer>...</MarkdownContainer>
+} else {
+  // Render with CodeMirror editor
+  return <CodeMirrorKernelEditor language={language} ... />
+}
+```
+
+### Real-World Examples
+
+**Problem 1 (Hello World)**: Beginner's guide
+```json
+{
+  "name": "BEGINNER_GUIDE.md",
+  "content": "# Welcome to Kernel Programming\n\n## What You'll Learn...",
+  "readOnly": true,
+  "language": "txt"
+}
+```
+
+**Problem 15 (Basic Pointers)**: Visual pointer guide
+```json
+{
+  "name": "POINTER_VISUAL_GUIDE.md",
+  "content": "# Pointers - Visual Guide for Absolute Beginners...",
+  "readOnly": true,
+  "language": "txt"
+}
+```
+
+**Problem 26 (Linked Lists)**: Circular list visualization
+```json
+{
+  "name": "VISUAL_GUIDE.md",
+  "content": "# Circular Doubly-Linked List - Visual Guide...",
+  "readOnly": true,
+  "language": "txt"
+}
+```
+
+### Markdown Rendering Features
+
+The frontend automatically renders:
+- ✅ **Headings** (H1-H6) with proper styling
+- ✅ **Code blocks** with syntax highlighting
+- ✅ **Inline code** with monospace font
+- ✅ **Lists** (bullets and numbered) with proper indentation
+- ✅ **Bold** and *italic* text
+- ✅ **Links** (though external links may be restricted)
+- ✅ **Blockquotes** for important notes
+- ✅ **Horizontal rules** for section separation
+
+### Best Practices
+
+1. **Always set readOnly: true** - Documentation files should not be editable
+2. **Use .md extension** - Required for automatic markdown rendering
+3. **Use language: "txt"** - Required to avoid syntax highlighting conflicts
+4. **Include visual examples** - ASCII art and diagrams work well in markdown
+5. **Break into sections** - Use headings to organize long documentation
+6. **Keep it educational** - Focus on explaining concepts, not solving the problem
+7. **Use code blocks** - Show example patterns without giving away solutions
+
+### File Type Reference
+
+| File Extension | Language Field | Rendering Method |
+|----------------|----------------|------------------|
+| `.c` | `"c"` | CodeMirror with C syntax |
+| `.h` | `"h"` | CodeMirror with C syntax |
+| `.md` | `"txt"` | ReactMarkdown renderer |
+| `Makefile` | `"makefile"` | CodeMirror with Makefile syntax |
+| `.sh` | `"bash"` | CodeMirror with Bash syntax |
 
 ## Preprocessor Macros Implementation & Validation
 
