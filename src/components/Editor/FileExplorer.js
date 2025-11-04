@@ -178,14 +178,17 @@ const FileExplorer = ({
             </div>
             
             <span style={{
-              color: activeFile === file.name ? 
-                premiumStyles.colors.text : 
+              color: activeFile === file.name ?
+                premiumStyles.colors.text :
                 premiumStyles.colors.textSecondary,
               fontSize: premiumStyles.typography.sizes.sm,
-              fontWeight: activeFile === file.name ? 
-                premiumStyles.typography.weights.medium : 
+              fontWeight: activeFile === file.name ?
+                premiumStyles.typography.weights.medium :
                 premiumStyles.typography.weights.regular,
-              flex: 1
+              flex: 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
             }}>
               {file.name}
             </span>
