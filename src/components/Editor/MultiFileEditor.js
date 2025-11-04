@@ -464,13 +464,13 @@ const MultiFileEditor = ({
                     fontSize: '1.5rem',
                     fontWeight: 600,
                     margin: '1.5rem 0 0.75rem 0',
-                    color: '#4ec9b0'
+                    color: '#ffffff'
                   }} {...props} />,
                   h4: ({node, ...props}) => <h4 style={{
                     fontSize: '1.25rem',
                     fontWeight: 600,
                     margin: '1.25rem 0 0.5rem 0',
-                    color: '#4ec9b0'
+                    color: '#ffffff'
                   }} {...props} />,
                   p: ({node, ...props}) => <p style={{
                     margin: '0 0 1rem 0',
