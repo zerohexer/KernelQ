@@ -509,15 +509,20 @@ const MultiFileEditor = ({
                   ul: ({node, ...props}) => <ul style={{
                     margin: '1rem 0',
                     paddingLeft: '2rem',
-                    lineHeight: '1.7'
+                    lineHeight: '1.7',
+                    listStyleType: 'disc',
+                    listStylePosition: 'outside'
                   }} {...props} />,
                   ol: ({node, ...props}) => <ol style={{
                     margin: '1rem 0',
                     paddingLeft: '2rem',
-                    lineHeight: '1.7'
+                    lineHeight: '1.7',
+                    listStyleType: 'decimal',
+                    listStylePosition: 'outside'
                   }} {...props} />,
                   li: ({node, ...props}) => <li style={{
-                    margin: '0.25rem 0'
+                    margin: '0.25rem 0',
+                    display: 'list-item'
                   }} {...props} />,
                   blockquote: ({node, ...props}) => <blockquote style={{
                     margin: '1rem 0',
