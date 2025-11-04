@@ -14,6 +14,12 @@
       "language": "h"
     },
     {
+      "name": "VECTOR_OPERATIONS_GUIDE.md",
+      "content": "# Dynamic Vector Operations - Complete Visual Guide\n\n## Table of Contents\n1. [What is a Vector?](#what-is-a-vector)\n2. [Vector vs Fixed Arrays](#vector-vs-fixed-arrays)\n3. [Vector Structure Explained](#vector-structure-explained)\n4. [Memory Layout](#memory-layout)\n5. [Operation: Initialization](#operation-initialization)\n6. [Operation: Add with Capacity Doubling](#operation-add-with-capacity-doubling)\n7. [Operation: Get and Set](#operation-get-and-set)\n8. [Operation: Delete with Element Shifting](#operation-delete-with-element-shifting)\n9. [Operation: Resize Mechanics](#operation-resize-mechanics)\n10. [Common Pitfalls and Solutions](#common-pitfalls-and-solutions)\n\n---\n\n## What is a Vector?\n\nA **vector** is a **dynamic array** that automatically grows when you need more space.\n\n### Key Concept:\n```\nFixed Array:  [A][B][C][D]           <- Size NEVER changes\n              Size = 4 (forever)\n\nVector:       [A][B][C][D]           <- Can grow!\n              Size = 4 (for now)\n\n              Add more items...\n\n              [A][B][C][D][E][F][G][H]\n              Size = 8 (doubled!)\n```\n\n### Why \"Dynamic\"?\n- You don't need to know the size at compile time\n- It grows automatically when full\n- It can shrink to save memory when mostly empty\n\n---\n\n## Vector vs Fixed Arrays\n\n### Fixed Array (Static)\n\n```c\nDevice devices[5];    // Size fixed at compile time\n\n// Problem 1: What if you need 6 devices?\ndevices[5] = new_device;  // CRASH! Out of bounds!\n\n// Problem 2: What if you only use 2 devices?\n// Waste: 3 unused entries taking memory\n```\n\n### Vector (Dynamic)\n\n```c\nvector v;\nvector_init(&v);      // Starts at capacity 4\n\n// No problem adding 6 items:\nvector_add(&v, device1);  // total=1, capacity=4\nvector_add(&v, device2);  // total=2, capacity=4\nvector_add(&v, device3);  // total=3, capacity=4\nvector_add(&v, device4);  // total=4, capacity=4\nvector_add(&v, device5);  // total=5, capacity=8 (auto-doubled!)\nvector_add(&v, device6);  // total=6, capacity=8\n\n// No waste: only uses what it needs!\n```\n\n---\n\n## Vector Structure Explained\n\n```c\ntypedef struct vector {\n    void **items;     // Pointer to array of pointers\n    int capacity;     // Maximum slots available\n    int total;        // Current number of items\n} vector;\n```\n\n### Field Meanings:\n\n**items**: Array of `void*` pointers (generic storage)\n- Each slot holds a pointer to ANY type of data\n- This is why vectors are generic\n\n**capacity**: Maximum number of items before resize needed\n- Tracks allocated space\n- Example: capacity=8 means 8 slots allocated\n\n**total**: Current number of actual items stored\n- Tracks how many slots are in use\n- Example: total=5 means 5 items stored\n\n### Relationship Between Fields:\n\n```\ntotal <= capacity (always!)\n\nExamples:\ntotal=3, capacity=4   <- Vector has room for 1 more item\ntotal=4, capacity=4   <- Vector is FULL (triggers resize on next add)\ntotal=5, capacity=8   <- Vector has room for 3 more items\n```\n\n---\n\n## Memory Layout\n\n### Two Levels of Memory:\n\n```\nLevel 1: The Vector Structure (on stack or heap)\n┌─────────────────────────────┐\n│ vector v                    │\n│                             │\n│  void **items   ───────┐    │\n│  int capacity = 4      │    │\n│  int total = 2         │    │\n└────────────────────────│────┘\n                         │\n                         │\nLevel 2: Items Array (on heap, allocated with kmalloc)\n                         │\n                         │\n                         ▼\n         ┌───────┬───────┬───────┬───────┐\n         │ ptr0  │ ptr1  │ ptr2  │ ptr3  │\n         └───┬───┴───┬───┴───────┴───────┘\n             │       │\n             │       └──────────────┐\n             │                      │\n             ▼                      ▼\n         \"first item\"           \"second item\"\n```\n\n### Memory Addresses Example:\n\n```\nStack/Heap (vector struct):\n  v.items    = 0x7fff1234   (points to items array)\n  v.capacity = 4\n  v.total    = 2\n\nHeap (items array at 0x7fff1234):\n  items[0] = 0x7fff5000   (points to \"first item\")\n  items[1] = 0x7fff5020   (points to \"second item\")\n  items[2] = NULL         (unused slot)\n  items[3] = NULL         (unused slot)\n\nHeap (actual data):\n  0x7fff5000: \"first item\"\n  0x7fff5020: \"second item\"\n```\n\n---\n\n## Operation: Initialization\n\n### Code:\n```c\nvector v;\nvector_init(&v);\n```\n\n### What Happens:\n\n```\nStep 1: Allocate vector structure\n┌─────────────────────────────┐\n│ vector v                    │\n│  void **items   = ?         │\n│  int capacity   = ?         │\n│  int total      = ?         │\n└─────────────────────────────┘\n\nStep 2: Set initial values\n┌─────────────────────────────┐\n│ vector v                    │\n│  void **items   = NULL      │\n│  int capacity   = 4         │\n│  int total      = 0         │\n└─────────────────────────────┘\n\nStep 3: Allocate items array (kmalloc)\n┌─────────────────────────────┐\n│ vector v                    │\n│  void **items   ───────┐    │\n│  int capacity   = 4    │    │\n│  int total      = 0    │    │\n└────────────────────────│────┘\n                         │\n                         ▼\n         ┌──────┬──────┬──────┬──────┐\n         │ NULL │ NULL │ NULL │ NULL │\n         └──────┴──────┴──────┴──────┘\n           [0]    [1]    [2]    [3]\n```\n\n### Memory Allocation:\n```c\n// Inside vector_init():\nv->capacity = 4;\nv->total = 0;\nv->items = kmalloc(sizeof(void*) * 4, GFP_KERNEL);\n//                  ^^^^^^^^^^^^^^^^\n//                  4 pointers × 8 bytes = 32 bytes\n```\n\n---\n\n## Operation: Add with Capacity Doubling\n\n### Scenario: Add 5 items to a vector starting with capacity=4\n\n#### Initial State (Empty):\n```\ncapacity = 4, total = 0\n\n┌──────┬──────┬──────┬──────┐\n│ NULL │ NULL │ NULL │ NULL │\n└──────┴──────┴──────┴──────┘\n  [0]    [1]    [2]    [3]\n```\n\n#### After add #1: \"first\"\n```\ncapacity = 4, total = 1\n\n┌────────┬──────┬──────┬──────┐\n│ \"first\"│ NULL │ NULL │ NULL │\n└────────┴──────┴──────┴──────┘\n   [0]     [1]    [2]    [3]\n\nCode: vector_add(&v, \"first\");\nAction: items[0] = \"first\"; total++;\n```\n\n#### After add #2: \"second\"\n```\ncapacity = 4, total = 2\n\n┌────────┬─────────┬──────┬──────┐\n│ \"first\"│ \"second\"│ NULL │ NULL │\n└────────┴─────────┴──────┴──────┘\n   [0]      [1]      [2]    [3]\n\nCode: vector_add(&v, \"second\");\nAction: items[1] = \"second\"; total++;\n```\n\n#### After add #3: \"third\"\n```\ncapacity = 4, total = 3\n\n┌────────┬─────────┬────────┬──────┐\n│ \"first\"│ \"second\"│ \"third\"│ NULL │\n└────────┴─────────┴────────┴──────┘\n   [0]      [1]      [2]     [3]\n\nCode: vector_add(&v, \"third\");\nAction: items[2] = \"third\"; total++;\n```\n\n#### After add #4: \"fourth\"\n```\ncapacity = 4, total = 4  <- FULL!\n\n┌────────┬─────────┬────────┬─────────┐\n│ \"first\"│ \"second\"│ \"third\"│ \"fourth\"│\n└────────┴─────────┴────────┴─────────┘\n   [0]      [1]      [2]      [3]\n\nCode: vector_add(&v, \"fourth\");\nAction: items[3] = \"fourth\"; total++;\nStatus: capacity == total (vector is FULL!)\n```\n\n#### Add #5: \"fifth\" - TRIGGERS RESIZE!\n\n##### Step 1: Detect full condition\n```\nCheck: capacity (4) == total (4)?  YES!\nAction: Need to resize before adding!\n```\n\n##### Step 2: Call vector_resize(v, 8)\n```\nOld capacity = 4, New capacity = 8\n\nBEFORE RESIZE:\n┌────────┬─────────┬────────┬─────────┐\n│ \"first\"│ \"second\"│ \"third\"│ \"fourth\"│\n└────────┴─────────┴────────┴─────────┘\n\nAFTER RESIZE (krealloc):\n┌────────┬─────────┬────────┬─────────┬──────┬──────┬──────┬──────┐\n│ \"first\"│ \"second\"│ \"third\"│ \"fourth\"│ NULL │ NULL │ NULL │ NULL │\n└────────┴─────────┴────────┴─────────┴──────┴──────┴──────┴──────┘\n   [0]      [1]      [2]      [3]      [4]    [5]    [6]    [7]\n\nOld data preserved, new slots added!\n```\n\n##### Step 3: Add \"fifth\" to new slot\n```\ncapacity = 8, total = 5\n\n┌────────┬─────────┬────────┬─────────┬────────┬──────┬──────┬──────┐\n│ \"first\"│ \"second\"│ \"third\"│ \"fourth\"│ \"fifth\"│ NULL │ NULL │ NULL │\n└────────┴─────────┴────────┴─────────┴────────┴──────┴──────┴──────┘\n   [0]      [1]      [2]      [3]      [4]     [5]    [6]    [7]\n\nCode: items[4] = \"fifth\"; total++;\n```\n\n### Complete Doubling Sequence:\n\n```\nCapacity Progression:\n4 → 8 → 16 → 32 → 64 → 128 → ...\n\nWhen it happens:\ncapacity=4,  total=4   → Add 5th item → Resize to 8\ncapacity=8,  total=8   → Add 9th item → Resize to 16\ncapacity=16, total=16  → Add 17th item → Resize to 32\n```\n\n### Why Double (Not +1 or +10)?\n\n```\nStrategy 1: Increase by 1 each time\nAdd 1000 items = 1000 resizes!\nCost: O(n²) - VERY SLOW\n\nStrategy 2: Increase by 10 each time\nAdd 1000 items = 100 resizes\nCost: Still expensive\n\nStrategy 3: Double each time (×2)\nAdd 1000 items = ~10 resizes (log₂(1000) ≈ 10)\nCost: O(n) amortized - FAST!\n\nDoubling gives O(1) amortized time per add operation.\n```\n\n---\n\n## Operation: Get and Set\n\n### Get Operation: vector_get(&v, index)\n\n```\nVector state:\ncapacity = 8, total = 5\n\n┌────────┬─────────┬────────┬─────────┬────────┬──────┬──────┬──────┐\n│ \"first\"│ \"second\"│ \"third\"│ \"fourth\"│ \"fifth\"│ NULL │ NULL │ NULL │\n└────────┴─────────┴────────┴─────────┴────────┴──────┴──────┴──────┘\n   [0]      [1]      [2]      [3]      [4]     [5]    [6]    [7]\n\nValid indices: 0, 1, 2, 3, 4 (total=5)\nInvalid indices: 5, 6, 7 (beyond total), -1 (negative)\n\nExamples:\nvector_get(&v, 2)   → \"third\"  ✓ (index < total)\nvector_get(&v, 5)   → NULL     ✓ (index >= total, return NULL)\nvector_get(&v, -1)  → NULL     ✓ (negative index, return NULL)\n```\n\n### Set Operation: vector_set(&v, index, item)\n\n```\nBefore: vector_set(&v, 1, \"MODIFIED\")\n\n┌────────┬─────────┬────────┬─────────┬────────┐\n│ \"first\"│ \"second\"│ \"third\"│ \"fourth\"│ \"fifth\"│\n└────────┴─────────┴────────┴─────────┴────────┘\n   [0]      [1]      [2]      [3]      [4]\n\nAfter: items[1] = \"MODIFIED\"\n\n┌────────┬───────────┬────────┬─────────┬────────┐\n│ \"first\"│ \"MODIFIED\"│ \"third\"│ \"fourth\"│ \"fifth\"│\n└────────┴───────────┴────────┴─────────┴────────┘\n   [0]       [1]       [2]      [3]      [4]\n\nImportant: Can only set EXISTING indices (0 to total-1)\nvector_set(&v, 10, \"new\")  → ERROR (index >= total)\n```\n\n### Bounds Checking Diagram:\n\n```\ntotal = 5, capacity = 8\n\n                    total\n                      ↓\n┌────┬────┬────┬────┬────┬────┬────┬────┐\n│ OK │ OK │ OK │ OK │ OK │ NO │ NO │ NO │\n└────┴────┴────┴────┴────┴────┴────┴────┘\n  0    1    2    3    4    5    6    7\n  ↑                   ↑              ↑\nValid range      First invalid   capacity-1\n(0 to total-1)\n```\n\n---\n\n## Operation: Delete with Element Shifting\n\n### Scenario: Delete index 1 from a vector with 5 items\n\n#### Initial State:\n```\ncapacity = 8, total = 5\n\n┌────────┬─────────┬────────┬─────────┬────────┬──────┬──────┬──────┐\n│ \"first\"│ \"second\"│ \"third\"│ \"fourth\"│ \"fifth\"│ NULL │ NULL │ NULL │\n└────────┴─────────┴────────┴─────────┴────────┴──────┴──────┴──────┘\n   [0]      [1]      [2]      [3]      [4]     [5]    [6]    [7]\n            DELETE\n            THIS!\n```\n\n#### Step 1: Mark deletion target\n```\nCode: vector_delete(&v, 1);\n\nTarget index: 1 (\"second\")\nNeed to shift: [2], [3], [4] to the left\n```\n\n#### Step 2: Shift elements left\n```\nIteration 1: i=1\nitems[1] = items[2];   // \"third\" moves to index 1\n\n┌────────┬────────┬────────┬─────────┬────────┬──────┬──────┬──────┐\n│ \"first\"│ \"third\"│ \"third\"│ \"fourth\"│ \"fifth\"│ NULL │ NULL │ NULL │\n└────────┴────────┴────────┴─────────┴────────┴──────┴──────┴──────┘\n   [0]      [1]      [2]      [3]      [4]     [5]    [6]    [7]\n                   (duplicate)\n\nIteration 2: i=2\nitems[2] = items[3];   // \"fourth\" moves to index 2\n\n┌────────┬────────┬─────────┬─────────┬────────┬──────┬──────┬──────┐\n│ \"first\"│ \"third\"│ \"fourth\"│ \"fourth\"│ \"fifth\"│ NULL │ NULL │ NULL │\n└────────┴────────┴─────────┴─────────┴────────┴──────┴──────┴──────┘\n   [0]      [1]      [2]       [3]      [4]     [5]    [6]    [7]\n                              (duplicate)\n\nIteration 3: i=3\nitems[3] = items[4];   // \"fifth\" moves to index 3\n\n┌────────┬────────┬─────────┬────────┬────────┬──────┬──────┬──────┐\n│ \"first\"│ \"third\"│ \"fourth\"│ \"fifth\"│ \"fifth\"│ NULL │ NULL │ NULL │\n└────────┴────────┴─────────┴────────┴────────┴──────┴──────┴──────┘\n   [0]      [1]      [2]      [3]      [4]     [5]    [6]    [7]\n                                      (duplicate)\n\nLoop ends: i=4, condition i < total-1 (4 < 4) is FALSE\n```\n\n#### Step 3: Clear old last position\n```\nitems[total-1] = NULL;   // items[4] = NULL\n\n┌────────┬────────┬─────────┬────────┬──────┬──────┬──────┬──────┐\n│ \"first\"│ \"third\"│ \"fourth\"│ \"fifth\"│ NULL │ NULL │ NULL │ NULL │\n└────────┴────────┴─────────┴────────┴──────┴──────┴──────┴──────┘\n   [0]      [1]      [2]      [3]     [4]    [5]    [6]    [7]\n\nOld duplicate at [4] is now cleared\n```\n\n#### Step 4: Decrement total\n```\ntotal--;   // total becomes 4\n\ncapacity = 8, total = 4\n\n┌────────┬────────┬─────────┬────────┬──────┬──────┬──────┬──────┐\n│ \"first\"│ \"third\"│ \"fourth\"│ \"fifth\"│ NULL │ NULL │ NULL │ NULL │\n└────────┴────────┴─────────┴────────┴──────┴──────┴──────┴──────┘\n   [0]      [1]      [2]      [3]     [4]    [5]    [6]    [7]\n                                   ↑\n                              total=4\n\nDeletion complete! \"second\" is gone, all elements shifted left.\n```\n\n### Delete Algorithm Code:\n\n```c\nint vector_delete(vector *v, int index) {\n    // Step 1: Bounds check\n    if (index < 0 || index >= v->total)\n        return VECTOR_ERROR;\n\n    // Step 2: Shift elements left\n    for (int i = index; i < v->total - 1; i++) {\n        v->items[i] = v->items[i + 1];\n    }\n\n    // Step 3: Clear old last position\n    v->items[v->total - 1] = NULL;\n\n    // Step 4: Decrement total\n    v->total--;\n\n    return VECTOR_SUCCESS;\n}\n```\n\n### Multiple Deletes Example:\n\n```\nStart: total=5\n┌────────┬────────┬─────────┬────────┬────────┐\n│   A    │   B    │    C    │   D    │   E    │\n└────────┴────────┴─────────┴────────┴────────┘\n   [0]     [1]      [2]      [3]      [4]\n\nDelete index 1 (B): total=4\n┌────────┬─────────┬────────┬────────┬──────┐\n│   A    │    C    │   D    │   E    │ NULL │\n└────────┴─────────┴────────┴────────┴──────┘\n   [0]      [1]      [2]      [3]     [4]\n\nDelete index 2 (D): total=3\n┌────────┬─────────┬────────┬──────┬──────┐\n│   A    │    C    │   E    │ NULL │ NULL │\n└────────┴─────────┴────────┴──────┴──────┘\n   [0]      [1]      [2]     [3]    [4]\n\nDelete index 0 (A): total=2\n┌─────────┬────────┬──────┬──────┬──────┐\n│    C    │   E    │ NULL │ NULL │ NULL │\n└─────────┴────────┴──────┴──────┴──────┘\n    [0]     [1]     [2]    [3]    [4]\n```\n\n---\n\n## Operation: Resize Mechanics\n\n### When Resize Happens:\n\n**Expansion**: When vector is full (capacity == total) and you try to add\n**Shrinking** (optional): When vector is 25% full (total == capacity/4)\n\n### Resize Implementation with krealloc:\n\n```c\nstatic int vector_resize(vector *v, int new_capacity) {\n    // Calculate new size in bytes\n    size_t new_size = sizeof(void*) * new_capacity;\n\n    // Use krealloc to resize\n    void **new_items = krealloc(v->items, new_size, GFP_KERNEL);\n\n    // Check if successful\n    if (!new_items) {\n        return VECTOR_ERROR;  // Allocation failed!\n    }\n\n    // Update vector fields\n    v->items = new_items;\n    v->capacity = new_capacity;\n\n    return VECTOR_SUCCESS;\n}\n```\n\n### What krealloc Does:\n\n```\nBefore: v->items points to old 4-slot array\n┌──────┬──────┬──────┬──────┐\n│  A   │  B   │  C   │  D   │\n└──────┴──────┴──────┴──────┘\n  0x1000 (old address)\n\nCall: krealloc(v->items, sizeof(void*) * 8, GFP_KERNEL)\n\nkrealloc process:\n1. Allocate new 8-slot array at new address\n2. Copy old 4 items to new array\n3. Free old 4-slot array\n4. Return pointer to new 8-slot array\n\nAfter: v->items points to new 8-slot array\n┌──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┐\n│  A   │  B   │  C   │  D   │ NULL │ NULL │ NULL │ NULL │\n└──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┘\n  0x2000 (new address)\n\nOld data preserved! Address may change!\n```\n\n### Capacity Doubling in Action:\n\n```\nInitial: capacity=4, total=0\n┌──────┬──────┬──────┬──────┐\n│ NULL │ NULL │ NULL │ NULL │\n└──────┴──────┴──────┴──────┘\n\nAdd items until full: total=4\n┌──────┬──────┬──────┬──────┐\n│  A   │  B   │  C   │  D   │\n└──────┴──────┴──────┴──────┘\n\nAdd 5th item: Resize 4 → 8\n┌──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┐\n│  A   │  B   │  C   │  D   │  E   │ NULL │ NULL │ NULL │\n└──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┘\ncapacity=8, total=5\n\nContinue adding: total=8\n┌──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┐\n│  A   │  B   │  C   │  D   │  E   │  F   │  G   │  H   │\n└──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┘\n\nAdd 9th item: Resize 8 → 16\n┌──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┐\n│  A   │  B   │  C   │  D   │  E   │  F   │  G   │  H   │  I   │ NULL │ NULL │ NULL │ NULL │ NULL │ NULL │ NULL │\n└──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┘\ncapacity=16, total=9\n```\n\n### Capacity Shrinking (Optional Feature):\n\n```\nStart: capacity=16, total=16 (100% full)\n┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐\n│ A │ B │ C │ D │ E │ F │ G │ H │ I │ J │ K │ L │ M │ N │ O │ P │\n└───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘\n\nDelete many items: capacity=16, total=8 (50% full)\n┌───┬───┬───┬───┬───┬───┬───┬───┬────┬────┬────┬────┬────┬────┬────┬────┐\n│ A │ B │ C │ D │ E │ F │ G │ H │NULL│NULL│NULL│NULL│NULL│NULL│NULL│NULL│\n└───┴───┴───┴───┴───┴───┴───┴───┴────┴────┴────┴────┴────┴────┴────┴────┘\nNo shrink yet (not 25% full)\n\nDelete more: capacity=16, total=4 (25% full)\n┌───┬───┬───┬───┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐\n│ A │ B │ C │ D │NULL│NULL│NULL│NULL│NULL│NULL│NULL│NULL│NULL│NULL│NULL│NULL│\n└───┴───┴───┴───┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘\nTrigger shrink! 25% full\n\nShrink 16 → 8: capacity=8, total=4 (50% full)\n┌───┬───┬───┬───┬────┬────┬────┬────┐\n│ A │ B │ C │ D │NULL│NULL│NULL│NULL│\n└───┴───┴───┴───┴────┴────┴────┴────┘\nMemory saved! Efficiency restored.\n\nWhy 25% threshold?\n- Prevents thrashing (repeated resize up/down)\n- Maintains good memory efficiency\n- Gives headroom before next expansion\n```\n\n---\n\n## Common Pitfalls and Solutions\n\n### Pitfall 1: Accessing Out-of-Bounds Index\n\n```\nWRONG:\ncapacity = 8, total = 3\n\n┌───┬───┬───┬────┬────┬────┬────┬────┐\n│ A │ B │ C │NULL│NULL│NULL│NULL│NULL│\n└───┴───┴───┴────┴────┴────┴────┴────┘\n\nchar *item = vector_get(&v, 5);  // index 5 is beyond total!\n// Returns NULL, but some code doesn't check!\nprintf(\"%s\", item);  // CRASH! NULL pointer dereference\n\nCORRECT:\nchar *item = vector_get(&v, 5);\nif (item == NULL) {\n    printf(\"Index out of bounds!\\n\");\n    return;\n}\nprintf(\"%s\", item);  // Safe\n```\n\n### Pitfall 2: Forgetting to Check Allocation Failure\n\n```\nWRONG:\nvector v;\nvector_init(&v);  // What if this fails?\nvector_add(&v, \"data\");  // CRASH if init failed!\n\nCORRECT:\nvector v;\nif (vector_init(&v) != VECTOR_SUCCESS) {\n    printk(KERN_ERR \"Failed to initialize vector\\n\");\n    return -ENOMEM;\n}\nvector_add(&v, \"data\");  // Safe now\n```\n\n### Pitfall 3: Memory Leak - Not Freeing Items\n\n```\nWRONG:\nvector v;\nvector_init(&v);\n\nfor (int i = 0; i < 100; i++) {\n    char *str = kmalloc(64, GFP_KERNEL);  // Allocate string\n    sprintf(str, \"Item %d\", i);\n    vector_add(&v, str);  // Add to vector\n}\n\nvector_free(&v);  // LEAK! Only frees items array, not the strings!\n\nCORRECT:\nfor (int i = 0; i < vector_total(&v); i++) {\n    char *str = vector_get(&v, i);\n    kfree(str);  // Free each string first\n}\nvector_free(&v);  // Now free the vector\n```\n\n### Pitfall 4: Using After Free\n\n```\nWRONG:\nvector v;\nvector_init(&v);\nvector_add(&v, \"data\");\nvector_free(&v);\n\nchar *item = vector_get(&v, 0);  // CRASH! v.items is NULL now\nprintf(\"%s\", item);\n\nCORRECT:\nvector v;\nvector_init(&v);\nvector_add(&v, \"data\");\n\nchar *item = vector_get(&v, 0);  // Get BEFORE freeing\nprintf(\"%s\", item);\n\nvector_free(&v);  // Free at the end\n```\n\n### Pitfall 5: Modifying During Iteration\n\n```\nWRONG:\nfor (int i = 0; i < vector_total(&v); i++) {\n    if (some_condition) {\n        vector_delete(&v, i);  // Deletes shift elements!\n        // i++ will skip an element after shift!\n    }\n}\n\nCORRECT Method 1: Iterate backwards\nfor (int i = vector_total(&v) - 1; i >= 0; i--) {\n    if (some_condition) {\n        vector_delete(&v, i);  // Safe: no elements skipped\n    }\n}\n\nCORRECT Method 2: Don't increment when deleting\nfor (int i = 0; i < vector_total(&v); ) {\n    if (some_condition) {\n        vector_delete(&v, i);  // Don't increment i\n    } else {\n        i++;  // Only increment when not deleting\n    }\n}\n```\n\n---\n\n## Summary Cheat Sheet\n\n```\nOperation          Time Complexity    Space Used\n-------------------------------------------------\nvector_init        O(1)               capacity × sizeof(void*)\nvector_add         O(1) amortized     + data pointed to\nvector_get         O(1)               No extra space\nvector_set         O(1)               No extra space\nvector_delete      O(n)               No extra space\nvector_free        O(1)               Frees all\n\nKey Rules:\n1. Always check return codes (VECTOR_SUCCESS / VECTOR_ERROR)\n2. Always check if vector_get returns NULL\n3. Free your data before freeing the vector\n4. Don't use vector after vector_free\n5. Capacity doubles when full (4→8→16→32...)\n6. Capacity can shrink when 25% full (optional)\n7. Delete shifts all elements after deleted index\n8. Get/Set only work on indices 0 to total-1\n```\n\n---\n\n## Practice Understanding Check\n\nBefore you start coding, make sure you understand:\n\n1. What is the difference between `capacity` and `total`?\n2. Why does capacity double instead of increasing by 1?\n3. What happens to elements after a delete operation?\n4. What does krealloc do when resizing?\n5. Why must you check bounds in get and set operations?\n6. What memory must you free when cleaning up a vector?\n7. When does automatic resizing happen?\n8. Why use void pointers (void**) instead of a specific type?\n\nIf you can answer these, you're ready to implement the vector!\n",
+      "readOnly": true,
+      "language": "txt"
+    },
+    {
       "name": "kernel_vector.c",
       "content": "#include \"kernel_vector.h\"\n\n/* Module parameters for dynamic testing */\nint test_capacity = 4;\nint test_add_count = 10;\nint test_delete_index = 2;\n\nmodule_param(test_capacity, int, 0644);\nMODULE_PARM_DESC(test_capacity, \"Initial capacity for testing\");\nmodule_param(test_add_count, int, 0644);\nMODULE_PARM_DESC(test_add_count, \"Number of items to add for testing\");\nmodule_param(test_delete_index, int, 0644);\nMODULE_PARM_DESC(test_delete_index, \"Index to delete for testing\");\n\n/* ========================================================================== */\n/* PATTERN SCAFFOLDING: Dynamic Memory Management in Kernel */\n/* ========================================================================== */\n/* This teaches CRITICAL kernel memory management patterns used throughout Linux!\n *\n * KERNEL MEMORY ALLOCATION API:\n * - kmalloc(size, GFP_KERNEL): Allocate memory (like malloc)\n * - kfree(ptr): Free memory (like free)\n * - krealloc(ptr, new_size, GFP_KERNEL): Resize memory (like realloc)\n *\n * GFP_KERNEL FLAGS EXPLAINED:\n * GFP = Get Free Pages\n * GFP_KERNEL = Can sleep, use for normal allocations in process context\n * GFP_ATOMIC = Cannot sleep, use in interrupt context (not needed here)\n *\n * MEMORY ALLOCATION PATTERN:\n * void **items = kmalloc(sizeof(void*) * capacity, GFP_KERNEL);\n * ↑              ↑       ↑                  ↑\n * result type    function  size calculation  flags\n *\n * WHY sizeof(void*) * capacity?\n * We're allocating an ARRAY of void pointers.\n * Each pointer is sizeof(void*) bytes (usually 8 bytes on 64-bit).\n * For capacity=4: allocate 4 * 8 = 32 bytes.\n *\n * MEMORY SAFETY CRITICAL RULES:\n * 1. ALWAYS check if kmalloc returns NULL (allocation failed)\n * 2. ALWAYS free memory with kfree when done\n * 3. NEVER use memory after freeing it\n * 4. ALWAYS check bounds before accessing array indices\n */\n\n/* ========================================================================== */\n/* HELPER FUNCTION: vector_resize */\n/* ========================================================================== */\n/* This is a STATIC helper function (only used internally in this file)\n *\n * WHAT IS STATIC?\n * static int vector_resize(...) means:\n * - Function is PRIVATE to this file\n * - Cannot be called from other files\n * - Like a \"private\" method in OOP\n *\n * WHY RESIZE?\n * When capacity is full, we need MORE space:\n * Old: [ptr0][ptr1][ptr2][ptr3] (capacity=4, full!)\n * New: [ptr0][ptr1][ptr2][ptr3][null][null][null][null] (capacity=8)\n *\n * KREALLOC EXPLAINED:\n * krealloc(old_ptr, new_size, GFP_KERNEL)\n * - If successful: Returns new pointer, copies old data, frees old memory\n * - If fails: Returns NULL, old memory UNCHANGED\n *\n * CRITICAL: Store result in temporary variable first!\n * void **new_items = krealloc(v->items, new_size, GFP_KERNEL);\n * if (new_items) {\n *     v->items = new_items;  // Only update if successful!\n * }\n */\nstatic int vector_resize(vector *v, int capacity)\n{\n    printk(KERN_INFO \"vector_resize: %d to %d\\n\", v->capacity, capacity);\n\n    /* TODO: Resize the items array using krealloc */\n    /* STEP 1: Calculate new size: sizeof(void*) * capacity */\n    /* STEP 2: Call krealloc(v->items, new_size, GFP_KERNEL) */\n    /* STEP 3: Check if krealloc returned NULL (allocation failed) */\n    /* STEP 4: If successful, update v->items and v->capacity */\n    /* STEP 5: Return VECTOR_SUCCESS or VECTOR_ERROR */\n\n    /* HINT: Use a temporary pointer to store krealloc result */\n    /* void **new_items = krealloc(...); */\n    /* if (new_items) { ... } else { return VECTOR_ERROR; } */\n\n    return VECTOR_ERROR;  /* TODO: Replace with actual implementation */\n}\n\n/* ========================================================================== */\n/* FUNCTION: vector_init */\n/* ========================================================================== */\n/* Initialize an empty vector with initial capacity\n *\n * WHAT THIS FUNCTION DOES:\n * 1. Set capacity to VECTOR_INIT_CAPACITY (4)\n * 2. Set total to 0 (no elements yet)\n * 3. Allocate memory for items array using kmalloc\n * 4. Check if allocation succeeded\n *\n * MEMORY ALLOCATION PATTERN:\n * v->items = kmalloc(sizeof(void*) * v->capacity, GFP_KERNEL);\n *\n * ERROR HANDLING:\n * if (!v->items) {  // kmalloc returned NULL\n *     return VECTOR_ERROR;\n * }\n * return VECTOR_SUCCESS;\n */\nint vector_init(vector *v)\n{\n    printk(KERN_INFO \"vector_init: Initializing vector\\n\");\n\n    /* TODO: Initialize vector fields */\n    /* v->capacity = VECTOR_INIT_CAPACITY; */\n    /* v->total = 0; */\n    /* v->items = kmalloc(sizeof(void*) * v->capacity, GFP_KERNEL); */\n    /* if (!v->items) return VECTOR_ERROR; */\n    /* return VECTOR_SUCCESS; */\n\n    return VECTOR_ERROR;  /* TODO: Replace with actual implementation */\n}\n\n/* ========================================================================== */\n/* FUNCTION: vector_total */\n/* ========================================================================== */\n/* Return the current number of elements in the vector\n *\n * SIMPLE ACCESSOR FUNCTION:\n * Just return v->total (no complex logic needed)\n */\nint vector_total(vector *v)\n{\n    /* TODO: Return the total number of elements */\n    return 0;  /* TODO: Replace with v->total */\n}\n\n/* ========================================================================== */\n/* FUNCTION: vector_add */\n/* ========================================================================== */\n/* Add an item to the end of the vector\n *\n * ALGORITHM:\n * 1. Check if vector is full (v->capacity == v->total)\n * 2. If full, resize to double capacity: vector_resize(v, v->capacity * 2)\n * 3. Check if resize succeeded (it returns VECTOR_SUCCESS or VECTOR_ERROR)\n * 4. Add item to end: v->items[v->total] = item\n * 5. Increment total: v->total++\n *\n * CAPACITY EXPANSION VISUALIZATION:\n * Before add (capacity=4, total=4, FULL!):\n * [ptr0][ptr1][ptr2][ptr3]\n *\n * After resize (capacity=8):\n * [ptr0][ptr1][ptr2][ptr3][null][null][null][null]\n *\n * After add (total=5):\n * [ptr0][ptr1][ptr2][ptr3][NEW][null][null][null]\n *\n * WHY DOUBLE CAPACITY?\n * Doubling ensures O(1) amortized time complexity:\n * - Adding 1000 items: resize only ~10 times (log2(1000))\n * - Not doubling: would resize 1000 times (very slow!)\n */\nint vector_add(vector *v, void *item)\n{\n    printk(KERN_INFO \"vector_add: Adding item (total=%d, capacity=%d)\\n\", v->total, v->capacity);\n\n    /* TODO: Implement add logic */\n    /* STEP 1: Check if v->capacity == v->total (vector is full) */\n    /* STEP 2: If full, call vector_resize(v, v->capacity * 2) */\n    /* STEP 3: Check if resize returned VECTOR_ERROR */\n    /* STEP 4: Add item: v->items[v->total] = item */\n    /* STEP 5: Increment total: v->total++ */\n    /* STEP 6: Return VECTOR_SUCCESS */\n\n    return VECTOR_ERROR;  /* TODO: Replace with actual implementation */\n}\n\n/* ========================================================================== */\n/* FUNCTION: vector_set */\n/* ========================================================================== */\n/* Set/replace an item at a specific index\n *\n * BOUNDS CHECKING:\n * Must verify: index >= 0 AND index < v->total\n * Why < v->total? Can only modify EXISTING elements!\n *\n * Example with total=3:\n * Valid indices: 0, 1, 2\n * Invalid: -1, 3, 4, 100\n *\n * [ptr0][ptr1][ptr2][null]...\n *   ↑     ↑     ↑    ↑\n *   0     1     2    3 (out of bounds!)\n */\nint vector_set(vector *v, int index, void *item)\n{\n    printk(KERN_INFO \"vector_set: Setting index %d\\n\", index);\n\n    /* TODO: Implement set logic */\n    /* STEP 1: Check if index >= 0 AND index < v->total */\n    /* STEP 2: If valid, set v->items[index] = item and return VECTOR_SUCCESS */\n    /* STEP 3: If invalid, return VECTOR_ERROR */\n\n    return VECTOR_ERROR;  /* TODO: Replace with actual implementation */\n}\n\n/* ========================================================================== */\n/* FUNCTION: vector_get */\n/* ========================================================================== */\n/* Get an item at a specific index\n *\n * RETURN VALUE:\n * - Valid index: return v->items[index]\n * - Invalid index: return NULL\n *\n * WHY RETURN NULL?\n * NULL is a standard way to indicate \"no value\" or \"error\" for pointers.\n * Caller can check: if (result == NULL) { // handle error }\n */\nvoid *vector_get(vector *v, int index)\n{\n    /* TODO: Implement get logic */\n    /* STEP 1: Check if index >= 0 AND index < v->total */\n    /* STEP 2: If valid, return v->items[index] */\n    /* STEP 3: If invalid, return NULL */\n\n    return NULL;  /* TODO: Replace with actual implementation */\n}\n\n/* ========================================================================== */\n/* FUNCTION: vector_delete */\n/* ========================================================================== */\n/* Delete an item at a specific index and shift remaining elements\n *\n * DELETION ALGORITHM:\n * Before delete at index 1:\n * [ptr0][ptr1][ptr2][ptr3] (total=4)\n *   0     1     2     3\n *\n * After delete:\n * [ptr0][ptr2][ptr3][null] (total=3)\n *   0     1     2\n *\n * HOW TO SHIFT ELEMENTS:\n * for (int i = index; i < v->total - 1; i++) {\n *     v->items[i] = v->items[i + 1];  // Shift left\n * }\n * v->items[v->total - 1] = NULL;  // Clear old last position\n * v->total--;  // Decrease count\n *\n * CAPACITY SHRINKING:\n * If vector becomes too empty (total == capacity/4), shrink to capacity/2.\n * This saves memory when many items are deleted.\n *\n * Example:\n * capacity=16, total=4 (25% full)\n * → Shrink to capacity=8\n */\nint vector_delete(vector *v, int index)\n{\n    printk(KERN_INFO \"vector_delete: Deleting index %d\\n\", index);\n\n    /* TODO: Implement delete logic */\n    /* STEP 1: Check if index < 0 OR index >= v->total (out of bounds) */\n    /* STEP 2: If invalid, return VECTOR_ERROR */\n    /* STEP 3: Set deleted position to NULL: v->items[index] = NULL */\n    /* STEP 4: Shift elements left (loop from index to total-1) */\n    /* STEP 5: Decrement total: v->total-- */\n    /* STEP 6: Optional shrinking: if (v->total > 0 && v->total == v->capacity / 4) */\n    /*         vector_resize(v, v->capacity / 2); */\n    /* STEP 7: Return VECTOR_SUCCESS */\n\n    return VECTOR_ERROR;  /* TODO: Replace with actual implementation */\n}\n\n/* ========================================================================== */\n/* FUNCTION: vector_free */\n/* ========================================================================== */\n/* Free all memory allocated by the vector\n *\n * MEMORY CLEANUP:\n * 1. Free the items array: kfree(v->items)\n * 2. Reset fields to safe values:\n *    v->items = NULL\n *    v->total = 0\n *    v->capacity = 0\n *\n * WHY RESET TO NULL/0?\n * Prevents use-after-free bugs. If someone tries to use the vector\n * after freeing, they'll get NULL pointer errors instead of corruption.\n *\n * CRITICAL: This ONLY frees the items array, NOT the items themselves!\n * If items were allocated with kmalloc, caller must free them first:\n *\n * for (int i = 0; i < vector_total(&v); i++) {\n *     kfree(vector_get(&v, i));  // Free each item\n * }\n * vector_free(&v);  // Then free the vector structure\n */\nvoid vector_free(vector *v)\n{\n    printk(KERN_INFO \"vector_free: Freeing vector\\n\");\n\n    /* TODO: Implement free logic */\n    /* STEP 1: kfree(v->items); */\n    /* STEP 2: v->items = NULL; */\n    /* STEP 3: v->total = 0; */\n    /* STEP 4: v->capacity = 0; */\n}\n\n/* ========================================================================== */\n/* MODULE INIT: Test the vector implementation */\n/* ========================================================================== */\nstatic int __init kernel_vector_init(void)\n{\n    vector v;\n    int result;\n    int i;\n    char *test_strings[] = {\"first\", \"second\", \"third\", \"fourth\", \"fifth\"};\n\n    printk(KERN_INFO \"Kernel vector module loaded\\n\");\n    printk(KERN_INFO \"Testing with capacity=%d, add_count=%d, delete_index=%d\\n\",\n           test_capacity, test_add_count, test_delete_index);\n\n    /* Test 1: Initialization */\n    printk(KERN_INFO \"Test 1: Vector initialization\\n\");\n    result = vector_init(&v);\n    if (result != VECTOR_SUCCESS) {\n        printk(KERN_ERR \"Failed to initialize vector\\n\");\n        return -ENOMEM;\n    }\n    printk(KERN_INFO \"Vector initialized: capacity=%d, total=%d\\n\", v.capacity, v.total);\n\n    /* Test 2: Adding elements */\n    printk(KERN_INFO \"Test 2: Adding elements\\n\");\n    for (i = 0; i < 5 && i < test_add_count; i++) {\n        result = vector_add(&v, test_strings[i]);\n        if (result != VECTOR_SUCCESS) {\n            printk(KERN_ERR \"Failed to add element %d\\n\", i);\n            vector_free(&v);\n            return -ENOMEM;\n        }\n        printk(KERN_INFO \"Added '%s' at index %d (total=%d, capacity=%d)\\n\",\n               test_strings[i], i, v.total, v.capacity);\n    }\n\n    /* Test 3: Getting elements */\n    printk(KERN_INFO \"Test 3: Getting elements\\n\");\n    for (i = 0; i < vector_total(&v); i++) {\n        char *item = (char*)vector_get(&v, i);\n        if (item) {\n            printk(KERN_INFO \"Element at index %d: %s\\n\", i, item);\n        }\n    }\n\n    /* Test 4: Setting element */\n    printk(KERN_INFO \"Test 4: Setting element\\n\");\n    if (vector_total(&v) > 1) {\n        result = vector_set(&v, 1, \"modified\");\n        if (result == VECTOR_SUCCESS) {\n            char *item = (char*)vector_get(&v, 1);\n            printk(KERN_INFO \"Modified element at index 1: %s\\n\", item);\n        }\n    }\n\n    /* Test 5: Deleting element */\n    printk(KERN_INFO \"Test 5: Deleting element\\n\");\n    if (test_delete_index >= 0 && test_delete_index < vector_total(&v)) {\n        result = vector_delete(&v, test_delete_index);\n        if (result == VECTOR_SUCCESS) {\n            printk(KERN_INFO \"Deleted element at index %d (total=%d)\\n\",\n                   test_delete_index, v.total);\n            printk(KERN_INFO \"Elements after deletion:\\n\");\n            for (i = 0; i < vector_total(&v); i++) {\n                char *item = (char*)vector_get(&v, i);\n                if (item) {\n                    printk(KERN_INFO \"  Index %d: %s\\n\", i, item);\n                }\n            }\n        }\n    }\n\n    /* Test 6: Edge cases */\n    printk(KERN_INFO \"Test 6: Edge case testing\\n\");\n    void *invalid_get = vector_get(&v, 100);\n    printk(KERN_INFO \"Get invalid index (100): %s\\n\", invalid_get == NULL ? \"NULL\" : \"ERROR\");\n\n    int invalid_set = vector_set(&v, 100, \"test\");\n    printk(KERN_INFO \"Set invalid index (100): %s\\n\", invalid_set == VECTOR_ERROR ? \"ERROR\" : \"SUCCESS\");\n\n    /* Cleanup first vector */\n    vector_free(&v);\n    printk(KERN_INFO \"Vector freed\\n\");\n\n    /* Test 7: Empty Vector Operations */\n    printk(KERN_INFO \"Test 7: Empty vector operations\\n\");\n    vector v_empty;\n    vector_init(&v_empty);\n    printk(KERN_INFO \"Empty vector initialized (total=%d)\\n\", v_empty.total);\n    \n    void *empty_get = vector_get(&v_empty, 0);\n    printk(KERN_INFO \"Get from empty vector (index 0): %s\\n\", empty_get == NULL ? \"NULL (correct)\" : \"ERROR\");\n    \n    int empty_delete = vector_delete(&v_empty, 0);\n    printk(KERN_INFO \"Delete from empty vector (index 0): %s\\n\", empty_delete == VECTOR_ERROR ? \"ERROR (correct)\" : \"SUCCESS (wrong)\");\n    \n    int empty_set = vector_set(&v_empty, 0, \"test\");\n    printk(KERN_INFO \"Set on empty vector (index 0): %s\\n\", empty_set == VECTOR_ERROR ? \"ERROR (correct)\" : \"SUCCESS (wrong)\");\n    \n    vector_free(&v_empty);\n    printk(KERN_INFO \"Empty vector test completed\\n\");\n\n    /* Test 8: NULL Pointer Handling */\n    printk(KERN_INFO \"Test 8: NULL pointer handling\\n\");\n    vector v_null;\n    vector_init(&v_null);\n    \n    result = vector_add(&v_null, NULL);\n    printk(KERN_INFO \"Add NULL pointer: %s\\n\", result == VECTOR_SUCCESS ? \"SUCCESS\" : \"ERROR\");\n    \n    void *retrieved_null = vector_get(&v_null, 0);\n    printk(KERN_INFO \"Get NULL pointer: %s\\n\", retrieved_null == NULL ? \"NULL (correct)\" : \"Non-NULL (error)\");\n    \n    vector_add(&v_null, \"valid\");\n    vector_add(&v_null, NULL);\n    vector_add(&v_null, \"another\");\n    printk(KERN_INFO \"Mixed NULL and valid pointers: total=%d\\n\", v_null.total);\n    \n    for (i = 0; i < vector_total(&v_null); i++) {\n        char *item = (char*)vector_get(&v_null, i);\n        if (item == NULL) {\n            printk(KERN_INFO \"  Index %d: NULL\\n\", i);\n        } else {\n            printk(KERN_INFO \"  Index %d: %s\\n\", i, item);\n        }\n    }\n    \n    vector_free(&v_null);\n    printk(KERN_INFO \"NULL pointer test completed\\n\");\n\n    /* Test 9: Capacity Shrinking */\n    printk(KERN_INFO \"Test 9: Capacity shrinking test\\n\");\n    vector v_shrink;\n    vector_init(&v_shrink);\n    \n    /* Add 16 elements to expand capacity to 16 */\n    for (i = 0; i < 16; i++) {\n        vector_add(&v_shrink, \"item\");\n    }\n    printk(KERN_INFO \"After adding 16 items: total=%d, capacity=%d\\n\", v_shrink.total, v_shrink.capacity);\n    \n    /* Delete down to 4 items (25% of capacity 16) */\n    while (v_shrink.total > 4) {\n        vector_delete(&v_shrink, 0);\n    }\n    printk(KERN_INFO \"After deleting to 4 items (25%% full): total=%d, capacity=%d\\n\", v_shrink.total, v_shrink.capacity);\n    printk(KERN_INFO \"Capacity shrinking: %s\\n\", v_shrink.capacity == 8 ? \"SUCCESS (16→8)\" : \"Not implemented\");\n    \n    vector_free(&v_shrink);\n    printk(KERN_INFO \"Capacity shrinking test completed\\n\");\n\n    /* Test 10: Add-Delete Cycles */\n    printk(KERN_INFO \"Test 10: Add-Delete cycle test\\n\");\n    vector v_cycle;\n    vector_init(&v_cycle);\n    \n    int cycles = 3;\n    for (int cycle = 0; cycle < cycles; cycle++) {\n        /* Add 10 items */\n        for (i = 0; i < 10; i++) {\n            vector_add(&v_cycle, \"cycle_item\");\n        }\n        printk(KERN_INFO \"Cycle %d: After adding 10, total=%d\\n\", cycle, v_cycle.total);\n        \n        /* Delete 5 items */\n        for (i = 0; i < 5; i++) {\n            vector_delete(&v_cycle, 0);\n        }\n        printk(KERN_INFO \"Cycle %d: After deleting 5, total=%d\\n\", cycle, v_cycle.total);\n    }\n    printk(KERN_INFO \"After %d cycles: total=%d, capacity=%d\\n\", cycles, v_cycle.total, v_cycle.capacity);\n    \n    vector_free(&v_cycle);\n    printk(KERN_INFO \"Add-Delete cycle test completed\\n\");\n\n    printk(KERN_INFO \"All comprehensive tests completed\\n\");\n    return 0;\n}\n\nstatic void __exit kernel_vector_exit(void)\n{\n    printk(KERN_INFO \"Kernel vector module unloaded\\n\");\n}\n\nmodule_init(kernel_vector_init);\nmodule_exit(kernel_vector_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Dynamic vector implementation in kernel space\");\nMODULE_VERSION(\"1.0\");\n",
       "readOnly": false,
@@ -61,16 +67,68 @@
         "vector_resize"
       ],
       "function_declarations": [
-        { "name": "vector_init", "returnType": "int", "parameters": ["vector *v"] },
-        { "name": "vector_total", "returnType": "int", "parameters": ["vector *v"] },
-        { "name": "vector_add", "returnType": "int", "parameters": ["vector *v", "void *item"] },
-        { "name": "vector_set", "returnType": "int", "parameters": ["vector *v", "int index", "void *item"] },
-        { "name": "vector_get", "returnType": "void *", "parameters": ["vector *v", "int index"] },
-        { "name": "vector_delete", "returnType": "int", "parameters": ["vector *v", "int index"] },
-        { "name": "vector_free", "returnType": "void", "parameters": ["vector *v"] }
+        {
+          "name": "vector_init",
+          "returnType": "int",
+          "parameters": [
+            "vector *v"
+          ]
+        },
+        {
+          "name": "vector_total",
+          "returnType": "int",
+          "parameters": [
+            "vector *v"
+          ]
+        },
+        {
+          "name": "vector_add",
+          "returnType": "int",
+          "parameters": [
+            "vector *v",
+            "void *item"
+          ]
+        },
+        {
+          "name": "vector_set",
+          "returnType": "int",
+          "parameters": [
+            "vector *v",
+            "int index",
+            "void *item"
+          ]
+        },
+        {
+          "name": "vector_get",
+          "returnType": "void *",
+          "parameters": [
+            "vector *v",
+            "int index"
+          ]
+        },
+        {
+          "name": "vector_delete",
+          "returnType": "int",
+          "parameters": [
+            "vector *v",
+            "int index"
+          ]
+        },
+        {
+          "name": "vector_free",
+          "returnType": "void",
+          "parameters": [
+            "vector *v"
+          ]
+        }
       ],
       "variables_declarations": [
-        { "name": "vector", "type": "typedef struct", "value": "{void **items; int capacity; int total;}", "storageClass": "none" }
+        {
+          "name": "vector",
+          "type": "typedef struct",
+          "value": "{void **items; int capacity; int total;}",
+          "storageClass": "none"
+        }
       ],
       "requiredIncludes": [
         "linux/module.h",
@@ -138,53 +196,241 @@
         "type": "output_match",
         "critical": true,
         "expected": [
-          { "pattern": "Kernel vector module loaded", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Testing with capacity=", "exact": false, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Test 1: Vector initialization", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "vector_init: Initializing vector", "exact": true, "linkedFunction": "int vector_init(vector *v)" },
-          { "pattern": "Vector initialized: capacity=4, total=0", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Test 2: Adding elements", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "vector_add: Adding item", "exact": false, "linkedFunction": "int vector_add(vector *v, void *item)" },
-          { "pattern": "Added 'first' at index 0", "exact": false, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Added 'second' at index 1", "exact": false, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Added 'third' at index 2", "exact": false, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Test 3: Getting elements", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Element at index 0: first", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Element at index 1:", "exact": false, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Test 4: Setting element", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "vector_set: Setting index 1", "exact": true, "linkedFunction": "int vector_set(vector *v, int index, void *item)" },
-          { "pattern": "Modified element at index 1: modified", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Test 5: Deleting element", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "vector_delete: Deleting index", "exact": false, "linkedFunction": "int vector_delete(vector *v, int index)" },
-          { "pattern": "Deleted element at index", "exact": false, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Elements after deletion:", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Test 6: Edge case testing", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Get invalid index (100): NULL", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Set invalid index (100): ERROR", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "vector_free: Freeing vector", "exact": true, "linkedFunction": "void vector_free(vector *v)" },
-          { "pattern": "Vector freed", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Test 7: Empty vector operations", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Empty vector initialized (total=0)", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Get from empty vector (index 0): NULL (correct)", "exact": true, "linkedFunction": "void *vector_get(vector *v, int index)" },
-          { "pattern": "Delete from empty vector (index 0): ERROR (correct)", "exact": true, "linkedFunction": "int vector_delete(vector *v, int index)" },
-          { "pattern": "Set on empty vector (index 0): ERROR (correct)", "exact": true, "linkedFunction": "int vector_set(vector *v, int index, void *item)" },
-          { "pattern": "Empty vector test completed", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Test 8: NULL pointer handling", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Add NULL pointer: SUCCESS", "exact": true, "linkedFunction": "int vector_add(vector *v, void *item)" },
-          { "pattern": "Get NULL pointer: NULL (correct)", "exact": true, "linkedFunction": "void *vector_get(vector *v, int index)" },
-          { "pattern": "Mixed NULL and valid pointers: total=4", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "NULL pointer test completed", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Test 9: Capacity shrinking test", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "After adding 16 items: total=16, capacity=16", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "After deleting to 4 items", "exact": false, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Capacity shrinking test completed", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Test 10: Add-Delete cycle test", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Cycle 0: After adding 10, total=10", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Cycle 0: After deleting 5, total=5", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "After 3 cycles: total=15", "exact": false, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Add-Delete cycle test completed", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "All comprehensive tests completed", "exact": true, "linkedFunction": "static int __init kernel_vector_init(void)" },
-          { "pattern": "Kernel vector module unloaded", "exact": true, "linkedFunction": "static void __exit kernel_vector_exit(void)" }
+          {
+            "pattern": "Kernel vector module loaded",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Testing with capacity=",
+            "exact": false,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Test 1: Vector initialization",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "vector_init: Initializing vector",
+            "exact": true,
+            "linkedFunction": "int vector_init(vector *v)"
+          },
+          {
+            "pattern": "Vector initialized: capacity=4, total=0",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Test 2: Adding elements",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "vector_add: Adding item",
+            "exact": false,
+            "linkedFunction": "int vector_add(vector *v, void *item)"
+          },
+          {
+            "pattern": "Added 'first' at index 0",
+            "exact": false,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Added 'second' at index 1",
+            "exact": false,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Added 'third' at index 2",
+            "exact": false,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Test 3: Getting elements",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Element at index 0: first",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Element at index 1:",
+            "exact": false,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Test 4: Setting element",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "vector_set: Setting index 1",
+            "exact": true,
+            "linkedFunction": "int vector_set(vector *v, int index, void *item)"
+          },
+          {
+            "pattern": "Modified element at index 1: modified",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Test 5: Deleting element",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "vector_delete: Deleting index",
+            "exact": false,
+            "linkedFunction": "int vector_delete(vector *v, int index)"
+          },
+          {
+            "pattern": "Deleted element at index",
+            "exact": false,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Elements after deletion:",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Test 6: Edge case testing",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Get invalid index (100): NULL",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Set invalid index (100): ERROR",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "vector_free: Freeing vector",
+            "exact": true,
+            "linkedFunction": "void vector_free(vector *v)"
+          },
+          {
+            "pattern": "Vector freed",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Test 7: Empty vector operations",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Empty vector initialized (total=0)",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Get from empty vector (index 0): NULL (correct)",
+            "exact": true,
+            "linkedFunction": "void *vector_get(vector *v, int index)"
+          },
+          {
+            "pattern": "Delete from empty vector (index 0): ERROR (correct)",
+            "exact": true,
+            "linkedFunction": "int vector_delete(vector *v, int index)"
+          },
+          {
+            "pattern": "Set on empty vector (index 0): ERROR (correct)",
+            "exact": true,
+            "linkedFunction": "int vector_set(vector *v, int index, void *item)"
+          },
+          {
+            "pattern": "Empty vector test completed",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Test 8: NULL pointer handling",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Add NULL pointer: SUCCESS",
+            "exact": true,
+            "linkedFunction": "int vector_add(vector *v, void *item)"
+          },
+          {
+            "pattern": "Get NULL pointer: NULL (correct)",
+            "exact": true,
+            "linkedFunction": "void *vector_get(vector *v, int index)"
+          },
+          {
+            "pattern": "Mixed NULL and valid pointers: total=4",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "NULL pointer test completed",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Test 9: Capacity shrinking test",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "After adding 16 items: total=16, capacity=16",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "After deleting to 4 items",
+            "exact": false,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Capacity shrinking test completed",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Test 10: Add-Delete cycle test",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Cycle 0: After adding 10, total=10",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Cycle 0: After deleting 5, total=5",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "After 3 cycles: total=15",
+            "exact": false,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Add-Delete cycle test completed",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "All comprehensive tests completed",
+            "exact": true,
+            "linkedFunction": "static int __init kernel_vector_init(void)"
+          },
+          {
+            "pattern": "Kernel vector module unloaded",
+            "exact": true,
+            "linkedFunction": "static void __exit kernel_vector_exit(void)"
+          }
         ]
       },
       {
