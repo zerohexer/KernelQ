@@ -43,20 +43,22 @@ const ResizableSplitter = ({ leftPanelWidth, onWidthChange, children }) => {
     }, [isDragging, handleMouseMove, handleMouseUp]);
 
     return (
-        <div 
+        <div
             ref={containerRef}
-            style={{ 
+            style={{
                 display: 'flex',
-                height: '110vh',
+                height: '100%',
                 position: 'relative',
                 gap: '0px',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                flex: 1,
+                minHeight: 0
             }}
         >
             {/* Left Panel */}
-            <div style={{ 
+            <div style={{
                 width: `${leftPanelWidth}%`,
                 minWidth: '300px',
+                height: '100%',
                 overflow: 'hidden'
             }}>
                 {children[0]}
@@ -88,11 +90,13 @@ const ResizableSplitter = ({ leftPanelWidth, onWidthChange, children }) => {
             </div>
 
             {/* Right Panel */}
-            <div style={{ 
+            <div style={{
                 flex: 1,
                 minWidth: '400px',
+                height: '100%',
                 overflow: 'hidden',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                display: 'flex',
+                flexDirection: 'column'
             }}>
                 {children[1]}
             </div>

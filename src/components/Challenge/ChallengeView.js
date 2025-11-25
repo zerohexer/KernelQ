@@ -1447,20 +1447,19 @@ const ChallengeView = ({
     }
     
     return (
-        <div style={{ 
-            background: 'rgba(29, 29, 31, 0.8)', 
+        <div style={{
+            background: 'rgba(29, 29, 31, 0.8)',
             backdropFilter: 'blur(40px)',
             WebkitBackdropFilter: 'blur(40px)',
             borderRadius: '24px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-            padding: '40px',
+            padding: '24px',
             position: 'relative',
             overflow: 'hidden',
-            minHeight: `calc(100vh - 100px)`,
+            height: 'calc(100vh - 60px - 1.5rem - 40px)',
             display: 'flex',
-            flexDirection: 'column',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            flexDirection: 'column'
         }}>
             {/* Subtle background glow effect */}
             <div style={{
@@ -1473,8 +1472,8 @@ const ChallengeView = ({
             }} />
             
             {/* Main Resizable Layout: Header + Description + Editor */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-                <ResizableSplitter 
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+                <ResizableSplitter
                     leftPanelWidth={leftPanelWidth}
                     onWidthChange={setLeftPanelWidth}
                 >
@@ -2293,12 +2292,13 @@ const ChallengeView = ({
                 </div>
 
                 {/* Right Panel: Editor & Output */}
-                <div style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    gap: '20px', 
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
                     paddingLeft: '20px',
                     height: '100%',
+                    minHeight: 0,
                     overflow: 'hidden'
                 }}>
                     {/* Tab Navigation */}
@@ -2309,7 +2309,8 @@ const ChallengeView = ({
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                         padding: '8px',
                         display: 'flex',
-                        gap: '4px'
+                        gap: '4px',
+                        flexShrink: 0
                     }}>
                         <button
                             onClick={() => setActiveTab('code')}
@@ -2393,9 +2394,12 @@ const ChallengeView = ({
                                 flexDirection: 'column',
                                 minHeight: 0
                             }}>
-                                <div style={{ 
-                                    padding: '24px',
-                                    flex: 1
+                                <div style={{
+                                    padding: '16px',
+                                    flex: 1,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    minHeight: 0
                                 }}>
                                     <div style={{
                                         borderRadius: '16px',
@@ -2403,7 +2407,8 @@ const ChallengeView = ({
                                         border: '1px solid rgba(255, 255, 255, 0.15)',
                                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
                                         background: 'rgba(0, 0, 0, 0.3)',
-                                        height: '100%'
+                                        flex: 1,
+                                        minHeight: 0
                                     }}>
                                         {/* Multi-file editor for projects with multiple files */}
                                         {codeEditor.files && codeEditor.files.length > 0 ? (
@@ -2437,8 +2442,8 @@ const ChallengeView = ({
                                 </div>
                             </div>
                             
-                            <div style={{ display: 'flex', gap: '16px' }}>
-                        <button 
+                            <div style={{ display: 'flex', gap: '16px', flexShrink: 0 }}>
+                        <button
                             style={{
                                 background: 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
                                 color: 'white',
