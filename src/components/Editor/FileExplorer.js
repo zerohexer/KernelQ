@@ -164,12 +164,12 @@ const FileExplorer = ({
             }}
             onMouseEnter={(e) => {
               if (activeFile !== file.name) {
-                e.target.style.backgroundColor = premiumStyles.colors.surfaceHover;
+                e.currentTarget.style.backgroundColor = premiumStyles.colors.surfaceHover;
               }
             }}
             onMouseLeave={(e) => {
               if (activeFile !== file.name) {
-                e.target.style.backgroundColor = 'transparent';
+                e.currentTarget.style.backgroundColor = 'transparent';
               }
             }}
           >
@@ -221,8 +221,8 @@ const FileExplorer = ({
                   opacity: 0.6,
                   transition: 'opacity 0.2s ease'
                 }}
-                onMouseEnter={(e) => e.target.style.opacity = '1'}
-                onMouseLeave={(e) => e.target.style.opacity = '0.6'}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '0.6'}
               >
                 <X size={12} />
               </button>
@@ -303,10 +303,10 @@ const FileExplorer = ({
                 transition: 'all 0.2s ease'
               }}
               onMouseEnter={(e) => {
-                e.target.style.backgroundColor = premiumStyles.colors.accent + '30';
+                e.currentTarget.style.backgroundColor = premiumStyles.colors.accent + '30';
               }}
               onMouseLeave={(e) => {
-                e.target.style.backgroundColor = premiumStyles.colors.accent + '20';
+                e.currentTarget.style.backgroundColor = premiumStyles.colors.accent + '20';
               }}
             >
               <Plus size={14} />
@@ -414,12 +414,12 @@ const FileExplorer = ({
         }}
         onMouseEnter={(e) => {
           if (!isDragging) {
-            e.target.style.background = premiumStyles.colors.border;
+            e.currentTarget.style.background = premiumStyles.colors.border;
           }
         }}
         onMouseLeave={(e) => {
           if (!isDragging) {
-            e.target.style.background = 'transparent';
+            e.currentTarget.style.background = 'transparent';
           }
         }}
       >
