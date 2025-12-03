@@ -22,7 +22,7 @@ const PremiumStyles = {
     warning: '#ff9f0a',
     error: '#ff453a'
   },
-  
+
   // Typography System
   typography: {
     fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif',
@@ -46,7 +46,7 @@ const PremiumStyles = {
       '5xl': 'clamp(3rem, 2.5rem + 2.5vw, 4rem)'
     }
   },
-  
+
   // Spacing System
   spacing: {
     xs: '0.25rem',
@@ -59,7 +59,7 @@ const PremiumStyles = {
     '4xl': '6rem',
     '5xl': '8rem'
   },
-  
+
   // Glassmorphism Effects
   glass: {
     light: {
@@ -81,7 +81,7 @@ const PremiumStyles = {
       border: '1px solid rgba(255, 255, 255, 0.2)'
     }
   },
-  
+
   // Shadow System
   shadows: {
     sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
@@ -93,7 +93,7 @@ const PremiumStyles = {
     glow: '0 0 20px rgba(0, 122, 255, 0.3)',
     glowHover: '0 0 30px rgba(0, 122, 255, 0.5)'
   },
-  
+
   // Scrollbar System
   scrollbar: {
     // WebKit scrollbar styles
@@ -134,8 +134,8 @@ const PremiumStyles = {
 const premiumStyles = {
   // Main Container
   container: {
-    height: 'calc(100vh / 0.75)',
-    minHeight: 'calc(100vh / 0.75)',
+    minHeight: '100%',
+    height: '100%',
     background: `linear-gradient(135deg, ${PremiumStyles.colors.background} 0%, ${PremiumStyles.colors.backgroundSecondary} 100%)`,
     color: PremiumStyles.colors.text,
     fontFamily: PremiumStyles.typography.fontFamily,
@@ -143,9 +143,10 @@ const premiumStyles = {
     MozOsxFontSmoothing: 'grayscale',
     overflow: 'hidden',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    flex: 1
   },
-  
+
   // Navigation Bar
   navbar: {
     position: 'fixed',
@@ -162,15 +163,16 @@ const premiumStyles = {
     borderBottom: `1px solid ${PremiumStyles.colors.border}`,
     transition: PremiumStyles.animations.transition
   },
-  
+
   // Main Content Area
   mainContent: {
     paddingTop: '60px',
     flex: 1,
     display: 'flex',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    minHeight: 0
   },
-  
+
   // Sidebar
   sidebar: {
     width: '320px',
@@ -181,7 +183,7 @@ const premiumStyles = {
     padding: '1.5rem',
     transition: PremiumStyles.animations.transition
   },
-  
+
   // Content Area
   contentArea: {
     flex: 1,
@@ -189,7 +191,8 @@ const premiumStyles = {
     padding: '2rem',
     position: 'relative',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    minHeight: 0
   },
 
   // Glass Card
@@ -200,10 +203,9 @@ const premiumStyles = {
     transition: PremiumStyles.animations.transition,
     boxShadow: PremiumStyles.shadows.md,
     position: 'relative',
-    overflow: 'hidden',
-    flex: 1
+    overflow: 'hidden'
   },
-  
+
   // Glass Card Hover
   glassCardHover: {
     ...PremiumStyles.glass.medium,
@@ -211,7 +213,7 @@ const premiumStyles = {
     boxShadow: `${PremiumStyles.shadows.lg}, ${PremiumStyles.shadows.glow}`,
     borderColor: PremiumStyles.colors.borderHover
   },
-  
+
   // Button Primary
   buttonPrimary: {
     background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
@@ -229,7 +231,7 @@ const premiumStyles = {
     gap: '0.5rem',
     textDecoration: 'none'
   },
-  
+
   // Button Secondary
   buttonSecondary: {
     ...PremiumStyles.glass.light,
@@ -246,7 +248,7 @@ const premiumStyles = {
     gap: '0.5rem',
     textDecoration: 'none'
   },
-  
+
   // Dropdown Select
   dropdown: {
     background: PremiumStyles.colors.backgroundSecondary,
@@ -267,7 +269,7 @@ const premiumStyles = {
     backgroundPosition: 'right 1rem center',
     paddingRight: '3rem'
   },
-  
+
   // Tab Navigation
   tabNav: {
     display: 'flex',
@@ -277,7 +279,7 @@ const premiumStyles = {
     marginBottom: '1.5rem',
     gap: '0.25rem'
   },
-  
+
   // Tab Item
   tabItem: {
     flex: 1,
@@ -290,14 +292,14 @@ const premiumStyles = {
     fontWeight: PremiumStyles.typography.weights.medium,
     color: PremiumStyles.colors.textSecondary
   },
-  
+
   // Tab Item Active
   tabItemActive: {
     background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
     color: 'white',
     boxShadow: PremiumStyles.shadows.md
   },
-  
+
   // Typography
   headingXL: {
     fontSize: PremiumStyles.typography.sizes['3xl'],
@@ -306,7 +308,7 @@ const premiumStyles = {
     marginBottom: '0.5rem',
     letterSpacing: '-0.025em'
   },
-  
+
   headingLG: {
     fontSize: PremiumStyles.typography.sizes['2xl'],
     fontWeight: PremiumStyles.typography.weights.semibold,
@@ -314,7 +316,7 @@ const premiumStyles = {
     marginBottom: '1rem',
     letterSpacing: '-0.02em'
   },
-  
+
   headingMD: {
     fontSize: PremiumStyles.typography.sizes.xl,
     fontWeight: PremiumStyles.typography.weights.semibold,
@@ -322,19 +324,19 @@ const premiumStyles = {
     marginBottom: '0.75rem',
     letterSpacing: '-0.015em'
   },
-  
+
   textBase: {
     fontSize: PremiumStyles.typography.sizes.base,
     color: PremiumStyles.colors.text,
     lineHeight: '1.6'
   },
-  
+
   textSecondary: {
     fontSize: PremiumStyles.typography.sizes.sm,
     color: PremiumStyles.colors.textSecondary,
     lineHeight: '1.5'
   },
-  
+
   // Status indicators
   statusBadge: {
     display: 'inline-flex',
@@ -347,7 +349,7 @@ const premiumStyles = {
     ...PremiumStyles.glass.light,
     border: `1px solid ${PremiumStyles.colors.border}`
   },
-  
+
   // Problem card
   problemCard: {
     ...PremiumStyles.glass.light,
@@ -360,7 +362,7 @@ const premiumStyles = {
     position: 'relative',
     overflow: 'hidden'
   },
-  
+
   // Code editor container
   codeEditorContainer: {
     ...PremiumStyles.glass.medium,
@@ -369,7 +371,7 @@ const premiumStyles = {
     border: `1px solid ${PremiumStyles.colors.border}`,
     boxShadow: PremiumStyles.shadows.lg
   },
-  
+
   // Stats card
   statsCard: {
     ...PremiumStyles.glass.light,
@@ -379,7 +381,7 @@ const premiumStyles = {
     border: `1px solid ${PremiumStyles.colors.border}`,
     transition: PremiumStyles.animations.transition
   },
-  
+
   // Progress bar
   progressBar: {
     width: '100%',
@@ -389,7 +391,7 @@ const premiumStyles = {
     overflow: 'hidden',
     position: 'relative'
   },
-  
+
   progressFill: {
     height: '100%',
     background: `linear-gradient(90deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.accent} 100%)`,
