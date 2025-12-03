@@ -134,7 +134,7 @@ const PremiumStyles = {
 const premiumStyles = {
   // Main Container
   container: {
-    minHeight: '100vh',
+    minHeight: 'calc(100vh / 0.75)',
     background: `linear-gradient(135deg, ${PremiumStyles.colors.background} 0%, ${PremiumStyles.colors.backgroundSecondary} 100%)`,
     color: PremiumStyles.colors.text,
     fontFamily: PremiumStyles.typography.fontFamily,
@@ -163,7 +163,7 @@ const premiumStyles = {
   // Main Content Area
   mainContent: {
     paddingTop: '60px',
-    height: '100vh',
+    height: 'calc(100vh / 0.75)',
     display: 'flex',
     overflow: 'hidden'
   },
