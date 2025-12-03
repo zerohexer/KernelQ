@@ -1318,8 +1318,7 @@ const ChallengeView = ({
                                         overflow: 'hidden',
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        minHeight: 0,
-                                        maxHeight: 'calc(100vh - 180px)'
+                                        minHeight: 0
                                     }}>
                                         <div style={{
                                             padding: '20px 24px 16px 24px',
@@ -1457,7 +1456,8 @@ const ChallengeView = ({
             padding: '16px',
             position: 'relative',
             overflow: 'hidden',
-            height: 'calc(100vh - 60px - 1.5rem - 40px)',
+            flex: 1,
+            minHeight: 0,
             display: 'flex',
             flexDirection: 'column'
         }}>

@@ -897,8 +897,7 @@ const UnlimitedKernelAcademy = () => {
                 ...premiumStyles.container,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                height: '100vh'
+                justifyContent: 'center'
             }}>
                 <div style={{
                     ...PremiumStyles.glass.medium,
