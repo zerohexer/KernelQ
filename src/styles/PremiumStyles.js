@@ -183,11 +183,14 @@ const premiumStyles = {
   contentArea: {
     flex: 1,
     height: '100%',
+    minHeight: 'calc((100vh / 0.75) - 60px)',
     overflow: 'auto',
     padding: '2rem',
-    position: 'relative'
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'column'
   },
-  
+
   // Glass Card
   glassCard: {
     ...PremiumStyles.glass.light,
@@ -196,7 +199,8 @@ const premiumStyles = {
     transition: PremiumStyles.animations.transition,
     boxShadow: PremiumStyles.shadows.md,
     position: 'relative',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    flex: 1
   },
   
   // Glass Card Hover
