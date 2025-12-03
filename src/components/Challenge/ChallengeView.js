@@ -978,13 +978,17 @@ const ChallengeView = ({
     
     if (!challenge) {
         return (
-            <div style={{ 
+            <div style={{
                 ...PremiumStyles.glass.light,
                 borderRadius: '16px',
-                padding: '1.5rem',
                 boxShadow: PremiumStyles.shadows.md,
-                textAlign: 'center', 
-                padding: '3rem 2rem' 
+                textAlign: 'center',
+                padding: '3rem 2rem',
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center'
             }}>
                 <div style={{ maxWidth: '600px', margin: '0 auto' }}>
                     <Target size={48} style={{ color: PremiumStyles.colors.primary, margin: '0 auto 1.5rem auto' }} />
