@@ -983,12 +983,7 @@ const ChallengeView = ({
                 borderRadius: '16px',
                 boxShadow: PremiumStyles.shadows.md,
                 textAlign: 'center',
-                padding: '3rem 2rem',
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center'
+                padding: '3rem 2rem'
             }}>
                 <div style={{ maxWidth: '600px', margin: '0 auto' }}>
                     <Target size={48} style={{ color: PremiumStyles.colors.primary, margin: '0 auto 1.5rem auto' }} />
