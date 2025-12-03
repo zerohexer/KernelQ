@@ -304,18 +304,42 @@ const MultiFileEditor = ({
   const currentFile = getCurrentFile();
   const isCurrentFileReadOnly = currentFile?.readOnly || readOnly;
 
+  // When inside parent fullscreen, expand within parent instead of using fixed positioning
+  // This avoids issues with zoom: 0.75 affecting 100vh calculations
+  const containerStyle = effectiveIsFullScreen
+    ? (parentFullScreen
+        ? {
+            // Inside parent fullscreen: expand within the flex container
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 100
+          }
+        : {
+            // Standalone fullscreen: use fixed positioning
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            height: '100vh',
+            width: '100%',
+            zIndex: 1000
+          }
+      )
+    : {
+        position: 'relative',
+        height: height
+      };
+
   return (
     <div style={{
-        height: effectiveIsFullScreen ? '100vh' : height,
         width: '100%',
         display: 'flex',
         ...premiumStyles.glass.light,
-        borderRadius: '12px',
+        borderRadius: effectiveIsFullScreen && parentFullScreen ? 0 : '12px',
         overflow: 'hidden',
-        position: effectiveIsFullScreen ? 'fixed' : 'relative',
-        top: effectiveIsFullScreen ? 0 : 'auto',
-        left: effectiveIsFullScreen ? 0 : 'auto',
-        zIndex: effectiveIsFullScreen ? 1000 : 'auto'
+        ...containerStyle
       }}>
       {/* File Explorer */}
       {showFileExplorer && (
