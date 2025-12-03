@@ -134,13 +134,16 @@ const PremiumStyles = {
 const premiumStyles = {
   // Main Container
   container: {
+    height: 'calc(100vh / 0.75)',
     minHeight: 'calc(100vh / 0.75)',
     background: `linear-gradient(135deg, ${PremiumStyles.colors.background} 0%, ${PremiumStyles.colors.backgroundSecondary} 100%)`,
     color: PremiumStyles.colors.text,
     fontFamily: PremiumStyles.typography.fontFamily,
     WebkitFontSmoothing: 'antialiased',
     MozOsxFontSmoothing: 'grayscale',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column'
   },
   
   // Navigation Bar
@@ -163,7 +166,7 @@ const premiumStyles = {
   // Main Content Area
   mainContent: {
     paddingTop: '60px',
-    height: 'calc(100vh / 0.75)',
+    flex: 1,
     display: 'flex',
     overflow: 'hidden'
   },
@@ -182,8 +185,6 @@ const premiumStyles = {
   // Content Area
   contentArea: {
     flex: 1,
-    height: '100%',
-    minHeight: 'calc((100vh / 0.75) - 60px)',
     overflow: 'auto',
     padding: '2rem',
     position: 'relative',
