@@ -107,27 +107,27 @@ const FileExplorer = ({
       display: 'flex',
       height: '100%'
     }}>
-      <div 
+      <div
         ref={containerRef}
         style={{
           width: `${width}px`,
           height: '100%',
           ...premiumStyles.glass.medium,
-          borderRadius: '12px',
-          padding: '16px',
+          borderRadius: '8px',
+          padding: '10px',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative'
         }}>
       <div style={{
-        marginBottom: '16px',
-        padding: '8px 0',
+        marginBottom: '10px',
+        padding: '6px 0',
         borderBottom: `1px solid ${premiumStyles.colors.border}`,
         display: 'flex',
         alignItems: 'center',
-        gap: '8px'
+        gap: '6px'
       }}>
-        <File size={16} color={premiumStyles.colors.text} />
+        <File size={14} color={premiumStyles.colors.text} />
         <span style={{
           color: premiumStyles.colors.text,
           fontSize: premiumStyles.typography.sizes.sm,
@@ -147,12 +147,12 @@ const FileExplorer = ({
             key={index}
             onClick={() => onFileSelect(file.name)}
             style={{
-              padding: '8px 12px',
-              borderRadius: '8px',
+              padding: '6px 10px',
+              borderRadius: '6px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px',
               backgroundColor: activeFile === file.name ? 
                 premiumStyles.colors.primary : 
                 'transparent',
