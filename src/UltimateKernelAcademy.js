@@ -1082,6 +1082,9 @@ const UnlimitedKernelAcademy = () => {
                             premiumStyles={premiumStyles}
                         />
                     )}
+
+                    {/* Scroll spacer - allows user to scroll past navbar */}
+                    <div style={{ height: '60px', flexShrink: 0 }} />
                 </div>
             </div>
 
