@@ -1,6 +1,8 @@
 .App {
     text-align: left;
     zoom: 0.75;
+    min-height: calc(100vh / 0.75);
+    width: calc(100vw / 0.75);
 }
 
 /* Custom scrollbar for better UX */
