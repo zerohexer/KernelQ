@@ -1226,6 +1226,32 @@ const ChallengeView = ({
                             <Shuffle size={14} />
                             <span>Reset All</span>
                         </button>
+
+                        {/* Run & Validate Button */}
+                        <button
+                            onClick={onRun}
+                            disabled={codeEditor.isRunning}
+                            style={{
+                                background: codeEditor.isRunning
+                                    ? 'rgba(0, 122, 255, 0.5)'
+                                    : 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '8px 14px',
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                                cursor: codeEditor.isRunning ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'all 0.2s ease',
+                                boxShadow: codeEditor.isRunning ? 'none' : '0 2px 8px rgba(0, 122, 255, 0.3)'
+                            }}
+                        >
+                            {codeEditor.isRunning ? <Timer size={14} /> : <Play size={14} />}
+                            <span>{codeEditor.isRunning ? 'Testing...' : 'Run & Validate'}</span>
+                        </button>
                     </div>
 
                     {/* Tab Content */}
@@ -2408,6 +2434,33 @@ const ChallengeView = ({
                         >
                             <Shuffle size={13} />
                             <span>Reset</span>
+                        </button>
+
+                        {/* Run & Validate Button */}
+                        <button
+                            onClick={onRun}
+                            disabled={codeEditor.isRunning}
+                            style={{
+                                background: codeEditor.isRunning
+                                    ? 'rgba(0, 122, 255, 0.5)'
+                                    : 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '8px 14px',
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                                cursor: codeEditor.isRunning ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                transition: 'all 0.2s ease',
+                                boxShadow: codeEditor.isRunning ? 'none' : '0 2px 8px rgba(0, 122, 255, 0.3)',
+                                flexShrink: 0
+                            }}
+                        >
+                            {codeEditor.isRunning ? <Timer size={13} /> : <Play size={13} />}
+                            <span>{codeEditor.isRunning ? 'Testing...' : 'Run'}</span>
                         </button>
                     </div>
                     
