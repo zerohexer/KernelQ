@@ -189,6 +189,7 @@ const premiumStyles = {
     flex: 1,
     overflow: 'auto',
     padding: '2rem',
+    paddingBottom: '4rem',
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
