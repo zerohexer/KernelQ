@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import FileExplorer from './FileExplorer';
 import CodeMirrorKernelEditor from './CodeMirrorKernelEditor';
-import { Maximize2, Minimize2, FileText, Book } from 'lucide-react';
+import { Maximize2, Minimize2, FileText, Book, RotateCcw } from 'lucide-react';
 
 const MultiFileEditor = ({
   files,
@@ -21,7 +21,9 @@ const MultiFileEditor = ({
   activeFile: controlledActiveFile = null,
   onActiveFileChange = null,
   scrollPositions: controlledScrollPositions = null,
-  onScrollPositionsChange = null
+  onScrollPositionsChange = null,
+  onResetFile = null,
+  originalFiles = null
 }) => {
   // Generate unique session ID for this editor instance
   const sessionId = useRef(crypto.randomUUID()).current;
@@ -411,38 +413,76 @@ const MultiFileEditor = ({
             )}
           </div>
 
-          <button
-            onClick={parentFullScreen ? handleFullScreenToggle : undefined}
-            disabled={!parentFullScreen}
-            title="Alt + C - Toggle Full-Screen"
-            style={{
-              background: 'none',
-              border: 'none',
-              color: parentFullScreen ? premiumStyles.colors.textSecondary : 'rgba(245, 245, 247, 0.3)',
-              cursor: parentFullScreen ? 'pointer' : 'not-allowed',
-              padding: '4px',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s ease',
-              opacity: parentFullScreen ? 1 : 0.5
-            }}
-            onMouseEnter={(e) => {
-              if (parentFullScreen) {
-                e.target.style.backgroundColor = premiumStyles.colors.surfaceHover;
-                e.target.style.color = premiumStyles.colors.text;
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (parentFullScreen) {
-                e.target.style.backgroundColor = 'transparent';
-                e.target.style.color = premiumStyles.colors.textSecondary;
-              }
-            }}
-          >
-            {effectiveIsFullScreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {/* Reset Current File Button */}
+            {onResetFile && originalFiles && (
+              <button
+                onClick={() => {
+                  const originalFile = originalFiles.find(f => f.name === activeFile);
+                  if (originalFile) {
+                    onResetFile(activeFile, originalFile.content);
+                  }
+                }}
+                title="Reset this file to original"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: premiumStyles.colors.textSecondary,
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = premiumStyles.colors.surfaceHover;
+                  e.currentTarget.style.color = premiumStyles.colors.text;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = premiumStyles.colors.textSecondary;
+                }}
+              >
+                <RotateCcw size={14} />
+              </button>
+            )}
+
+            {/* Fullscreen Toggle Button */}
+            <button
+              onClick={parentFullScreen ? handleFullScreenToggle : undefined}
+              disabled={!parentFullScreen}
+              title="Alt + C - Toggle Full-Screen"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: parentFullScreen ? premiumStyles.colors.textSecondary : 'rgba(245, 245, 247, 0.3)',
+                cursor: parentFullScreen ? 'pointer' : 'not-allowed',
+                padding: '4px',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease',
+                opacity: parentFullScreen ? 1 : 0.5
+              }}
+              onMouseEnter={(e) => {
+                if (parentFullScreen) {
+                  e.currentTarget.style.backgroundColor = premiumStyles.colors.surfaceHover;
+                  e.currentTarget.style.color = premiumStyles.colors.text;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (parentFullScreen) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = premiumStyles.colors.textSecondary;
+                }
+              }}
+            >
+              {effectiveIsFullScreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            </button>
+          </div>
         </div>
 
         {/* Editor - Completely separated with absolute positioning */}

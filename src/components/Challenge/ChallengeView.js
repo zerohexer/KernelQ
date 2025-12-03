@@ -1135,13 +1135,14 @@ const ChallengeView = ({
                         borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
                         padding: '8px 24px',
                         display: 'flex',
-                        gap: '4px'
+                        gap: '4px',
+                        alignItems: 'center'
                     }}>
                         <button
                             onClick={() => setActiveTab('code')}
                             style={{
-                                background: activeTab === 'code' ? 
-                                    'linear-gradient(135deg, #007aff 0%, #0056b3 100%)' : 
+                                background: activeTab === 'code' ?
+                                    'linear-gradient(135deg, #007aff 0%, #0056b3 100%)' :
                                     'transparent',
                                 color: activeTab === 'code' ? 'white' : 'rgba(245, 245, 247, 0.7)',
                                 border: 'none',
@@ -1161,8 +1162,8 @@ const ChallengeView = ({
                         <button
                             onClick={() => setActiveTab('results')}
                             style={{
-                                background: activeTab === 'results' ? 
-                                    'linear-gradient(135deg, #30d158 0%, #28a745 100%)' : 
+                                background: activeTab === 'results' ?
+                                    'linear-gradient(135deg, #30d158 0%, #28a745 100%)' :
                                     'transparent',
                                 color: activeTab === 'results' ? 'white' : 'rgba(245, 245, 247, 0.7)',
                                 border: 'none',
@@ -1190,6 +1191,40 @@ const ChallengeView = ({
                                     background: '#30d158'
                                 }} />
                             )}
+                        </button>
+
+                        {/* Spacer */}
+                        <div style={{ flex: 1 }} />
+
+                        {/* Reset All Files Button */}
+                        <button
+                            onClick={onReset}
+                            title="Reset all files to original state"
+                            style={{
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                color: 'rgba(245, 245, 247, 0.7)',
+                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                borderRadius: '8px',
+                                padding: '8px 12px',
+                                fontSize: '0.875rem',
+                                fontWeight: 500,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                                e.currentTarget.style.color = '#f5f5f7';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                                e.currentTarget.style.color = 'rgba(245, 245, 247, 0.7)';
+                            }}
+                        >
+                            <Shuffle size={14} />
+                            <span>Reset All</span>
                         </button>
                     </div>
 
@@ -1237,6 +1272,13 @@ const ChallengeView = ({
                                                     onActiveFileChange={setActiveFile}
                                                     scrollPositions={scrollPositions}
                                                     onScrollPositionsChange={setScrollPositions}
+                                                    originalFiles={challenge.files}
+                                                    onResetFile={(fileName, originalContent) => {
+                                                        const updatedFiles = codeEditor.files.map(f =>
+                                                            f.name === fileName ? { ...f, content: originalContent } : f
+                                                        );
+                                                        onCodeChange(updatedFiles);
+                                                    }}
                                                 />
                                             ) : (
                                                 <SemanticCodeEditor
@@ -1250,53 +1292,9 @@ const ChallengeView = ({
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div style={{ display: 'flex', gap: '16px' }}>
-                                    <button 
-                                        style={{
-                                            background: 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '12px',
-                                            padding: '12px 24px',
-                                            fontSize: '1rem',
-                                            fontWeight: 600,
-                                            cursor: codeEditor.isRunning ? 'not-allowed' : 'pointer',
-                                            boxShadow: '0 4px 16px rgba(0, 122, 255, 0.3)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px',
-                                            opacity: codeEditor.isRunning ? 0.6 : 1
-                                        }}
-                                        onClick={onRun} 
-                                        disabled={codeEditor.isRunning}
-                                    >
-                                        {codeEditor.isRunning ? <Timer size={18} /> : <Play size={18} />}
-                                        <span>{codeEditor.isRunning ? 'Testing...' : 'Run & Validate'}</span>
-                                    </button>
-                                    <button 
-                                        style={{
-                                            background: 'rgba(255, 255, 255, 0.1)',
-                                            color: '#f5f5f7',
-                                            border: '1px solid rgba(255, 255, 255, 0.2)',
-                                            borderRadius: '12px',
-                                            padding: '12px 24px',
-                                            fontSize: '1rem',
-                                            fontWeight: 500,
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px'
-                                        }}
-                                        onClick={onReset}
-                                    >
-                                        <Shuffle size={18} />
-                                        <span>Reset</span>
-                                    </button>
-                                </div>
                             </div>
                         )}
-                        
+
                         {activeTab === 'results' && (
                             <div style={{
                                 height: '100%',
@@ -2312,7 +2310,8 @@ const ChallengeView = ({
                         padding: '4px',
                         display: 'flex',
                         gap: '4px',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        alignItems: 'center'
                     }}>
                         <button
                             onClick={() => setActiveTab('code')}
@@ -2379,6 +2378,37 @@ const ChallengeView = ({
                                 }} />
                             )}
                         </button>
+                        {/* Reset All Files Button */}
+                        <button
+                            onClick={onReset}
+                            title="Reset all files to original state"
+                            style={{
+                                background: 'rgba(255, 255, 255, 0.08)',
+                                color: 'rgba(245, 245, 247, 0.7)',
+                                border: '1px solid rgba(255, 255, 255, 0.12)',
+                                borderRadius: '6px',
+                                padding: '8px 12px',
+                                fontSize: '0.8rem',
+                                fontWeight: 500,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                transition: 'all 0.2s ease',
+                                flexShrink: 0
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
+                                e.currentTarget.style.color = '#f5f5f7';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                                e.currentTarget.style.color = 'rgba(245, 245, 247, 0.7)';
+                            }}
+                        >
+                            <Shuffle size={13} />
+                            <span>Reset</span>
+                        </button>
                     </div>
                     
                     {/* Tab Content */}
@@ -2429,6 +2459,13 @@ const ChallengeView = ({
                                                 onActiveFileChange={setActiveFile}
                                                 scrollPositions={scrollPositions}
                                                 onScrollPositionsChange={setScrollPositions}
+                                                originalFiles={challenge.files}
+                                                onResetFile={(fileName, originalContent) => {
+                                                    const updatedFiles = codeEditor.files.map(f =>
+                                                        f.name === fileName ? { ...f, content: originalContent } : f
+                                                    );
+                                                    onCodeChange(updatedFiles);
+                                                }}
                                             />
                                         ) : (
                                             /* Legacy single-file editor */
@@ -2443,83 +2480,9 @@ const ChallengeView = ({
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                        <button
-                            style={{
-                                background: 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                padding: '10px 20px',
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                                cursor: codeEditor.isRunning ? 'not-allowed' : 'pointer',
-                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                boxShadow: '0 2px 8px rgba(0, 122, 255, 0.3)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-                                opacity: codeEditor.isRunning ? 0.6 : 1,
-                                transform: 'translateY(0)',
-                                ...(codeEditor.isRunning ? {} : {
-                                    ':hover': {
-                                        transform: 'translateY(-1px) scale(1.02)',
-                                        boxShadow: '0 4px 12px rgba(0, 122, 255, 0.4)'
-                                    }
-                                })
-                            }}
-                            onClick={onRun}
-                            disabled={codeEditor.isRunning}
-                            onMouseEnter={(e) => {
-                                if (!codeEditor.isRunning) {
-                                    e.currentTarget.style.transform = 'translateY(-1px) scale(1.02)';
-                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 122, 255, 0.4)';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 122, 255, 0.3)';
-                            }}
-                        >
-                            {codeEditor.isRunning ? <Timer size={16} /> : <Play size={16} />}
-                            <span>{codeEditor.isRunning ? 'Testing...' : 'Run & Validate'}</span>
-                        </button>
-                        <button
-                            style={{
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                backdropFilter: 'blur(20px)',
-                                color: '#f5f5f7',
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                borderRadius: '8px',
-                                padding: '10px 20px',
-                                fontSize: '0.875rem',
-                                fontWeight: 500,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif'
-                            }}
-                            onClick={onReset}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
-                                e.currentTarget.style.transform = 'translateY(-1px)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                                e.currentTarget.style.transform = 'translateY(0)';
-                            }}
-                        >
-                            <Shuffle size={16} />
-                            <span>Reset</span>
-                        </button>
-                            </div>
                         </>
                     )}
-                    
+
                     {activeTab === 'results' && (
                         <div style={{
                             background: 'rgba(255, 255, 255, 0.05)',
