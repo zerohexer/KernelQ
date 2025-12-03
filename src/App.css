@@ -1,5 +1,6 @@
 .App {
     text-align: left;
+    zoom: 0.75;
 }
 
 /* Custom scrollbar for better UX */
