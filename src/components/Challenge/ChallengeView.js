@@ -1454,7 +1454,7 @@ const ChallengeView = ({
             borderRadius: '12px',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-            padding: '12px',
+            padding: '16px',
             position: 'relative',
             overflow: 'hidden',
             height: 'calc(100vh - 60px - 1.5rem - 40px)',
@@ -1482,7 +1482,9 @@ const ChallengeView = ({
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
+                    paddingLeft: '4px',
                     paddingRight: '8px',
+                    paddingTop: '4px',
                     height: '100%',
                     overflow: 'auto'
                 }}>
