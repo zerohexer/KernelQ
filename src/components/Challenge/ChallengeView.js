@@ -1202,8 +1202,8 @@ const ChallengeView = ({
                             title="Reset all files to original state"
                             style={{
                                 background: 'rgba(255, 255, 255, 0.1)',
-                                color: 'rgba(245, 245, 247, 0.7)',
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                color: '#f5f5f7',
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
                                 borderRadius: '8px',
                                 padding: '8px 12px',
                                 fontSize: '0.875rem',
@@ -1213,14 +1213,6 @@ const ChallengeView = ({
                                 alignItems: 'center',
                                 gap: '6px',
                                 transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
-                                e.currentTarget.style.color = '#f5f5f7';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                                e.currentTarget.style.color = 'rgba(245, 245, 247, 0.7)';
                             }}
                         >
                             <Shuffle size={14} />
@@ -1233,8 +1225,8 @@ const ChallengeView = ({
                             disabled={codeEditor.isRunning}
                             style={{
                                 background: codeEditor.isRunning
-                                    ? 'rgba(0, 122, 255, 0.5)'
-                                    : 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
+                                    ? 'rgba(48, 209, 88, 0.5)'
+                                    : 'linear-gradient(135deg, #30d158 0%, #28a745 100%)',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '8px',
@@ -1246,7 +1238,7 @@ const ChallengeView = ({
                                 alignItems: 'center',
                                 gap: '6px',
                                 transition: 'all 0.2s ease',
-                                boxShadow: codeEditor.isRunning ? 'none' : '0 2px 8px rgba(0, 122, 255, 0.3)'
+                                boxShadow: codeEditor.isRunning ? 'none' : '0 2px 8px rgba(48, 209, 88, 0.3)'
                             }}
                         >
                             {codeEditor.isRunning ? <Timer size={14} /> : <Play size={14} />}
@@ -2409,9 +2401,9 @@ const ChallengeView = ({
                             onClick={onReset}
                             title="Reset all files to original state"
                             style={{
-                                background: 'rgba(255, 255, 255, 0.08)',
-                                color: 'rgba(245, 245, 247, 0.7)',
-                                border: '1px solid rgba(255, 255, 255, 0.12)',
+                                background: 'rgba(255, 255, 255, 0.1)',
+                                color: '#f5f5f7',
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
                                 borderRadius: '6px',
                                 padding: '8px 12px',
                                 fontSize: '0.8rem',
@@ -2422,14 +2414,6 @@ const ChallengeView = ({
                                 gap: '5px',
                                 transition: 'all 0.2s ease',
                                 flexShrink: 0
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
-                                e.currentTarget.style.color = '#f5f5f7';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                                e.currentTarget.style.color = 'rgba(245, 245, 247, 0.7)';
                             }}
                         >
                             <Shuffle size={13} />
@@ -2442,8 +2426,8 @@ const ChallengeView = ({
                             disabled={codeEditor.isRunning}
                             style={{
                                 background: codeEditor.isRunning
-                                    ? 'rgba(0, 122, 255, 0.5)'
-                                    : 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
+                                    ? 'rgba(48, 209, 88, 0.5)'
+                                    : 'linear-gradient(135deg, #30d158 0%, #28a745 100%)',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '6px',
@@ -2455,7 +2439,7 @@ const ChallengeView = ({
                                 alignItems: 'center',
                                 gap: '5px',
                                 transition: 'all 0.2s ease',
-                                boxShadow: codeEditor.isRunning ? 'none' : '0 2px 8px rgba(0, 122, 255, 0.3)',
+                                boxShadow: codeEditor.isRunning ? 'none' : '0 2px 8px rgba(48, 209, 88, 0.3)',
                                 flexShrink: 0
                             }}
                         >
