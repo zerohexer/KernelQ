@@ -14,7 +14,7 @@ const ProblemBankTab = ({
   const stats = getProblemStats ? getProblemStats() : { total: problems.length, completed: 0 };
   
   return (
-    <div style={premiumStyles.glassCard}>
+    <div style={{...premiumStyles.glassCard, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0}}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h2 style={premiumStyles.headingLG}>Problem Bank</h2>
         <span style={premiumStyles.textSecondary}>
@@ -61,7 +61,7 @@ const ProblemBankTab = ({
       </div>
 
       {/* Problems List */}
-      <div style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '1rem' }}>
+      <div style={{ flex: 1, overflowY: 'auto', paddingRight: '1rem', minHeight: 0 }}>
         <div style={{ display: 'grid', gap: '1rem' }}>
           {problems.map(problem => {
             const isCompleted = completedChallenges.has(problem.id);

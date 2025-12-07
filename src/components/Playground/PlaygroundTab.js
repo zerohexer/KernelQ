@@ -20,8 +20,8 @@ const PlaygroundTab = ({
     return (
         <div style={{
             ...premiumStyles.glassCard,
-            height: `calc(100vh - 100px)`,
-            maxHeight: `calc(100vh - 100px)`,
+            flex: 1,
+            minHeight: 0,
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',

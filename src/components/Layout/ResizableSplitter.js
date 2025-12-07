@@ -67,7 +67,7 @@ const ResizableSplitter = ({ leftPanelWidth, onWidthChange, children }) => {
             {/* Resizable Splitter */}
             <div
                 style={{
-                    width: '20px',
+                    width: '8px',
                     cursor: 'col-resize',
                     display: 'flex',
                     alignItems: 'center',
@@ -81,8 +81,8 @@ const ResizableSplitter = ({ leftPanelWidth, onWidthChange, children }) => {
                 onMouseDown={handleMouseDown}
             >
                 <div style={{
-                    width: '4px',
-                    height: '40px',
+                    width: '3px',
+                    height: '32px',
                     background: isDragging ? 'rgba(0, 122, 255, 0.5)' : 'rgba(255, 255, 255, 0.2)',
                     borderRadius: '2px',
                     transition: isDragging ? 'none' : 'all 0.2s ease'
