@@ -45,8 +45,8 @@
     "exactRequirements": {
       "functionNames": ["strings_init", "strings_exit", "show_device_info", "count_device_name_length", "update_to_new_device"],
       "variables": [
-        { "name": "device_name[]", "type": "char", "value": "\"my_device\"" },
-        { "name": "welcome_msg[]", "type": "char", "value": "\"Hello from kernel!\"" },
+        { "name": "device_name[MAX_NAME_SIZE]", "type": "char", "value": "\"my_device\"" },
+        { "name": "welcome_msg[MAX_MESSAGE_SIZE]", "type": "char", "value": "\"Hello from kernel!\"" },
         { "name": "name_len", "type": "int", "value": " 0" }
       ],
       "outputMessages": [
