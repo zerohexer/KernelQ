@@ -240,22 +240,36 @@ const googleAuthRoutes = {
             
             try {
                 console.log('✅ OAuth successful, generating JWT tokens');
-                
+
                 // Generate JWT tokens
                 const accessToken = generateAccessToken(userData.user);
                 const refreshToken = generateRefreshToken(userData.user);
-                
-                // Create success redirect URL with tokens as query params
-                // Note: In production, consider using secure httpOnly cookies instead
+
+                // Prepare auth data for secure cookie storage
+                const authData = {
+                    access_token: accessToken,
+                    refresh_token: refreshToken,
+                    user_data: userData.user,
+                    progress_data: userData.progress,
+                    is_new_user: userData.isNewUser
+                };
+
+                // Set httpOnly cookie with auth data (secure, not accessible via JavaScript)
+                // This prevents tokens from being exposed in URLs, browser history, or referer headers
+                const isProduction = process.env.NODE_ENV === 'production';
+                res.cookie('kernelq_oauth_session', JSON.stringify(authData), {
+                    httpOnly: true,
+                    secure: isProduction,
+                    sameSite: isProduction ? 'strict' : 'lax',
+                    maxAge: 5 * 60 * 1000, // 5 minutes - short-lived for security
+                    path: '/'
+                });
+
+                // Redirect with only a success flag - no sensitive data in URL
                 const successUrl = new URL(frontendUrl);
                 successUrl.searchParams.append('oauth_success', 'true');
-                successUrl.searchParams.append('access_token', accessToken);
-                successUrl.searchParams.append('refresh_token', refreshToken);
-                successUrl.searchParams.append('user_data', encodeURIComponent(JSON.stringify(userData.user)));
-                successUrl.searchParams.append('progress_data', encodeURIComponent(JSON.stringify(userData.progress)));
-                successUrl.searchParams.append('is_new_user', userData.isNewUser.toString());
-                
-                console.log('🔄 Redirecting to frontend with auth data');
+
+                console.log('🔄 Redirecting to frontend (tokens in httpOnly cookie)');
                 res.redirect(successUrl.toString());
                 
             } catch (tokenError) {
