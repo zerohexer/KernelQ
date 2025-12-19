@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt'); // For password hashing
 const DirectKernelCompiler = require('./direct-kernel-compiler');
 const LeetCodeStyleValidator = require('./leetcode-style-validator');
@@ -40,6 +41,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(express.json({ limit: '10mb' }));
+app.use(cookieParser());
 
 // Initialize Google OAuth (must be after CORS and before routes)
 initializeGoogleOAuth(app);
@@ -402,6 +404,57 @@ app.post('/api/auth/refresh', async (req, res) => {
 app.get('/api/auth/google', googleAuthRoutes.initiateAuth);
 
 app.get('/api/auth/google/callback', googleAuthRoutes.handleCallback);
+
+// OAuth Session Exchange Endpoint
+// Securely retrieves auth data from httpOnly cookie (set during OAuth callback)
+// This prevents tokens from being exposed in URLs, browser history, or referer headers
+app.get('/api/auth/session', (req, res) => {
+    console.log('🔐 Session exchange request received');
+
+    const sessionCookie = req.cookies.kernelq_oauth_session;
+
+    if (!sessionCookie) {
+        console.log('❌ No OAuth session cookie found');
+        return res.status(401).json({
+            success: false,
+            error: 'No OAuth session found. Please sign in again.'
+        });
+    }
+
+    try {
+        const authData = JSON.parse(sessionCookie);
+
+        // Clear the cookie immediately after reading (one-time use)
+        res.clearCookie('kernelq_oauth_session', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            path: '/'
+        });
+
+        console.log('✅ Session exchange successful for user:', authData.user_data?.username);
+
+        return res.json({
+            success: true,
+            accessToken: authData.access_token,
+            refreshToken: authData.refresh_token,
+            userData: authData.user_data,
+            progressData: authData.progress_data,
+            isNewUser: authData.is_new_user
+        });
+
+    } catch (error) {
+        console.error('❌ Failed to parse session cookie:', error);
+
+        // Clear invalid cookie
+        res.clearCookie('kernelq_oauth_session', { path: '/' });
+
+        return res.status(400).json({
+            success: false,
+            error: 'Invalid session data. Please sign in again.'
+        });
+    }
+});
 
 // User Progress Endpoints
 app.get('/api/user/:userId/progress', async (req, res) => {

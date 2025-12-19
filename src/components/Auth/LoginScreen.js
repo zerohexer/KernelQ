@@ -16,7 +16,7 @@ const LoginScreen = ({ onLogin, onSwitchToRegister, premiumStyles: styles }) => 
     // Handle OAuth callback on component mount
     useEffect(() => {
         const handleOAuthCallback = async () => {
-            const oauthData = OAuthCallbackHandler.checkForOAuthCallback();
+            const oauthData = await OAuthCallbackHandler.checkForOAuthCallback();
             
             if (oauthData) {
                 if (oauthData.success) {
