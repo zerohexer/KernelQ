@@ -4,6 +4,7 @@
  */
 
 import React, { useRef, useEffect, useState } from 'react';
+import useIsMobile from '../../hooks/useIsMobile';
 import {
     EditorView,
     highlightSpecialChars,
@@ -75,6 +76,7 @@ const CodeMirrorKernelEditor = ({
     const syncedFilesRef = useRef(new Set());
     const [status, setStatus] = useState('initializing');
     const [error, setError] = useState(null);
+    const isMobile = useIsMobile();
 
     // Theme compartment for dynamic theme switching
     const themeCompartment = new Compartment();
@@ -492,7 +494,7 @@ const CodeMirrorKernelEditor = ({
                         // Main editor container
                         '&': {
                             height: '100%',
-                            fontSize: '15px',
+                            fontSize: isMobile ? '9px' : '15px',
                             fontFamily: 'Fira Code, Monaco, Menlo, "Ubuntu Mono", Consolas, monospace',
                             backgroundColor: '#1e1e1e',
                             color: '#d4d4d4'
@@ -500,18 +502,18 @@ const CodeMirrorKernelEditor = ({
 
                         // Content area
                         '.cm-content': {
-                            padding: '16px',
+                            padding: isMobile ? '6px' : '16px',
                             minHeight: '100%',
                             color: '#d4d4d4',
                             caretColor: '#ffffff',
-                            lineHeight: '1.6',
+                            lineHeight: isMobile ? '1.7' : '1.6',
                             backgroundColor: 'transparent'
                         },
 
                         // Scrollable area with custom scrollbars
                         '.cm-scroller': {
-                            fontSize: '15px',
-                            lineHeight: '1.6',
+                            fontSize: isMobile ? '9px' : '15px',
+                            lineHeight: isMobile ? '1.7' : '1.6',
                             overflow: 'auto !important', // THIS IS THE KEY FOR SCROLLBARS
                             fontFamily: 'inherit',
                             // Firefox scrollbar styling
@@ -687,7 +689,7 @@ const CodeMirrorKernelEditor = ({
                 lspClientRef.current = null;
             }
         };
-    }, [enableLSP, lspServerUri, documentUri]);
+    }, [enableLSP, lspServerUri, documentUri, isMobile]);
 
     // Sync files with LSP when allFiles or fileContents change
     useEffect(() => {

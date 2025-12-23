@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import FileExplorer from './FileExplorer';
 import CodeMirrorKernelEditor from './CodeMirrorKernelEditor';
-import { Maximize2, Minimize2, FileText, Book, RotateCcw } from 'lucide-react';
+import { Maximize2, Minimize2, FileText, Book, RotateCcw, Play, HelpCircle, X } from 'lucide-react';
 
 const MultiFileEditor = ({
   files,
@@ -23,7 +23,14 @@ const MultiFileEditor = ({
   scrollPositions: controlledScrollPositions = null,
   onScrollPositionsChange = null,
   onResetFile = null,
-  originalFiles = null
+  originalFiles = null,
+  isMobile = false,
+  onShowHelp = null,
+  onRun = null,
+  isRunning = false,
+  showMobileResults = false,
+  setShowMobileResults = null,
+  mobileResultsContent = null
 }) => {
   // Generate unique session ID for this editor instance
   const sessionId = useRef(crypto.randomUUID()).current;
@@ -353,13 +360,110 @@ const MultiFileEditor = ({
     <div style={{
         width: '100%',
         display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
         ...premiumStyles.glass.light,
         borderRadius: effectiveIsFullScreen && parentFullScreen ? 0 : '12px',
         overflow: 'hidden',
         ...containerStyle
       }}>
-      {/* File Explorer */}
-      {showFileExplorer && (
+      {/* Mobile File Tabs - Horizontal scrolling tabs at top */}
+      {isMobile && showFileExplorer && files && files.length > 0 && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '10px 12px',
+          background: '#1e1e20',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          flexShrink: 0
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flex: 1,
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            WebkitOverflowScrolling: 'touch'
+          }}>
+            {files.map((file) => (
+              <button
+                key={file.name}
+                onClick={() => handleFileSelect(file.name)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: activeFile === file.name
+                    ? 'rgba(50, 215, 75, 0.2)'
+                    : 'rgba(255, 255, 255, 0.05)',
+                  color: activeFile === file.name
+                    ? '#32d74b'
+                    : premiumStyles.colors.textSecondary,
+                  fontSize: '0.8125rem',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.2s ease',
+                  flexShrink: 0
+                }}
+              >
+                {file.name}
+              </button>
+            ))}
+          </div>
+          {/* Reset button for mobile */}
+          {onResetFile && originalFiles && effectiveIsFullScreen && (
+            <button
+              onClick={() => {
+                const originalFile = originalFiles.find(f => f.name === activeFile);
+                if (originalFile) {
+                  onResetFile(activeFile, originalFile.content);
+                }
+              }}
+              style={{
+                padding: '6px 8px',
+                borderRadius: '6px',
+                border: 'none',
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: premiumStyles.colors.textSecondary,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+              title="Reset file to original"
+            >
+              <RotateCcw size={14} />
+            </button>
+          )}
+          {/* Show Problem Details button for mobile */}
+          {onShowHelp && effectiveIsFullScreen && (
+            <button
+              onClick={onShowHelp}
+              style={{
+                padding: '6px 8px',
+                borderRadius: '6px',
+                border: 'none',
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: premiumStyles.colors.textSecondary,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+              title="Show Problem Details"
+            >
+              <HelpCircle size={14} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Desktop File Explorer */}
+      {!isMobile && showFileExplorer && (
         <div style={{
           position: 'relative',
           ...(effectiveIsFullScreen && {
@@ -428,6 +532,33 @@ const MultiFileEditor = ({
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {/* Run Button for mobile in editor fullscreen */}
+            {isMobile && effectiveIsFullScreen && onRun && (
+              <button
+                onClick={onRun}
+                disabled={isRunning}
+                title="Run code"
+                style={{
+                  background: 'linear-gradient(135deg, #32d74b 0%, #30d158 100%)',
+                  border: 'none',
+                  color: '#000',
+                  cursor: isRunning ? 'not-allowed' : 'pointer',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  opacity: isRunning ? 0.6 : 1
+                }}
+              >
+                <Play size={12} fill="currentColor" />
+                {isRunning ? 'Running...' : 'Run'}
+              </button>
+            )}
+
             {/* Reset Current File Button */}
             {onResetFile && originalFiles && (
               <button
@@ -663,6 +794,65 @@ const MultiFileEditor = ({
           )}
         </div>
       </div>
+
+      {/* Mobile Results Panel - shown when showMobileResults is true */}
+      {isMobile && effectiveIsFullScreen && showMobileResults && mobileResultsContent && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: '#0a0a0c',
+          zIndex: 100,
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          {/* Results Header */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            background: 'rgba(255, 255, 255, 0.03)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
+          }}>
+            <span style={{
+              fontSize: '1rem',
+              fontWeight: 600,
+              color: '#f5f5f7'
+            }}>
+              Test Results
+            </span>
+            <button
+              onClick={() => setShowMobileResults && setShowMobileResults(false)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: 'none',
+                color: '#f5f5f7',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.8125rem'
+              }}
+            >
+              <X size={14} />
+              Close
+            </button>
+          </div>
+          {/* Results Content */}
+          <div style={{
+            flex: 1,
+            overflow: 'auto',
+            padding: '16px'
+          }}>
+            {mobileResultsContent}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

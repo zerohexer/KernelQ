@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Play, RotateCcw, Terminal, Code, Loader2 } from 'lucide-react';
 import CodeMirrorKernelEditor from '../Editor/CodeMirrorKernelEditor';
 import PremiumStyles from '../../styles/PremiumStyles';
+import useIsMobile from '../../hooks/useIsMobile';
 
 const PlaygroundTab = ({
     playground,
@@ -10,6 +11,7 @@ const PlaygroundTab = ({
     premiumStyles
 }) => {
     const [isHoveringRun, setIsHoveringRun] = useState(false);
+    const isMobile = useIsMobile();
 
     // Dynamic LSP server URL based on environment
     const getLspServerUri = () => {
@@ -23,9 +25,9 @@ const PlaygroundTab = ({
     return (
         <div style={{
             background: 'rgba(255, 255, 255, 0.02)',
-            borderRadius: '24px',
+            borderRadius: isMobile ? '16px' : '24px',
             border: '1px solid rgba(255, 255, 255, 0.06)',
-            padding: '20px',
+            padding: isMobile ? '12px' : '20px',
             display: 'flex',
             flexDirection: 'column',
             position: 'relative',
@@ -33,42 +35,47 @@ const PlaygroundTab = ({
             flexShrink: 0,
             height: 'calc(100% + 20px)',
             maxHeight: 'calc(100% + 20px)',
-            gap: '24px'
+            gap: isMobile ? '12px' : '24px'
         }}>
             {/* Header Section */}
             <div>
                 <h1 style={{
-                    fontSize: '1.5rem',
+                    fontSize: isMobile ? '1.25rem' : '1.5rem',
                     fontWeight: 700,
                     margin: 0,
-                    marginBottom: '8px',
+                    marginBottom: isMobile ? '4px' : '8px',
                     letterSpacing: '-0.02em',
                     color: '#f5f5f7'
                 }}>
                     Code Playground
                 </h1>
-                <p style={{
-                    ...premiumStyles.textSecondary,
-                    margin: 0,
-                    fontSize: '0.9375rem'
-                }}>
-                    Experiment with kernel code in a safe, sandboxed environment
-                </p>
+                {!isMobile && (
+                    <p style={{
+                        ...premiumStyles.textSecondary,
+                        margin: 0,
+                        fontSize: '0.9375rem'
+                    }}>
+                        Experiment with kernel code in a safe, sandboxed environment
+                    </p>
+                )}
             </div>
 
             {/* Main Content Area */}
             <div style={{
                 flex: 1,
                 display: 'flex',
-                gap: '20px',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? '16px' : '20px',
                 minHeight: 0
             }}>
                 {/* Code Editor Panel */}
                 <div style={{
-                    flex: playground.output ? '1 1 60%' : '1 1 100%',
+                    flex: isMobile
+                        ? (playground.output ? '0 0 50%' : '1 1 100%')
+                        : (playground.output ? '1 1 60%' : '1 1 100%'),
                     display: 'flex',
                     flexDirection: 'column',
-                    minHeight: 0,
+                    minHeight: isMobile ? '200px' : 0,
                     transition: 'flex 0.3s ease'
                 }}>
                     {/* Editor Header */}
@@ -194,11 +201,11 @@ const PlaygroundTab = ({
                 {/* Output Panel */}
                 {playground.output && (
                     <div style={{
-                        flex: '1 1 40%',
+                        flex: isMobile ? '0 0 50%' : '1 1 40%',
                         display: 'flex',
                         flexDirection: 'column',
-                        minHeight: 0,
-                        animation: 'slideInRight 0.3s ease'
+                        minHeight: isMobile ? '200px' : 0,
+                        animation: isMobile ? 'none' : 'slideInRight 0.3s ease'
                     }}>
                         {/* Output Header */}
                         <div style={{

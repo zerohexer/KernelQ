@@ -5,6 +5,7 @@ import ResizableSplitter from '../Layout/ResizableSplitter';
 import MultiFileEditor from '../Editor/MultiFileEditor';
 import SemanticCodeEditor from '../Editor/SemanticCodeEditor';
 import TestResultsView from './TestResultsView';
+import useIsMobile from '../../hooks/useIsMobile';
 
 const ChallengeView = ({
     challenge,
@@ -19,13 +20,30 @@ const ChallengeView = ({
     setSelectedConcept,
     switchToTab
 }) => {
+    const isMobile = useIsMobile(); // Detect mobile device
     const [activeTab, setActiveTab] = useState('code');
     const [leftPanelWidth, setLeftPanelWidth] = useState(40); // Initial width as percentage - splitter moved left for more code space
     const [expandedFunctionLinks, setExpandedFunctionLinks] = useState(new Set()); // Track which function links are expanded
     const [isFullScreen, setIsFullScreen] = useState(false); // True full-screen mode
+
+    // Force fullscreen mode on mobile
+    useEffect(() => {
+        if (isMobile && !isFullScreen) {
+            setIsFullScreen(true);
+        }
+    }, [isMobile]);
     const [showFloatingHelp, setShowFloatingHelp] = useState(false); // Floating help modal
     const [completedRequirements, setCompletedRequirements] = useState(new Set()); // Track completed requirements
     const [editorFullScreen, setEditorFullScreen] = useState(false); // Editor full-screen within main full-screen
+    const [showMobileResults, setShowMobileResults] = useState(false); // Mobile results panel in editor fullscreen
+
+    // Show mobile results when results arrive (for mobile editor fullscreen mode)
+    useEffect(() => {
+        if (isMobile && editorFullScreen && codeEditor.output && !codeEditor.isRunning) {
+            setShowMobileResults(true);
+        }
+    }, [isMobile, editorFullScreen, codeEditor.output, codeEditor.isRunning]);
+
     const [activeFile, setActiveFile] = useState(challenge?.mainFile || null); // Track active file across fullscreen toggles
     const [scrollPositions, setScrollPositions] = useState({}); // Track scroll positions per file across fullscreen toggles
     const scrollContainerRef = useRef(null); // Ref for scroll position preservation
@@ -1056,38 +1074,47 @@ const ChallengeView = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '12px 20px',
+                    padding: isMobile ? '10px 12px' : '12px 20px',
                     background: 'rgba(255, 255, 255, 0.03)',
                     borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    gap: '8px'
                 }}>
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '12px'
+                        gap: isMobile ? '8px' : '12px',
+                        flex: 1,
+                        minWidth: 0
                     }}>
                         <span style={{
-                            fontSize: '1.15rem',
+                            fontSize: isMobile ? '0.95rem' : '1.15rem',
                             fontWeight: 600,
                             color: '#f5f5f7',
-                            letterSpacing: '-0.01em'
+                            letterSpacing: '-0.01em',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
                         }}>
                             {challenge.id ? `#${challenge.id}: ${title}` : title}
                         </span>
-                        <span style={{
-                            background: difficulty <= 3 ?
-                                'linear-gradient(135deg, #32d74b 0%, #30d158 100%)' :
-                                difficulty <= 6 ?
-                                'linear-gradient(135deg, #ffd60a 0%, #ff9f0a 100%)' :
-                                'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)',
-                            color: '#000',
-                            padding: '4px 10px',
-                            borderRadius: '6px',
-                            fontSize: '0.6875rem',
-                            fontWeight: 600
-                        }}>
-                            Level {difficulty}
-                        </span>
+                        {!isMobile && (
+                            <span style={{
+                                background: difficulty <= 3 ?
+                                    'linear-gradient(135deg, #32d74b 0%, #30d158 100%)' :
+                                    difficulty <= 6 ?
+                                    'linear-gradient(135deg, #ffd60a 0%, #ff9f0a 100%)' :
+                                    'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)',
+                                color: '#000',
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                fontSize: '0.6875rem',
+                                fontWeight: 600,
+                                flexShrink: 0
+                            }}>
+                                Level {difficulty}
+                            </span>
+                        )}
                     </div>
 
                     <div style={{
@@ -1117,29 +1144,83 @@ const ChallengeView = ({
                             <span>Show Problem Details</span>
                         </button>
 
-                        <button
-                            onClick={() => setIsFullScreen(false)}
-                            style={{
-                                background: 'rgba(255, 255, 255, 0.04)',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
-                                borderRadius: '8px',
-                                color: 'rgba(245, 245, 247, 0.7)',
-                                padding: '6px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'all 0.2s ease'
-                            }}
-                            title="Exit fullscreen (Alt+F)"
-                        >
-                            <Minimize2 size={14} />
-                        </button>
+                        {/* Hide exit button on mobile since fullscreen is forced */}
+                        {!isMobile && (
+                            <button
+                                onClick={() => setIsFullScreen(false)}
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.04)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    borderRadius: '8px',
+                                    color: 'rgba(245, 245, 247, 0.7)',
+                                    padding: '6px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                title="Exit fullscreen (Alt+F)"
+                            >
+                                <Minimize2 size={14} />
+                            </button>
+                        )}
                     </div>
                 </div>
 
+                {/* Mobile Navigation Bar */}
+                {isMobile && switchToTab && (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 16px',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                        overflowX: 'auto',
+                        overflowY: 'hidden',
+                        flexShrink: 0,
+                        WebkitOverflowScrolling: 'touch'
+                    }}>
+                        {[
+                            { id: 'learning', label: 'Challenge', icon: <Target size={14} /> },
+                            { id: 'problemBank', label: 'Problems', icon: <Book size={14} /> },
+                            { id: 'playground', label: 'Playground', icon: <Code size={14} /> },
+                            { id: 'concepts', label: 'Concepts', icon: <Star size={14} /> }
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => switchToTab(tab.id)}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '8px 12px',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    background: tab.id === 'learning'
+                                        ? 'rgba(50, 215, 75, 0.15)'
+                                        : 'rgba(255, 255, 255, 0.04)',
+                                    color: tab.id === 'learning'
+                                        ? '#32d74b'
+                                        : 'rgba(245, 245, 247, 0.7)',
+                                    fontSize: '0.8125rem',
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    whiteSpace: 'nowrap',
+                                    flexShrink: 0,
+                                    transition: 'all 0.2s ease'
+                                }}
+                            >
+                                {tab.icon}
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
                 {/* Full-screen Editor */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: isMobile ? 'auto' : 'hidden' }}>
                     {/* Tab Navigation */}
                     <div style={{
                         padding: '12px 20px',
@@ -1289,6 +1370,20 @@ const ChallengeView = ({
                                         scrollPositions={scrollPositions}
                                         onScrollPositionsChange={setScrollPositions}
                                         originalFiles={challenge.files}
+                                        isMobile={isMobile}
+                                        onShowHelp={() => setShowFloatingHelp(true)}
+                                        onRun={onRun}
+                                        isRunning={codeEditor.isRunning}
+                                        showMobileResults={showMobileResults}
+                                        setShowMobileResults={setShowMobileResults}
+                                        mobileResultsContent={
+                                            <TestResultsView
+                                                testResults={codeEditor.testResults}
+                                                rawOutput={codeEditor.output}
+                                                overallResult={codeEditor.overallResult}
+                                                feedback={codeEditor.feedback}
+                                            />
+                                        }
                                         onResetFile={(fileName, originalContent) => {
                                             const updatedFiles = codeEditor.files.map(f =>
                                                 f.name === fileName ? { ...f, content: originalContent } : f
