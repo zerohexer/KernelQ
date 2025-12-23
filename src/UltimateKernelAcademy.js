@@ -1089,7 +1089,15 @@ const UnlimitedKernelAcademy = () => {
                                     gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
                                     gap: '16px'
                                 }}>
-                                    {Object.entries(mdConcepts).map(([key, concept], index) => (
+                                    {Object.keys(mdConcepts)
+                                        .sort((a, b) => {
+                                            // Sort by predefined order: include, function, pointers, atomic_operations
+                                            const order = ['include', 'function', 'pointers', 'atomic_operations'];
+                                            return order.indexOf(a) - order.indexOf(b);
+                                        })
+                                        .map((key, index) => {
+                                            const concept = mdConcepts[key];
+                                            return (
                                         <div
                                             key={key}
                                             style={{
@@ -1153,7 +1161,7 @@ const UnlimitedKernelAcademy = () => {
                                                 letterSpacing: '-0.01em'
                                             }}>{concept.title}</h3>
                                             <p style={{
-                                                fontSize: '0.8125rem',
+                                                fontSize: '0.95rem',
                                                 color: PremiumStyles.colors.textSecondary,
                                                 lineHeight: 1.5,
                                                 margin: 0,
@@ -1163,7 +1171,8 @@ const UnlimitedKernelAcademy = () => {
                                                 overflow: 'hidden'
                                             }}>{concept.description}</p>
                                         </div>
-                                    ))}
+                                    );
+                                        })}
                                 </div>
                             </div>
                         </div>

@@ -8,12 +8,22 @@
 import includeUrl from '../components/ConceptLearner/Concepts/include.md';
 import functionUrl from '../components/ConceptLearner/Concepts/function.md';
 import atomicOperationsUrl from '../components/ConceptLearner/Concepts/atomic_operations.md';
+import pointersUrl from '../components/ConceptLearner/Concepts/pointers.md';
+
+// Define the order of concepts (first = first displayed)
+const CONCEPT_ORDER = [
+    'include',
+    'function',
+    'pointers',
+    'atomic_operations'
+];
 
 // Map of concept IDs to their URLs
 const CONCEPT_URLS = {
     'include': includeUrl,
     'function': functionUrl,
-    'atomic_operations': atomicOperationsUrl
+    'atomic_operations': atomicOperationsUrl,
+    'pointers': pointersUrl
 };
 
 // Cache for loaded concepts
@@ -188,7 +198,7 @@ async function getConcept(conceptId) {
  * Get all available concept IDs
  */
 function getConceptIds() {
-    return Object.keys(CONCEPT_URLS);
+    return CONCEPT_ORDER;
 }
 
 export {
@@ -196,5 +206,6 @@ export {
     loadAllConcepts,
     getConcept,
     getConceptIds,
-    CONCEPT_URLS
+    CONCEPT_URLS,
+    CONCEPT_ORDER
 };
