@@ -116,6 +116,9 @@ class KernelQDatabase {
             CREATE INDEX IF NOT EXISTS idx_solved_problems_problem_id ON solved_problems(problem_id);
             CREATE INDEX IF NOT EXISTS idx_solved_problems_phase ON solved_problems(phase);
             CREATE INDEX IF NOT EXISTS idx_solved_problems_solved_at ON solved_problems(solved_at);
+
+            -- Unique constraint to prevent race condition duplicates (user can only solve each problem once)
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_user_problem ON solved_problems(user_id, problem_id);
         `;
 
         this.db.exec(sql);
@@ -180,10 +183,6 @@ class KernelQDatabase {
             
             getSolvedProblemsByPhase: this.db.prepare(`
                 SELECT * FROM solved_problems WHERE user_id = ? AND phase = ? ORDER BY solved_at DESC
-            `),
-            
-            checkProblemSolved: this.db.prepare(`
-                SELECT COUNT(*) as count FROM solved_problems WHERE user_id = ? AND problem_id = ?
             `),
 
             // Statistics
@@ -337,12 +336,7 @@ class KernelQDatabase {
             return { success: false, error: 'Missing required parameters: userId, problemId, or phase' };
         }
 
-        // Check if already solved
-        const existing = this.statements.checkProblemSolved.get(sanitizedParams.userId, sanitizedParams.problemId);
-        if (existing.count > 0) {
-            return { success: false, error: 'Problem already solved' };
-        }
-
+        // Insert directly - let the unique constraint handle duplicates (race-condition safe)
         try {
             return this.statements.addSolvedProblem.run(
                 sanitizedParams.userId,
@@ -356,6 +350,10 @@ class KernelQDatabase {
                 sanitizedParams.executionTime
             );
         } catch (error) {
+            // Unique constraint violation = problem already solved (atomic check)
+            if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+                return { success: false, error: 'Problem already solved' };
+            }
             console.error('❌ SQLite binding error in recordProblemSolution:', error);
             console.error('📊 Parameters:', sanitizedParams);
             return { success: false, error: `Database error: ${error.message}` };
