@@ -347,7 +347,7 @@ const ChallengeView = ({
                         marginBottom: '20px'
                     }}>
                         <h3 style={{
-                            fontSize: '0.8125rem',
+                            fontSize: '1rem',
                             fontWeight: 600,
                             color: '#f5f5f7',
                             margin: 0,
@@ -375,7 +375,7 @@ const ChallengeView = ({
                         marginBottom: '20px'
                     }}>
                         <h4 style={{
-                            fontSize: '0.8125rem',
+                            fontSize: '1rem',
                             fontWeight: 600,
                             color: '#f5f5f7',
                             margin: 0,
@@ -385,7 +385,7 @@ const ChallengeView = ({
                             Requirements
                         </h4>
                         <ul style={{
-                            fontSize: '0.8125rem',
+                            fontSize: '1rem',
                             lineHeight: '1.6',
                             color: 'rgba(245, 245, 247, 0.65)',
                             paddingLeft: '16px',
@@ -403,7 +403,7 @@ const ChallengeView = ({
                                         paddingLeft: '0',
                                         fontWeight: 600,
                                         color: '#ff9f0a',
-                                        fontSize: '0.75rem',
+                                        fontSize: '0.93rem',
                                         textTransform: 'uppercase',
                                         letterSpacing: '0.05em'
                                     }}>
@@ -415,7 +415,7 @@ const ChallengeView = ({
                                             marginBottom: '10px',
                                             position: 'relative',
                                             paddingLeft: '16px',
-                                            fontSize: '0.8125rem'
+                                            fontSize: '1rem'
                                         }}>
                                             <span style={{
                                                 position: 'absolute',
@@ -434,7 +434,7 @@ const ChallengeView = ({
                                                     borderRadius: '5px',
                                                     fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#ff9f0a',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.93rem',
                                                     fontWeight: 500,
                                                     marginRight: '4px'
                                                 }}>{variable.storageClass}</code>
@@ -445,7 +445,7 @@ const ChallengeView = ({
                                                 borderRadius: '5px',
                                                 fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#ff9f0a',
-                                                fontSize: '0.75rem',
+                                                fontSize: '0.93rem',
                                                 fontWeight: 500
                                             }}>{variable.type}</code> <code style={{
                                                 background: 'rgba(255, 159, 10, 0.12)',
@@ -453,11 +453,11 @@ const ChallengeView = ({
                                                 borderRadius: '5px',
                                                 fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#ff9f0a',
-                                                fontSize: '0.75rem',
+                                                fontSize: '0.93rem',
                                                 fontWeight: 500
                                             }}>{variable.name}</code>
                                             {variable.value && (
-                                                <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}> {variable.value}</span>
+                                                <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.93rem' }}> {variable.value}</span>
                                             )}
                                         </li>
                                     ))}
@@ -467,7 +467,7 @@ const ChallengeView = ({
                                             marginBottom: '10px',
                                             position: 'relative',
                                             paddingLeft: '16px',
-                                            fontSize: '0.8125rem'
+                                            fontSize: '1rem'
                                         }}>
                                             <span style={{
                                                 position: 'absolute',
@@ -487,7 +487,7 @@ const ChallengeView = ({
                                                         borderRadius: '5px',
                                                         fontFamily: 'SF Mono, Monaco, monospace',
                                                         color: '#32d74b',
-                                                        fontSize: '0.75rem',
+                                                        fontSize: '0.93rem',
                                                         fontWeight: 500,
                                                         marginRight: '4px'
                                                     }}>{macro.preprocessor}</code>
@@ -497,7 +497,7 @@ const ChallengeView = ({
                                                         borderRadius: '5px',
                                                         fontFamily: 'SF Mono, Monaco, monospace',
                                                         color: '#32d74b',
-                                                        fontSize: '0.75rem',
+                                                        fontSize: '0.93rem',
                                                         fontWeight: 500
                                                     }}>{macro.value?.split('\n')[0]?.replace(macro.preprocessor + ' ', '') || macro.name}</code>
                                                 </>
@@ -510,7 +510,7 @@ const ChallengeView = ({
                                                         borderRadius: '5px',
                                                         fontFamily: 'SF Mono, Monaco, monospace',
                                                         color: '#32d74b',
-                                                        fontSize: '0.75rem',
+                                                        fontSize: '0.93rem',
                                                         fontWeight: 500,
                                                         marginRight: '4px'
                                                     }}>#define</code>
@@ -520,11 +520,11 @@ const ChallengeView = ({
                                                         borderRadius: '5px',
                                                         fontFamily: 'SF Mono, Monaco, monospace',
                                                         color: '#32d74b',
-                                                        fontSize: '0.75rem',
+                                                        fontSize: '0.93rem',
                                                         fontWeight: 500
                                                     }}>{macro.name}</code>
                                                     {macro.type === 'function-like' && macro.parameters && (
-                                                        <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>
+                                                        <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.93rem' }}>
                                                             {' '}({macro.parameters.join(', ')})
                                                         </span>
                                                     )}
@@ -534,7 +534,7 @@ const ChallengeView = ({
                                                 macro.value.includes('\n') ? (
                                                     <span style={{
                                                         color: 'rgba(245, 245, 247, 0.5)',
-                                                        fontSize: '0.75rem',
+                                                        fontSize: '0.93rem',
                                                         fontFamily: 'SF Mono, Monaco, monospace',
                                                         whiteSpace: 'pre-wrap',
                                                         wordBreak: 'break-word'
@@ -542,7 +542,7 @@ const ChallengeView = ({
                                                         {' '}{macro.value}
                                                     </span>
                                                 ) : (
-                                                    <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}>
+                                                    <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.93rem' }}>
                                                         {' '}{macro.value}
                                                     </span>
                                                 )
@@ -570,7 +570,7 @@ const ChallengeView = ({
                                                 marginBottom: '10px',
                                                 position: 'relative',
                                                 paddingLeft: '16px',
-                                                fontSize: '0.8125rem'
+                                                fontSize: '1rem'
                                             }}>
                                                 <span style={{
                                                     position: 'absolute',
@@ -588,7 +588,7 @@ const ChallengeView = ({
                                                     borderRadius: '5px',
                                                     fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#ffd60a',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.93rem',
                                                     fontWeight: 500,
                                                     marginRight: '4px'
                                                 }}>{parsed.returnType}</code>}
@@ -598,9 +598,9 @@ const ChallengeView = ({
                                                     borderRadius: '5px',
                                                     fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#ffd60a',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.93rem',
                                                     fontWeight: 500
-                                                }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>{parsed.params}</span>
+                                                }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.93rem' }}>{parsed.params}</span>
                                             </li>
                                         );
                                     })}
@@ -619,7 +619,7 @@ const ChallengeView = ({
                                     paddingLeft: '0',
                                     fontWeight: 600,
                                     color: '#32d74b',
-                                    fontSize: '0.75rem',
+                                    fontSize: '0.93rem',
                                     textTransform: 'uppercase',
                                     letterSpacing: '0.05em'
                                 }}>
@@ -633,7 +633,7 @@ const ChallengeView = ({
                                     marginBottom: '10px',
                                     position: 'relative',
                                     paddingLeft: '16px',
-                                    fontSize: '0.8125rem'
+                                    fontSize: '1rem'
                                 }}>
                                     <span style={{
                                         position: 'absolute',
@@ -652,7 +652,7 @@ const ChallengeView = ({
                                             borderRadius: '5px',
                                             fontFamily: 'SF Mono, Monaco, monospace',
                                             color: '#ff9f0a',
-                                            fontSize: '0.75rem',
+                                            fontSize: '0.93rem',
                                             fontWeight: 500,
                                             marginRight: '4px'
                                         }}>{variable.storageClass}</code>
@@ -663,7 +663,7 @@ const ChallengeView = ({
                                         borderRadius: '5px',
                                         fontFamily: 'SF Mono, Monaco, monospace',
                                         color: '#ff9f0a',
-                                        fontSize: '0.75rem',
+                                        fontSize: '0.93rem',
                                         fontWeight: 500
                                     }}>{variable.type}</code> <code style={{
                                         background: 'rgba(255, 159, 10, 0.12)',
@@ -671,11 +671,11 @@ const ChallengeView = ({
                                         borderRadius: '5px',
                                         fontFamily: 'SF Mono, Monaco, monospace',
                                         color: '#ff9f0a',
-                                        fontSize: '0.75rem',
+                                        fontSize: '0.93rem',
                                         fontWeight: 500
                                     }}>{variable.name}</code>
                                     {variable.value && (
-                                        <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}> = {variable.value}</span>
+                                        <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.93rem' }}> = {variable.value}</span>
                                     )}
                                 </li>
                             ))}
@@ -685,7 +685,7 @@ const ChallengeView = ({
                                     marginBottom: '10px',
                                     position: 'relative',
                                     paddingLeft: '16px',
-                                    fontSize: '0.8125rem'
+                                    fontSize: '1rem'
                                 }}>
                                     <span style={{
                                         position: 'absolute',
@@ -705,7 +705,7 @@ const ChallengeView = ({
                                                 borderRadius: '5px',
                                                 fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#32d74b',
-                                                fontSize: '0.75rem',
+                                                fontSize: '0.93rem',
                                                 fontWeight: 500,
                                                 marginRight: '4px'
                                             }}>{macro.preprocessor}</code>
@@ -715,7 +715,7 @@ const ChallengeView = ({
                                                 borderRadius: '5px',
                                                 fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#32d74b',
-                                                fontSize: '0.75rem',
+                                                fontSize: '0.93rem',
                                                 fontWeight: 500
                                             }}>{macro.value?.split('\n')[0]?.replace(macro.preprocessor + ' ', '') || macro.name}</code>
                                         </>
@@ -728,7 +728,7 @@ const ChallengeView = ({
                                                 borderRadius: '5px',
                                                 fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#32d74b',
-                                                fontSize: '0.75rem',
+                                                fontSize: '0.93rem',
                                                 fontWeight: 500,
                                                 marginRight: '4px'
                                             }}>#define</code>
@@ -738,11 +738,11 @@ const ChallengeView = ({
                                                 borderRadius: '5px',
                                                 fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#32d74b',
-                                                fontSize: '0.75rem',
+                                                fontSize: '0.93rem',
                                                 fontWeight: 500
                                             }}>{macro.name}</code>
                                             {macro.type === 'function-like' && macro.parameters && (
-                                                <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>
+                                                <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.93rem' }}>
                                                     {' '}({macro.parameters.join(', ')})
                                                 </span>
                                             )}
@@ -752,7 +752,7 @@ const ChallengeView = ({
                                         macro.value.includes('\n') ? (
                                             <span style={{
                                                 color: 'rgba(245, 245, 247, 0.5)',
-                                                fontSize: '0.75rem',
+                                                fontSize: '0.93rem',
                                                 fontFamily: 'SF Mono, Monaco, monospace',
                                                 whiteSpace: 'pre-wrap',
                                                 wordBreak: 'break-word'
@@ -760,7 +760,7 @@ const ChallengeView = ({
                                                 {' '}{macro.value}
                                             </span>
                                         ) : (
-                                            <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}>
+                                            <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.93rem' }}>
                                                 {' '}{macro.value}
                                             </span>
                                         )
@@ -780,7 +780,7 @@ const ChallengeView = ({
                                         marginBottom: '10px',
                                         position: 'relative',
                                         paddingLeft: '16px',
-                                        fontSize: '0.8125rem'
+                                        fontSize: '1rem'
                                     }}>
                                         <span style={{
                                             position: 'absolute',
@@ -798,7 +798,7 @@ const ChallengeView = ({
                                             borderRadius: '5px',
                                             fontFamily: 'SF Mono, Monaco, monospace',
                                             color: '#ffd60a',
-                                            fontSize: '0.75rem',
+                                            fontSize: '0.93rem',
                                             fontWeight: 500,
                                             marginRight: '4px'
                                         }}>{parsed.storageClass}</code>}
@@ -808,20 +808,20 @@ const ChallengeView = ({
                                             borderRadius: '5px',
                                             fontFamily: 'SF Mono, Monaco, monospace',
                                             color: '#ffd60a',
-                                            fontSize: '0.75rem',
+                                            fontSize: '0.93rem',
                                             fontWeight: 500,
                                             marginRight: '4px'
                                         }}>{parsed.returnType}</code>}
-                                        {parsed.attribute && <span style={{ color: 'rgba(255, 214, 10, 0.8)', marginRight: '4px', fontSize: '0.75rem' }}>{parsed.attribute}</span>}
+                                        {parsed.attribute && <span style={{ color: 'rgba(255, 214, 10, 0.8)', marginRight: '4px', fontSize: '0.93rem' }}>{parsed.attribute}</span>}
                                         <code style={{
                                             background: 'rgba(255, 214, 10, 0.12)',
                                             padding: '3px 7px',
                                             borderRadius: '5px',
                                             fontFamily: 'SF Mono, Monaco, monospace',
                                             color: '#ffd60a',
-                                            fontSize: '0.75rem',
+                                            fontSize: '0.93rem',
                                             fontWeight: 500
-                                        }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>{parsed.params}</span>
+                                        }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.93rem' }}>{parsed.params}</span>
                                     </li>
                                 );
                             })}
@@ -831,7 +831,7 @@ const ChallengeView = ({
                                     marginBottom: expandedFunctionLinks.has(idx) ? '8px' : '12px',
                                     position: 'relative',
                                     paddingLeft: '16px',
-                                    fontSize: '0.8125rem'
+                                    fontSize: '1rem'
                                 }}>
                                     <span style={{
                                         position: 'absolute',
@@ -849,7 +849,7 @@ const ChallengeView = ({
                                             borderRadius: '5px',
                                             fontFamily: 'SF Mono, Monaco, monospace',
                                             color: '#32d74b',
-                                            fontSize: '0.75rem',
+                                            fontSize: '0.93rem',
                                             fontWeight: 500
                                         }}>"{output.pattern}"</code>
                                     </div>
@@ -864,7 +864,7 @@ const ChallengeView = ({
                                                 background: 'none',
                                                 border: 'none',
                                                 color: 'rgba(176, 176, 255, 0.8)',
-                                                fontSize: '0.75rem',
+                                                fontSize: '0.93rem',
                                                 cursor: 'pointer',
                                                 display: 'flex',
                                                 alignItems: 'center',
@@ -898,7 +898,7 @@ const ChallengeView = ({
                                                     borderRadius: '5px',
                                                     fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#ffd60a',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.93rem',
                                                     fontWeight: 500,
                                                     display: 'inline-block',
                                                     maxWidth: '100%',
@@ -916,7 +916,7 @@ const ChallengeView = ({
                                     marginBottom: '10px',
                                     position: 'relative',
                                     paddingLeft: '16px',
-                                    fontSize: '0.8125rem'
+                                    fontSize: '1rem'
                                 }}>
                                     <span style={{
                                         position: 'absolute',
@@ -933,7 +933,7 @@ const ChallengeView = ({
                                         borderRadius: '5px',
                                         fontFamily: 'SF Mono, Monaco, monospace',
                                         color: '#bf5af2',
-                                        fontSize: '0.75rem',
+                                        fontSize: '0.93rem',
                                         fontWeight: 500
                                     }}>{include}</code>
                                 </li>
@@ -949,7 +949,7 @@ const ChallengeView = ({
                             padding: '20px'
                         }}>
                             <h4 style={{
-                                fontSize: '0.75rem',
+                                fontSize: '0.93rem',
                                 fontWeight: 600,
                                 color: 'rgba(245, 245, 247, 0.5)',
                                 margin: 0,
@@ -966,7 +966,7 @@ const ChallengeView = ({
                                         color: 'rgba(245, 245, 247, 0.8)',
                                         padding: '5px 10px',
                                         borderRadius: '6px',
-                                        fontSize: '0.75rem',
+                                        fontSize: '0.93rem',
                                         fontWeight: 500
                                     }}>
                                         {skill}
@@ -1067,7 +1067,7 @@ const ChallengeView = ({
                         gap: '12px'
                     }}>
                         <span style={{
-                            fontSize: '1rem',
+                            fontSize: '1.15rem',
                             fontWeight: 600,
                             color: '#f5f5f7',
                             letterSpacing: '-0.01em'
@@ -1107,14 +1107,14 @@ const ChallengeView = ({
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px',
-                                fontSize: '0.75rem',
+                                fontSize: '0.855rem',
                                 fontWeight: 500,
                                 transition: 'all 0.2s ease'
                             }}
                             title="Show problem details (Alt+Z)"
                         >
                             <HelpCircle size={14} />
-                            <span>Help</span>
+                            <span>Show Problem Details</span>
                         </button>
 
                         <button
@@ -1164,7 +1164,7 @@ const ChallengeView = ({
                                     border: 'none',
                                     borderRadius: '7px',
                                     padding: '6px 16px',
-                                    fontSize: '0.75rem',
+                                    fontSize: '0.855rem',
                                     fontWeight: 600,
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
@@ -1184,7 +1184,7 @@ const ChallengeView = ({
                                     border: 'none',
                                     borderRadius: '7px',
                                     padding: '6px 16px',
-                                    fontSize: '0.75rem',
+                                    fontSize: '0.855rem',
                                     fontWeight: 600,
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
@@ -1222,7 +1222,7 @@ const ChallengeView = ({
                                 border: '1px solid rgba(255, 255, 255, 0.08)',
                                 borderRadius: '8px',
                                 padding: '6px 12px',
-                                fontSize: '0.75rem',
+                                fontSize: '0.855rem',
                                 fontWeight: 500,
                                 cursor: 'pointer',
                                 display: 'flex',
@@ -1247,7 +1247,7 @@ const ChallengeView = ({
                                 border: 'none',
                                 borderRadius: '8px',
                                 padding: '6px 14px',
-                                fontSize: '0.75rem',
+                                fontSize: '0.855rem',
                                 fontWeight: 600,
                                 cursor: codeEditor.isRunning ? 'not-allowed' : 'pointer',
                                 display: 'flex',
@@ -1333,7 +1333,7 @@ const ChallengeView = ({
                                             flexShrink: 0
                                         }}>
                                             <h4 style={{
-                                                fontSize: '0.8125rem',
+                                                fontSize: '1rem',
                                                 fontWeight: 600,
                                                 color: '#f5f5f7',
                                                 margin: 0,
@@ -1589,7 +1589,7 @@ const ChallengeView = ({
                         marginBottom: '12px'
                     }}>
                         <h3 style={{
-                            fontSize: '0.8125rem',
+                            fontSize: '1rem',
                             fontWeight: 600,
                             color: '#f5f5f7',
                             margin: 0,
@@ -1599,7 +1599,7 @@ const ChallengeView = ({
                             Problem Description
                         </h3>
                         <p style={{
-                            fontSize: '0.8125rem',
+                            fontSize: '1rem',
                             lineHeight: '1.6',
                             color: 'rgba(245, 245, 247, 0.65)',
                             margin: 0
@@ -1619,7 +1619,7 @@ const ChallengeView = ({
                             marginBottom: '12px'
                         }}>
                             <h4 style={{
-                                fontSize: '0.8125rem',
+                                fontSize: '1rem',
                                 fontWeight: 600,
                                 color: '#f5f5f7',
                                 margin: 0,
@@ -1629,7 +1629,7 @@ const ChallengeView = ({
                                 Requirements
                             </h4>
                             <ul style={{
-                                fontSize: '0.8125rem',
+                                fontSize: '1rem',
                                 lineHeight: '1.5',
                                 color: 'rgba(245, 245, 247, 0.7)',
                                 paddingLeft: '16px',
@@ -1648,7 +1648,7 @@ const ChallengeView = ({
                                             paddingLeft: '0',
                                             fontWeight: 600,
                                             color: '#ff9f0a',
-                                            fontSize: '0.75rem',
+                                            fontSize: '0.93rem',
                                             textTransform: 'uppercase',
                                             letterSpacing: '0.05em'
                                         }}>
@@ -1660,7 +1660,7 @@ const ChallengeView = ({
                                                 marginBottom: '10px',
                                                 position: 'relative',
                                                 paddingLeft: '16px',
-                                                fontSize: '0.8125rem'
+                                                fontSize: '1rem'
                                             }}>
                                                 <span style={{
                                                     position: 'absolute',
@@ -1679,7 +1679,7 @@ const ChallengeView = ({
                                                         borderRadius: '5px',
                                                         fontFamily: 'SF Mono, Monaco, monospace',
                                                         color: '#ff9f0a',
-                                                        fontSize: '0.75rem',
+                                                        fontSize: '0.93rem',
                                                         fontWeight: 500,
                                                         marginRight: '4px'
                                                     }}>{variable.storageClass}</code>
@@ -1690,7 +1690,7 @@ const ChallengeView = ({
                                                     borderRadius: '5px',
                                                     fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#ff9f0a',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.93rem',
                                                     fontWeight: 500
                                                 }}>{variable.type}</code> <code style={{
                                                     background: 'rgba(255, 159, 10, 0.12)',
@@ -1698,11 +1698,11 @@ const ChallengeView = ({
                                                     borderRadius: '5px',
                                                     fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#ff9f0a',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.93rem',
                                                     fontWeight: 500
                                                 }}>{variable.name}</code>
                                                 {variable.value && (
-                                                    <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}> {variable.value}</span>
+                                                    <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.93rem' }}> {variable.value}</span>
                                                 )}
                                             </li>
                                         ))}
@@ -1712,7 +1712,7 @@ const ChallengeView = ({
                                                 marginBottom: '10px',
                                                 position: 'relative',
                                                 paddingLeft: '16px',
-                                                fontSize: '0.8125rem'
+                                                fontSize: '1rem'
                                             }}>
                                                 <span style={{
                                                     position: 'absolute',
@@ -1732,7 +1732,7 @@ const ChallengeView = ({
                                                             borderRadius: '5px',
                                                             fontFamily: 'SF Mono, Monaco, monospace',
                                                             color: '#32d74b',
-                                                            fontSize: '0.75rem',
+                                                            fontSize: '0.93rem',
                                                             fontWeight: 500,
                                                             marginRight: '4px'
                                                         }}>{macro.preprocessor}</code>
@@ -1742,7 +1742,7 @@ const ChallengeView = ({
                                                             borderRadius: '5px',
                                                             fontFamily: 'SF Mono, Monaco, monospace',
                                                             color: '#32d74b',
-                                                            fontSize: '0.75rem',
+                                                            fontSize: '0.93rem',
                                                             fontWeight: 500
                                                         }}>{macro.value?.split('\n')[0]?.replace(macro.preprocessor + ' ', '') || macro.name}</code>
                                                     </>
@@ -1755,7 +1755,7 @@ const ChallengeView = ({
                                                             borderRadius: '5px',
                                                             fontFamily: 'SF Mono, Monaco, monospace',
                                                             color: '#32d74b',
-                                                            fontSize: '0.75rem',
+                                                            fontSize: '0.93rem',
                                                             fontWeight: 500,
                                                             marginRight: '4px'
                                                         }}>#define</code>
@@ -1765,11 +1765,11 @@ const ChallengeView = ({
                                                             borderRadius: '5px',
                                                             fontFamily: 'SF Mono, Monaco, monospace',
                                                             color: '#32d74b',
-                                                            fontSize: '0.75rem',
+                                                            fontSize: '0.93rem',
                                                             fontWeight: 500
                                                         }}>{macro.name}</code>
                                                         {macro.type === 'function-like' && macro.parameters && (
-                                                            <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>
+                                                            <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.93rem' }}>
                                                                 {' '}({macro.parameters.join(', ')})
                                                             </span>
                                                         )}
@@ -1779,7 +1779,7 @@ const ChallengeView = ({
                                                     macro.value.includes('\n') ? (
                                                         <span style={{
                                                             color: 'rgba(245, 245, 247, 0.5)',
-                                                            fontSize: '0.75rem',
+                                                            fontSize: '0.93rem',
                                                             fontFamily: 'SF Mono, Monaco, monospace',
                                                             whiteSpace: 'pre-wrap',
                                                             wordBreak: 'break-word'
@@ -1787,7 +1787,7 @@ const ChallengeView = ({
                                                             {' '}{macro.value}
                                                         </span>
                                                     ) : (
-                                                        <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}>
+                                                        <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.93rem' }}>
                                                             {' '}{macro.value}
                                                         </span>
                                                     )
@@ -1815,7 +1815,7 @@ const ChallengeView = ({
                                                     marginBottom: '10px',
                                                     position: 'relative',
                                                     paddingLeft: '16px',
-                                                    fontSize: '0.8125rem'
+                                                    fontSize: '1rem'
                                                 }}>
                                                     <span style={{
                                                         position: 'absolute',
@@ -1833,7 +1833,7 @@ const ChallengeView = ({
                                                         borderRadius: '5px',
                                                         fontFamily: 'SF Mono, Monaco, monospace',
                                                         color: '#ffd60a',
-                                                        fontSize: '0.75rem',
+                                                        fontSize: '0.93rem',
                                                         fontWeight: 500,
                                                         marginRight: '4px'
                                                     }}>{parsed.returnType}</code>}
@@ -1843,9 +1843,9 @@ const ChallengeView = ({
                                                         borderRadius: '5px',
                                                         fontFamily: 'SF Mono, Monaco, monospace',
                                                         color: '#ffd60a',
-                                                        fontSize: '0.75rem',
+                                                        fontSize: '0.93rem',
                                                         fontWeight: 500
-                                                    }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>{parsed.params}</span>
+                                                    }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.93rem' }}>{parsed.params}</span>
                                                 </li>
                                             );
                                         })}
@@ -1867,7 +1867,7 @@ const ChallengeView = ({
                                         paddingLeft: '0',
                                         fontWeight: 600,
                                         color: '#32d74b',
-                                        fontSize: '0.75rem',
+                                        fontSize: '0.93rem',
                                         textTransform: 'uppercase',
                                         letterSpacing: '0.05em'
                                     }}>
@@ -1881,7 +1881,7 @@ const ChallengeView = ({
                                         marginBottom: '10px',
                                         position: 'relative',
                                         paddingLeft: '16px',
-                                        fontSize: '0.8125rem'
+                                        fontSize: '1rem'
                                     }}>
                                         <span style={{
                                             position: 'absolute',
@@ -1900,7 +1900,7 @@ const ChallengeView = ({
                                                 borderRadius: '5px',
                                                 fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#ff9f0a',
-                                                fontSize: '0.75rem',
+                                                fontSize: '0.93rem',
                                                 fontWeight: 500,
                                                 marginRight: '4px'
                                             }}>{variable.storageClass}</code>
@@ -1911,7 +1911,7 @@ const ChallengeView = ({
                                             borderRadius: '5px',
                                             fontFamily: 'SF Mono, Monaco, monospace',
                                             color: '#ff9f0a',
-                                            fontSize: '0.75rem',
+                                            fontSize: '0.93rem',
                                             fontWeight: 500
                                         }}>{variable.type}</code> <code style={{
                                             background: 'rgba(255, 159, 10, 0.12)',
@@ -1919,11 +1919,11 @@ const ChallengeView = ({
                                             borderRadius: '5px',
                                             fontFamily: 'SF Mono, Monaco, monospace',
                                             color: '#ff9f0a',
-                                            fontSize: '0.75rem',
+                                            fontSize: '0.93rem',
                                             fontWeight: 500
                                         }}>{variable.name}</code>
                                         {variable.value && (
-                                            <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}> = {variable.value}</span>
+                                            <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.93rem' }}> = {variable.value}</span>
                                         )}
                                     </li>
                                 ))}
@@ -1933,7 +1933,7 @@ const ChallengeView = ({
                                         marginBottom: '10px',
                                         position: 'relative',
                                         paddingLeft: '16px',
-                                        fontSize: '0.8125rem'
+                                        fontSize: '1rem'
                                     }}>
                                         <span style={{
                                             position: 'absolute',
@@ -1953,7 +1953,7 @@ const ChallengeView = ({
                                                     borderRadius: '5px',
                                                     fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#32d74b',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.93rem',
                                                     fontWeight: 500,
                                                     marginRight: '4px'
                                                 }}>{macro.preprocessor}</code>
@@ -1963,7 +1963,7 @@ const ChallengeView = ({
                                                     borderRadius: '5px',
                                                     fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#32d74b',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.93rem',
                                                     fontWeight: 500
                                                 }}>{macro.value?.split('\n')[0]?.replace(macro.preprocessor + ' ', '') || macro.name}</code>
                                             </>
@@ -1976,7 +1976,7 @@ const ChallengeView = ({
                                                     borderRadius: '5px',
                                                     fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#32d74b',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.93rem',
                                                     fontWeight: 500,
                                                     marginRight: '4px'
                                                 }}>#define</code>
@@ -1986,11 +1986,11 @@ const ChallengeView = ({
                                                     borderRadius: '5px',
                                                     fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#32d74b',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.93rem',
                                                     fontWeight: 500
                                                 }}>{macro.name}</code>
                                                 {macro.type === 'function-like' && macro.parameters && (
-                                                    <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>
+                                                    <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.93rem' }}>
                                                         {' '}({macro.parameters.join(', ')})
                                                     </span>
                                                 )}
@@ -2000,7 +2000,7 @@ const ChallengeView = ({
                                             macro.value.includes('\n') ? (
                                                 <span style={{
                                                     color: 'rgba(245, 245, 247, 0.5)',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.93rem',
                                                     fontFamily: 'SF Mono, Monaco, monospace',
                                                     whiteSpace: 'pre-wrap',
                                                     wordBreak: 'break-word'
@@ -2008,7 +2008,7 @@ const ChallengeView = ({
                                                     {' '}{macro.value}
                                                 </span>
                                             ) : (
-                                                <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}>
+                                                <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.93rem' }}>
                                                     {' '}{macro.value}
                                                 </span>
                                             )
@@ -2028,7 +2028,7 @@ const ChallengeView = ({
                                             marginBottom: '10px',
                                             position: 'relative',
                                             paddingLeft: '16px',
-                                            fontSize: '0.8125rem'
+                                            fontSize: '1rem'
                                         }}>
                                             <span style={{
                                                 position: 'absolute',
@@ -2046,7 +2046,7 @@ const ChallengeView = ({
                                                 borderRadius: '5px',
                                                 fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#ffd60a',
-                                                fontSize: '0.75rem',
+                                                fontSize: '0.93rem',
                                                 fontWeight: 500,
                                                 marginRight: '4px'
                                             }}>{parsed.storageClass}</code>}
@@ -2056,20 +2056,20 @@ const ChallengeView = ({
                                                 borderRadius: '5px',
                                                 fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#ffd60a',
-                                                fontSize: '0.75rem',
+                                                fontSize: '0.93rem',
                                                 fontWeight: 500,
                                                 marginRight: '4px'
                                             }}>{parsed.returnType}</code>}
-                                            {parsed.attribute && <span style={{ color: 'rgba(255, 214, 10, 0.8)', marginRight: '4px', fontSize: '0.75rem' }}>{parsed.attribute}</span>}
+                                            {parsed.attribute && <span style={{ color: 'rgba(255, 214, 10, 0.8)', marginRight: '4px', fontSize: '0.93rem' }}>{parsed.attribute}</span>}
                                             <code style={{
                                                 background: 'rgba(255, 214, 10, 0.12)',
                                                 padding: '3px 7px',
                                                 borderRadius: '5px',
                                                 fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#ffd60a',
-                                                fontSize: '0.75rem',
+                                                fontSize: '0.93rem',
                                                 fontWeight: 500
-                                            }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>{parsed.params}</span>
+                                            }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.93rem' }}>{parsed.params}</span>
                                         </li>
                                     );
                                 })}
@@ -2079,7 +2079,7 @@ const ChallengeView = ({
                                         marginBottom: expandedFunctionLinks.has(idx) ? '8px' : '12px',
                                         position: 'relative',
                                         paddingLeft: '16px',
-                                        fontSize: '0.8125rem'
+                                        fontSize: '1rem'
                                     }}>
                                         <span style={{
                                             position: 'absolute',
@@ -2097,7 +2097,7 @@ const ChallengeView = ({
                                                 borderRadius: '5px',
                                                 fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#32d74b',
-                                                fontSize: '0.75rem',
+                                                fontSize: '0.93rem',
                                                 fontWeight: 500
                                             }}>"{output.pattern}"</code>
                                         </div>
@@ -2112,7 +2112,7 @@ const ChallengeView = ({
                                                     background: 'none',
                                                     border: 'none',
                                                     color: 'rgba(176, 176, 255, 0.8)',
-                                                    fontSize: '0.75rem',
+                                                    fontSize: '0.93rem',
                                                     cursor: 'pointer',
                                                     display: 'flex',
                                                     alignItems: 'center',
@@ -2144,7 +2144,7 @@ const ChallengeView = ({
                                                         borderRadius: '5px',
                                                         fontFamily: 'SF Mono, Monaco, monospace',
                                                         color: '#ffd60a',
-                                                        fontSize: '0.75rem',
+                                                        fontSize: '0.93rem',
                                                         fontWeight: 500,
                                                         display: 'inline-block',
                                                         maxWidth: '100%',
@@ -2164,7 +2164,7 @@ const ChallengeView = ({
                                         marginBottom: '10px',
                                         position: 'relative',
                                         paddingLeft: '16px',
-                                        fontSize: '0.8125rem'
+                                        fontSize: '1rem'
                                     }}>
                                         <span style={{
                                             position: 'absolute',
@@ -2181,7 +2181,7 @@ const ChallengeView = ({
                                             borderRadius: '5px',
                                             fontFamily: 'SF Mono, Monaco, monospace',
                                             color: '#32d74b',
-                                            fontSize: '0.75rem',
+                                            fontSize: '0.93rem',
                                             fontWeight: 500
                                         }}>"{msg}"</code>
                                     </li>
@@ -2191,7 +2191,7 @@ const ChallengeView = ({
                                         marginBottom: '10px',
                                         position: 'relative',
                                         paddingLeft: '16px',
-                                        fontSize: '0.8125rem'
+                                        fontSize: '1rem'
                                     }}>
                                         <span style={{
                                             position: 'absolute',
@@ -2208,7 +2208,7 @@ const ChallengeView = ({
                                             borderRadius: '5px',
                                             fontFamily: 'SF Mono, Monaco, monospace',
                                             color: '#bf5af2',
-                                            fontSize: '0.75rem',
+                                            fontSize: '0.93rem',
                                             fontWeight: 500
                                         }}>&lt;{inc}&gt;</code>
                                     </li>
@@ -2246,7 +2246,7 @@ const ChallengeView = ({
                             padding: '16px'
                         }}>
                             <h4 style={{
-                                fontSize: '0.8125rem',
+                                fontSize: '1rem',
                                 fontWeight: 600,
                                 color: '#f5f5f7',
                                 margin: 0,
@@ -2308,7 +2308,7 @@ const ChallengeView = ({
                                     border: 'none',
                                     borderRadius: '8px',
                                     padding: '8px 20px',
-                                    fontSize: '0.8125rem',
+                                    fontSize: '0.855rem',
                                     fontWeight: 600,
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
@@ -2328,7 +2328,7 @@ const ChallengeView = ({
                                     border: 'none',
                                     borderRadius: '8px',
                                     padding: '8px 20px',
-                                    fontSize: '0.8125rem',
+                                    fontSize: '0.855rem',
                                     fontWeight: 600,
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease',
@@ -2366,7 +2366,7 @@ const ChallengeView = ({
                                 border: '1px solid rgba(255, 255, 255, 0.08)',
                                 borderRadius: '10px',
                                 padding: '8px 14px',
-                                fontSize: '0.75rem',
+                                fontSize: '0.855rem',
                                 fontWeight: 500,
                                 cursor: 'pointer',
                                 display: 'flex',
@@ -2392,7 +2392,7 @@ const ChallengeView = ({
                                 border: 'none',
                                 borderRadius: '10px',
                                 padding: '8px 16px',
-                                fontSize: '0.75rem',
+                                fontSize: '0.855rem',
                                 fontWeight: 600,
                                 cursor: codeEditor.isRunning ? 'not-allowed' : 'pointer',
                                 display: 'flex',
@@ -2558,7 +2558,7 @@ const ChallengeView = ({
                                         color: 'rgba(245, 245, 247, 0.4)',
                                         margin: 0,
                                         marginBottom: '16px',
-                                        fontSize: '0.85rem'
+                                        fontSize: '1rem'
                                     }}>
                                         Run your code to see the results here
                                     </p>

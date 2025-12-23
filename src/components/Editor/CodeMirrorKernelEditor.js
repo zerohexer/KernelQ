@@ -492,12 +492,12 @@ const CodeMirrorKernelEditor = ({
                         // Main editor container
                         '&': {
                             height: '100%',
-                            fontSize: '14px',
+                            fontSize: '15px',
                             fontFamily: 'Fira Code, Monaco, Menlo, "Ubuntu Mono", Consolas, monospace',
                             backgroundColor: '#1e1e1e',
                             color: '#d4d4d4'
                         },
-                        
+
                         // Content area
                         '.cm-content': {
                             padding: '16px',
@@ -507,10 +507,10 @@ const CodeMirrorKernelEditor = ({
                             lineHeight: '1.6',
                             backgroundColor: 'transparent'
                         },
-                        
+
                         // Scrollable area with custom scrollbars
                         '.cm-scroller': {
-                            fontSize: '14px',
+                            fontSize: '15px',
                             lineHeight: '1.6',
                             overflow: 'auto !important', // THIS IS THE KEY FOR SCROLLBARS
                             fontFamily: 'inherit',

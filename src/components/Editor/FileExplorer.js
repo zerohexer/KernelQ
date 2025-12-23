@@ -130,7 +130,7 @@ const FileExplorer = ({
         <File size={14} color={premiumStyles.colors.text} />
         <span style={{
           color: premiumStyles.colors.text,
-          fontSize: premiumStyles.typography.sizes.sm,
+          fontSize: '0.9375rem',
           fontWeight: premiumStyles.typography.weights.semibold
         }}>
           Project Files
@@ -181,7 +181,7 @@ const FileExplorer = ({
               color: activeFile === file.name ?
                 premiumStyles.colors.text :
                 premiumStyles.colors.textSecondary,
-              fontSize: premiumStyles.typography.sizes.sm,
+              fontSize: '0.9375rem',
               fontWeight: activeFile === file.name ?
                 premiumStyles.typography.weights.medium :
                 premiumStyles.typography.weights.regular,

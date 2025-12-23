@@ -283,7 +283,10 @@ const ProblemBankTab = ({
                       ? `0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 60px ${accentColor}15`
                       : '0 4px 20px rgba(0, 0, 0, 0.3)',
                     overflow: 'hidden',
-                    animation: `fadeInUp 0.4s ease ${index * 0.05}s both`
+                    animation: `fadeInUp 0.4s ease ${index * 0.05}s both`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%'
                   }}
                 >
                   {/* Top accent line */}
@@ -337,7 +340,12 @@ const ProblemBankTab = ({
                         color: PremiumStyles.colors.text,
                         margin: 0,
                         letterSpacing: '-0.01em',
-                        lineHeight: 1.3
+                        lineHeight: 1.3,
+                        minHeight: '2.76em',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
                       }}>
                         {problem.title}
                       </h3>
@@ -379,11 +387,12 @@ const ProblemBankTab = ({
 
                   {/* Description */}
                   <p style={{
-                    fontSize: '0.8125rem',
+                    fontSize: '0.95rem',
                     color: PremiumStyles.colors.textSecondary,
                     lineHeight: 1.5,
                     margin: 0,
                     marginBottom: '16px',
+                    minHeight: '3em',
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical',
@@ -397,7 +406,8 @@ const ProblemBankTab = ({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    flexWrap: 'wrap'
+                    flexWrap: 'wrap',
+                    marginTop: 'auto'
                   }}>
                     {/* Difficulty Badge */}
                     <span style={{

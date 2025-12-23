@@ -407,7 +407,7 @@ const MultiFileEditor = ({
           }}>
             <span style={{
               color: premiumStyles.colors.text,
-              fontSize: premiumStyles.typography.sizes.sm,
+              fontSize: '1rem',
               fontWeight: premiumStyles.typography.weights.semibold
             }}>
               {activeFile}
@@ -520,7 +520,7 @@ const MultiFileEditor = ({
                 background: '#1e1e1e',
                 color: 'rgba(245, 245, 247, 0.8)',
                 fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif',
-                fontSize: '0.8125rem',
+                fontSize: '1rem',
                 lineHeight: 1.6
               }}
             >
@@ -555,7 +555,7 @@ const MultiFileEditor = ({
                   p: ({node, ...props}) => <p style={{
                     margin: '0 0 10px 0',
                     lineHeight: 1.6,
-                    fontSize: '0.8125rem'
+                    fontSize: '1rem'
                   }} {...props} />,
                   code: ({node, inline, ...props}) => inline ? (
                     <code style={{
@@ -564,7 +564,7 @@ const MultiFileEditor = ({
                       borderRadius: '4px',
                       color: '#32d74b',
                       fontFamily: 'SF Mono, Monaco, monospace',
-                      fontSize: '0.75rem'
+                      fontSize: '0.93rem'
                     }} {...props} />
                   ) : (
                     <code style={{
@@ -575,7 +575,7 @@ const MultiFileEditor = ({
                       overflowX: 'auto',
                       color: 'rgba(245, 245, 247, 0.85)',
                       fontFamily: 'SF Mono, Monaco, monospace',
-                      fontSize: '0.75rem',
+                      fontSize: '0.93rem',
                       lineHeight: 1.5
                     }} {...props} />
                   ),
@@ -591,7 +591,7 @@ const MultiFileEditor = ({
                     lineHeight: 1.6,
                     listStyleType: 'disc',
                     listStylePosition: 'outside',
-                    fontSize: '0.8125rem'
+                    fontSize: '1rem'
                   }} {...props} />,
                   ol: ({node, ...props}) => <ol style={{
                     margin: '8px 0',
@@ -599,7 +599,7 @@ const MultiFileEditor = ({
                     lineHeight: 1.6,
                     listStyleType: 'decimal',
                     listStylePosition: 'outside',
-                    fontSize: '0.8125rem'
+                    fontSize: '1rem'
                   }} {...props} />,
                   li: ({node, ...props}) => <li style={{
                     margin: '4px 0',
@@ -611,7 +611,7 @@ const MultiFileEditor = ({
                     borderLeft: '3px solid #32d74b',
                     background: 'rgba(50, 215, 75, 0.06)',
                     fontStyle: 'italic',
-                    fontSize: '0.8125rem',
+                    fontSize: '1rem',
                     borderRadius: '0 6px 6px 0'
                   }} {...props} />,
                   a: ({node, ...props}) => <a style={{

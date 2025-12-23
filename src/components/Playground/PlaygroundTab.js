@@ -83,7 +83,7 @@ const PlaygroundTab = ({
                     }}>
                         <Code size={16} color={PremiumStyles.colors.accent} />
                         <span style={{
-                            fontSize: '0.8125rem',
+                            fontSize: '1rem',
                             fontWeight: 600,
                             color: PremiumStyles.colors.text,
                             letterSpacing: '0.01em'
@@ -110,7 +110,7 @@ const PlaygroundTab = ({
                                     borderRadius: '8px',
                                     border: '1px solid rgba(255, 255, 255, 0.08)',
                                     color: PremiumStyles.colors.textSecondary,
-                                    fontSize: '0.75rem',
+                                    fontSize: '0.93rem',
                                     fontWeight: 500,
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease'
@@ -145,7 +145,7 @@ const PlaygroundTab = ({
                                     borderRadius: '8px',
                                     border: 'none',
                                     color: '#000',
-                                    fontSize: '0.75rem',
+                                    fontSize: '0.93rem',
                                     fontWeight: 600,
                                     cursor: playground.isRunning ? 'not-allowed' : 'pointer',
                                     transition: 'all 0.2s ease',
@@ -217,7 +217,7 @@ const PlaygroundTab = ({
                             }}>
                                 <Terminal size={16} color={PremiumStyles.colors.accent} />
                                 <span style={{
-                                    fontSize: '0.8125rem',
+                                    fontSize: '1rem',
                                     fontWeight: 600,
                                     color: PremiumStyles.colors.text,
                                     letterSpacing: '0.01em'
@@ -233,7 +233,7 @@ const PlaygroundTab = ({
                                     borderRadius: '8px',
                                     border: 'none',
                                     color: PremiumStyles.colors.textSecondary,
-                                    fontSize: '0.75rem',
+                                    fontSize: '0.93rem',
                                     fontWeight: 500,
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease'
@@ -256,7 +256,7 @@ const PlaygroundTab = ({
                         }}>
                             <pre style={{
                                 margin: 0,
-                                fontSize: '0.8125rem',
+                                fontSize: '1rem',
                                 lineHeight: 1.6,
                                 color: PremiumStyles.colors.text,
                                 fontFamily: PremiumStyles.typography.fontFamilyMono,

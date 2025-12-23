@@ -46,7 +46,7 @@ const editorTheme = EditorView.theme({
     '&': {
         backgroundColor: '#1e1e1e',
         color: '#d4d4d4',
-        fontSize: '0.8125rem',
+        fontSize: '0.85rem',
         fontFamily: 'SF Mono, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
     },
     '.cm-content': {
@@ -249,7 +249,7 @@ const ConceptLearner = ({ concept, setSelectedConcept }) => {
                     {/* Overview Section */}
                     <div style={{ marginBottom: '32px' }}>
                         <h3 style={{
-                            fontSize: '0.8125rem',
+                            fontSize: '0.85rem',
                             fontWeight: 700,
                             color: PremiumStyles.colors.accentOrange,
                             textTransform: 'uppercase',
@@ -261,7 +261,7 @@ const ConceptLearner = ({ concept, setSelectedConcept }) => {
                         <p style={{
                             fontSize: '1rem',
                             lineHeight: 1.8,
-                            color: '#e4e4e7',
+                            color: '#a1a1aa',
                             margin: 0,
                             fontWeight: 400
                         }}>
@@ -272,7 +272,7 @@ const ConceptLearner = ({ concept, setSelectedConcept }) => {
                     {/* Explanation Section */}
                     <div style={{ marginBottom: '32px' }}>
                         <h3 style={{
-                            fontSize: '0.8125rem',
+                            fontSize: '0.85rem',
                             fontWeight: 700,
                             color: PremiumStyles.colors.accent,
                             textTransform: 'uppercase',
@@ -289,7 +289,7 @@ const ConceptLearner = ({ concept, setSelectedConcept }) => {
                             <ReactMarkdown
                                 components={{
                                     p: ({ node, ...props }) => (
-                                        <p style={{ margin: '0 0 16px 0', lineHeight: 1.8, color: '#d4d4d8' }} {...props} />
+                                        <p style={{ margin: '0 0 16px 0', lineHeight: 1.8, color: '#a1a1aa' }} {...props} />
                                     ),
                                     ul: ({ node, ...props }) => (
                                         <ul style={{ margin: '12px 0 16px 0', paddingLeft: '24px', listStyleType: 'disc' }} {...props} />
@@ -298,10 +298,10 @@ const ConceptLearner = ({ concept, setSelectedConcept }) => {
                                         <ol style={{ margin: '12px 0 16px 0', paddingLeft: '24px' }} {...props} />
                                     ),
                                     li: ({ node, ...props }) => (
-                                        <li style={{ margin: '8px 0', lineHeight: 1.7, color: '#d4d4d8' }} {...props} />
+                                        <li style={{ margin: '8px 0', lineHeight: 1.7, color: '#a1a1aa' }} {...props} />
                                     ),
                                     strong: ({ node, ...props }) => (
-                                        <strong style={{ color: '#f5f5f7', fontWeight: 600 }} {...props} />
+                                        <strong style={{ color: '#d4d4d8', fontWeight: 500 }} {...props} />
                                     ),
                                     code: ({ node, inline, className, ...props }) => (
                                         <code style={{
@@ -314,15 +314,22 @@ const ConceptLearner = ({ concept, setSelectedConcept }) => {
                                             fontWeight: 500
                                         }} {...props} />
                                     ),
-                                    pre: ({ node, ...props }) => (
+                                    pre: ({ node, children, ...props }) => (
                                         <pre style={{
                                             background: '#1e1e1e',
                                             padding: '16px',
                                             borderRadius: '12px',
                                             margin: '16px 0',
                                             overflow: 'auto',
-                                            border: '1px solid rgba(255, 255, 255, 0.08)'
-                                        }} {...props} />
+                                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                                            lineHeight: '1.45',
+                                            fontFamily: 'SF Mono, Monaco, Consolas, monospace',
+                                            fontSize: '0.875rem',
+                                            color: '#32d74b',
+                                            whiteSpace: 'pre'
+                                        }} {...props}>
+                                            {children}
+                                        </pre>
                                     ),
                                     h1: ({ node, ...props }) => (
                                         <h1 style={{ color: '#f5f5f7', fontWeight: 700, fontSize: '1.25rem', margin: '24px 0 12px 0' }} {...props} />
@@ -412,7 +419,7 @@ const ConceptLearner = ({ concept, setSelectedConcept }) => {
                     {concept.exercises && concept.exercises.length > 0 && (
                         <div style={{ marginBottom: '32px' }}>
                             <h3 style={{
-                                fontSize: '0.8125rem',
+                                fontSize: '0.85rem',
                                 fontWeight: 700,
                                 color: PremiumStyles.colors.accentOrange,
                                 textTransform: 'uppercase',
@@ -455,7 +462,7 @@ const ConceptLearner = ({ concept, setSelectedConcept }) => {
                                             margin: 0,
                                             fontSize: '0.9375rem',
                                             lineHeight: 1.7,
-                                            color: '#d4d4d8',
+                                            color: '#a1a1aa',
                                             fontWeight: 400
                                         }}>
                                             {exercise}
