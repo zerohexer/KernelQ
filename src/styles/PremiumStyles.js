@@ -1,142 +1,257 @@
-// Premium Apple-inspired Design System
+// KernelQ Premium Design System - Apple-Inspired Dark Luxury
+// A sophisticated, addictive interface with depth and polish
+
 const PremiumStyles = {
-  // Core Design System
+  // Core Color Palette - Rich, Deep, Sophisticated
   colors: {
-    primary: 'rgba(255, 255, 255, 0.15)',
-    primaryDark: 'rgba(255, 255, 255, 0.1)',
-    background: '#000000',
-    backgroundSecondary: '#1d1d1f',
-    backgroundTertiary: '#2d2d2f',
-    surface: 'rgba(255, 255, 255, 0.05)',
-    surfaceHover: 'rgba(255, 255, 255, 0.08)',
+    // Base colors
+    background: '#0a0a0c',
+    backgroundSecondary: '#121214',
+    backgroundTertiary: '#1a1a1e',
+    backgroundElevated: '#222226',
+
+    // Surface colors with depth
+    surface: 'rgba(255, 255, 255, 0.03)',
+    surfaceHover: 'rgba(255, 255, 255, 0.06)',
+    surfaceActive: 'rgba(255, 255, 255, 0.09)',
+
+    // Text hierarchy
     text: '#f5f5f7',
-    textSecondary: 'rgba(245, 245, 247, 0.7)',
-    textTertiary: 'rgba(245, 245, 247, 0.5)',
-    border: 'rgba(255, 255, 255, 0.1)',
-    borderHover: 'rgba(255, 255, 255, 0.2)',
-    accent: '#30d158',
+    textSecondary: 'rgba(245, 245, 247, 0.65)',
+    textTertiary: 'rgba(245, 245, 247, 0.45)',
+    textMuted: 'rgba(245, 245, 247, 0.3)',
+
+    // Border system
+    border: 'rgba(255, 255, 255, 0.08)',
+    borderHover: 'rgba(255, 255, 255, 0.15)',
+    borderActive: 'rgba(255, 255, 255, 0.25)',
+
+    // Primary gradient stops
+    primary: 'rgba(255, 255, 255, 0.12)',
+    primaryDark: 'rgba(255, 255, 255, 0.06)',
+
+    // Accent colors - Vibrant but refined
+    accent: '#32d74b',           // Apple Green
+    accentSecondary: '#30d158',
     accentOrange: '#ff9f0a',
     accentRed: '#ff453a',
     accentPurple: '#bf5af2',
-    success: '#30d158',
+    accentBlue: '#0a84ff',
+    accentCyan: '#5ac8fa',
+    accentPink: '#ff375f',
+    accentYellow: '#ffd60a',
+
+    // Semantic colors
+    success: '#32d74b',
     warning: '#ff9f0a',
-    error: '#ff453a'
+    error: '#ff453a',
+    info: '#0a84ff',
+
+    // Gradient mesh colors for backgrounds
+    meshPurple: 'rgba(191, 90, 242, 0.15)',
+    meshBlue: 'rgba(10, 132, 255, 0.12)',
+    meshGreen: 'rgba(50, 215, 75, 0.1)',
+    meshOrange: 'rgba(255, 159, 10, 0.08)'
   },
 
-  // Typography System
+  // Typography System - Premium and Refined
   typography: {
-    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif',
-    fontSmoothing: '-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;',
+    fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    fontFamilyMono: '"SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace',
+
     weights: {
+      thin: 100,
+      ultralight: 200,
       light: 300,
       regular: 400,
       medium: 500,
       semibold: 600,
-      bold: 700
+      bold: 700,
+      heavy: 800,
+      black: 900
     },
+
     sizes: {
-      xs: 'clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem)',
-      sm: 'clamp(0.875rem, 0.8rem + 0.375vw, 1rem)',
-      base: 'clamp(1rem, 0.9rem + 0.5vw, 1.125rem)',
-      lg: 'clamp(1.125rem, 1rem + 0.625vw, 1.25rem)',
-      xl: 'clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem)',
-      '2xl': 'clamp(1.5rem, 1.3rem + 1vw, 2rem)',
-      '3xl': 'clamp(1.875rem, 1.6rem + 1.375vw, 2.5rem)',
-      '4xl': 'clamp(2.25rem, 1.9rem + 1.75vw, 3rem)',
-      '5xl': 'clamp(3rem, 2.5rem + 2.5vw, 4rem)'
+      '2xs': '0.625rem',    // 10px
+      xs: '0.75rem',        // 12px
+      sm: '0.875rem',       // 14px
+      base: '1rem',         // 16px
+      lg: '1.125rem',       // 18px
+      xl: '1.25rem',        // 20px
+      '2xl': '1.5rem',      // 24px
+      '3xl': '1.875rem',    // 30px
+      '4xl': '2.25rem',     // 36px
+      '5xl': '3rem',        // 48px
+      '6xl': '3.75rem',     // 60px
+      '7xl': '4.5rem',      // 72px
+      display: 'clamp(2.5rem, 5vw, 5rem)'
+    },
+
+    lineHeights: {
+      none: 1,
+      tight: 1.15,
+      snug: 1.25,
+      normal: 1.5,
+      relaxed: 1.625,
+      loose: 2
+    },
+
+    letterSpacing: {
+      tighter: '-0.05em',
+      tight: '-0.025em',
+      normal: '0',
+      wide: '0.025em',
+      wider: '0.05em',
+      widest: '0.1em'
     }
   },
 
-  // Spacing System
+  // Spacing System - Generous and Balanced
   spacing: {
-    xs: '0.25rem',
-    sm: '0.5rem',
-    base: '1rem',
-    lg: '1.5rem',
-    xl: '2rem',
-    '2xl': '3rem',
-    '3xl': '4rem',
-    '4xl': '6rem',
-    '5xl': '8rem'
+    '0': '0',
+    px: '1px',
+    '0.5': '0.125rem',    // 2px
+    '1': '0.25rem',       // 4px
+    '1.5': '0.375rem',    // 6px
+    '2': '0.5rem',        // 8px
+    '2.5': '0.625rem',    // 10px
+    '3': '0.75rem',       // 12px
+    '3.5': '0.875rem',    // 14px
+    '4': '1rem',          // 16px
+    '5': '1.25rem',       // 20px
+    '6': '1.5rem',        // 24px
+    '7': '1.75rem',       // 28px
+    '8': '2rem',          // 32px
+    '9': '2.25rem',       // 36px
+    '10': '2.5rem',       // 40px
+    '12': '3rem',         // 48px
+    '14': '3.5rem',       // 56px
+    '16': '4rem',         // 64px
+    '20': '5rem',         // 80px
+    '24': '6rem',         // 96px
+    '32': '8rem',         // 128px
   },
 
-  // Glassmorphism Effects
+  // Border Radius - Smooth and Organic
+  radius: {
+    none: '0',
+    sm: '6px',
+    md: '10px',
+    lg: '14px',
+    xl: '18px',
+    '2xl': '24px',
+    '3xl': '32px',
+    full: '9999px'
+  },
+
+  // Solid backgrounds - no blur effects
   glass: {
+    ultraLight: {
+      background: 'rgba(255, 255, 255, 0.02)',
+      border: '1px solid rgba(255, 255, 255, 0.04)'
+    },
     light: {
-      background: 'rgba(255, 255, 255, 0.05)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      border: '1px solid rgba(255, 255, 255, 0.1)'
+      background: 'rgba(255, 255, 255, 0.04)',
+      border: '1px solid rgba(255, 255, 255, 0.06)'
     },
     medium: {
-      background: 'rgba(255, 255, 255, 0.08)',
-      backdropFilter: 'blur(30px)',
-      WebkitBackdropFilter: 'blur(30px)',
-      border: '1px solid rgba(255, 255, 255, 0.15)'
+      background: 'rgba(255, 255, 255, 0.06)',
+      border: '1px solid rgba(255, 255, 255, 0.08)'
     },
     heavy: {
-      background: 'rgba(255, 255, 255, 0.12)',
-      backdropFilter: 'blur(40px)',
-      WebkitBackdropFilter: 'blur(40px)',
-      border: '1px solid rgba(255, 255, 255, 0.2)'
+      background: 'rgba(255, 255, 255, 0.08)',
+      border: '1px solid rgba(255, 255, 255, 0.12)'
+    },
+    solid: {
+      background: '#121214',
+      border: '1px solid rgba(255, 255, 255, 0.1)'
     }
   },
 
-  // Shadow System
+  // Shadow System - Depth and Elevation
   shadows: {
-    sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    base: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-    md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-    lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-    xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-    glow: '0 0 20px rgba(0, 122, 255, 0.3)',
-    glowHover: '0 0 30px rgba(0, 122, 255, 0.5)'
+    sm: '0 1px 2px rgba(0, 0, 0, 0.4)',
+    base: '0 2px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2)',
+    md: '0 4px 8px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2)',
+    lg: '0 8px 16px rgba(0, 0, 0, 0.35), 0 4px 8px rgba(0, 0, 0, 0.2)',
+    xl: '0 16px 32px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.25)',
+    '2xl': '0 24px 48px rgba(0, 0, 0, 0.45), 0 12px 24px rgba(0, 0, 0, 0.3)',
+    inner: 'inset 0 2px 4px rgba(0, 0, 0, 0.25)',
+
+    // Glow effects for interactive elements
+    glow: {
+      green: '0 0 20px rgba(50, 215, 75, 0.3), 0 0 40px rgba(50, 215, 75, 0.15)',
+      blue: '0 0 20px rgba(10, 132, 255, 0.3), 0 0 40px rgba(10, 132, 255, 0.15)',
+      purple: '0 0 20px rgba(191, 90, 242, 0.3), 0 0 40px rgba(191, 90, 242, 0.15)',
+      orange: '0 0 20px rgba(255, 159, 10, 0.3), 0 0 40px rgba(255, 159, 10, 0.15)',
+      white: '0 0 20px rgba(255, 255, 255, 0.2), 0 0 40px rgba(255, 255, 255, 0.1)'
+    },
+
+    // Card shadows with subtle glow
+    card: '0 4px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+    cardHover: '0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1), 0 0 60px rgba(50, 215, 75, 0.05)'
   },
 
-  // Scrollbar System
-  scrollbar: {
-    // WebKit scrollbar styles
-    '&::-webkit-scrollbar': {
-      width: '8px',
-      height: '8px'
-    },
-    '&::-webkit-scrollbar-track': {
-      background: 'transparent'
-    },
-    '&::-webkit-scrollbar-thumb': {
-      background: 'rgba(255, 255, 255, 0.2)',
-      borderRadius: '4px',
-      border: 'none'
-    },
-    '&::-webkit-scrollbar-thumb:hover': {
-      background: 'rgba(255, 255, 255, 0.3)'
-    },
-    '&::-webkit-scrollbar-corner': {
-      background: 'transparent'
-    },
-    // Firefox scrollbar
-    scrollbarWidth: 'thin',
-    scrollbarColor: 'rgba(255, 255, 255, 0.2) transparent'
-  },
-
-  // Animation System
+  // Animation System - Smooth and Delightful
   animations: {
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    transitionFast: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-    transitionSlow: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    hover: 'transform 0.2s ease-out, box-shadow 0.2s ease-out',
-    spring: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+    // Timing functions
+    easeOut: 'cubic-bezier(0.16, 1, 0.3, 1)',
+    easeIn: 'cubic-bezier(0.55, 0.055, 0.675, 0.19)',
+    easeInOut: 'cubic-bezier(0.645, 0.045, 0.355, 1)',
+    spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    bounce: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+    smooth: 'cubic-bezier(0.4, 0, 0.2, 1)',
+
+    // Duration presets
+    duration: {
+      instant: '0ms',
+      fast: '150ms',
+      normal: '250ms',
+      slow: '400ms',
+      slower: '600ms',
+      slowest: '1000ms'
+    },
+
+    // Composite transitions
+    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+    transitionFast: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
+    transitionSlow: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+    transitionColors: 'color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease',
+    transitionTransform: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+    transitionOpacity: 'opacity 0.2s ease'
+  },
+
+  // Gradients
+  gradients: {
+    // Solid dark background
+    meshDark: '#0a0a0c',
+
+    // Card gradient overlays (subtle)
+    cardShine: 'none',
+    cardShineHover: 'none',
+
+    // Accent gradients
+    green: 'linear-gradient(135deg, #32d74b 0%, #30d158 100%)',
+    blue: 'linear-gradient(135deg, #0a84ff 0%, #5ac8fa 100%)',
+    purple: 'linear-gradient(135deg, #bf5af2 0%, #ff375f 100%)',
+    orange: 'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)',
+    rainbow: 'linear-gradient(135deg, #ff453a 0%, #ff9f0a 25%, #32d74b 50%, #0a84ff 75%, #bf5af2 100%)',
+
+    // Level difficulty gradients
+    easy: 'linear-gradient(135deg, #32d74b 0%, #5ac8fa 100%)',
+    medium: 'linear-gradient(135deg, #ffd60a 0%, #ff9f0a 100%)',
+    hard: 'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)',
+    expert: 'linear-gradient(135deg, #ff453a 0%, #bf5af2 100%)'
   }
 };
 
-// Premium Component Styles
+// Premium Component Styles - Refined and Polished
 const premiumStyles = {
-  // Main Container
+  // Main Container with mesh gradient background
   container: {
     minHeight: '100%',
     height: '100%',
-    background: `linear-gradient(135deg, ${PremiumStyles.colors.background} 0%, ${PremiumStyles.colors.backgroundSecondary} 100%)`,
+    background: PremiumStyles.gradients.meshDark,
     color: PremiumStyles.colors.text,
     fontFamily: PremiumStyles.typography.fontFamily,
     WebkitFontSmoothing: 'antialiased',
@@ -144,43 +259,45 @@ const premiumStyles = {
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
-    flex: 1
+    flex: 1,
+    position: 'relative'
   },
 
-  // Navigation Bar
+  // Navigation Bar - Floating with depth
   navbar: {
     position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
+    top: '12px',
+    left: '30px',
+    right: '40px',
     zIndex: 1000,
-    height: '60px',
+    height: '56px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '0 2rem',
-    ...PremiumStyles.glass.medium,
-    borderBottom: `1px solid ${PremiumStyles.colors.border}`,
+    padding: '0 0 0 24px',
+    ...PremiumStyles.glass.solid,
+    borderRadius: PremiumStyles.radius['2xl'],
+    boxShadow: `${PremiumStyles.shadows.xl}, inset 0 1px 0 rgba(255, 255, 255, 0.05)`,
     transition: PremiumStyles.animations.transition
   },
 
   // Main Content Area
   mainContent: {
-    paddingTop: '60px',
+    paddingTop: '80px',
     flex: 1,
     display: 'flex',
     overflow: 'hidden',
     minHeight: 0
   },
 
-  // Sidebar
+  // Sidebar - Premium glass effect
   sidebar: {
     width: '320px',
     height: '100%',
-    ...PremiumStyles.glass.light,
+    ...PremiumStyles.glass.medium,
     borderRight: `1px solid ${PremiumStyles.colors.border}`,
     overflow: 'auto',
-    padding: '1.5rem',
+    padding: '24px',
     transition: PremiumStyles.animations.transition
   },
 
@@ -188,74 +305,85 @@ const premiumStyles = {
   contentArea: {
     flex: 1,
     overflow: 'auto',
-    padding: '2rem',
+    scrollbarGutter: 'stable',
+    padding: '24px 32px',
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
     minHeight: 0
   },
 
-  // Glass Card
+  // Glass Card - Elevated with depth
   glassCard: {
     ...PremiumStyles.glass.light,
-    borderRadius: '16px',
-    padding: '1.5rem',
+    borderRadius: PremiumStyles.radius['2xl'],
+    padding: '24px',
     transition: PremiumStyles.animations.transition,
-    boxShadow: PremiumStyles.shadows.md,
+    boxShadow: PremiumStyles.shadows.card,
+    position: 'relative',
+    overflow: 'hidden',
+    // Subtle top highlight
+    backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 40%)'
+  },
+
+  // Glass Card Hover - Enhanced interactivity
+  glassCardHover: {
+    ...PremiumStyles.glass.medium,
+    transform: 'translateY(-4px) scale(1.005)',
+    boxShadow: PremiumStyles.shadows.cardHover,
+    borderColor: PremiumStyles.colors.borderActive,
+    backgroundImage: PremiumStyles.gradients.cardShineHover
+  },
+
+  // Primary Button - Sleek and tactile
+  buttonPrimary: {
+    background: PremiumStyles.gradients.green,
+    color: '#000000',
+    border: 'none',
+    borderRadius: PremiumStyles.radius.xl,
+    padding: '12px 24px',
+    fontSize: PremiumStyles.typography.sizes.sm,
+    fontWeight: PremiumStyles.typography.weights.semibold,
+    fontFamily: PremiumStyles.typography.fontFamily,
+    cursor: 'pointer',
+    transition: PremiumStyles.animations.transition,
+    boxShadow: `${PremiumStyles.shadows.md}, ${PremiumStyles.shadows.glow.green}`,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    textDecoration: 'none',
+    letterSpacing: PremiumStyles.typography.letterSpacing.wide,
     position: 'relative',
     overflow: 'hidden'
   },
 
-  // Glass Card Hover
-  glassCardHover: {
-    ...PremiumStyles.glass.medium,
-    transform: 'translateY(-2px)',
-    boxShadow: `${PremiumStyles.shadows.lg}, ${PremiumStyles.shadows.glow}`,
-    borderColor: PremiumStyles.colors.borderHover
-  },
-
-  // Button Primary
-  buttonPrimary: {
-    background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
-    color: 'white',
-    border: 'none',
-    borderRadius: '12px',
-    padding: '0.75rem 1.5rem',
-    fontSize: PremiumStyles.typography.sizes.base,
-    fontWeight: PremiumStyles.typography.weights.semibold,
-    cursor: 'pointer',
-    transition: PremiumStyles.animations.transition,
-    boxShadow: PremiumStyles.shadows.md,
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    textDecoration: 'none'
-  },
-
-  // Button Secondary
+  // Secondary Button - Subtle glass effect
   buttonSecondary: {
     ...PremiumStyles.glass.light,
     color: PremiumStyles.colors.text,
     border: `1px solid ${PremiumStyles.colors.border}`,
-    borderRadius: '12px',
-    padding: '0.75rem 1.5rem',
-    fontSize: PremiumStyles.typography.sizes.base,
+    borderRadius: PremiumStyles.radius.xl,
+    padding: '12px 24px',
+    fontSize: PremiumStyles.typography.sizes.sm,
     fontWeight: PremiumStyles.typography.weights.medium,
+    fontFamily: PremiumStyles.typography.fontFamily,
     cursor: 'pointer',
     transition: PremiumStyles.animations.transition,
-    display: 'flex',
+    display: 'inline-flex',
     alignItems: 'center',
-    gap: '0.5rem',
+    justifyContent: 'center',
+    gap: '8px',
     textDecoration: 'none'
   },
 
-  // Dropdown Select
+  // Dropdown Select - Premium styling
   dropdown: {
-    background: PremiumStyles.colors.backgroundSecondary,
+    background: PremiumStyles.colors.backgroundTertiary,
     border: `1px solid ${PremiumStyles.colors.border}`,
-    borderRadius: '12px',
+    borderRadius: PremiumStyles.radius.lg,
     color: PremiumStyles.colors.text,
-    padding: '0.75rem 1rem',
+    padding: '12px 16px',
     fontSize: PremiumStyles.typography.sizes.sm,
     fontFamily: PremiumStyles.typography.fontFamily,
     outline: 'none',
@@ -264,139 +392,223 @@ const premiumStyles = {
     WebkitAppearance: 'none',
     MozAppearance: 'none',
     appearance: 'none',
-    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,<svg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 1L6 6L11 1' stroke='%23f5f5f7' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>")`,
+    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e")`,
     backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 1rem center',
-    paddingRight: '3rem'
+    backgroundPosition: 'right 16px center',
+    paddingRight: '48px'
   },
 
-  // Tab Navigation
+  // Tab Navigation - Pill style
   tabNav: {
     display: 'flex',
     ...PremiumStyles.glass.light,
-    borderRadius: '16px',
-    padding: '0.5rem',
-    marginBottom: '1.5rem',
-    gap: '0.25rem'
+    borderRadius: PremiumStyles.radius['2xl'],
+    padding: '6px',
+    marginBottom: '24px',
+    gap: '4px'
   },
 
   // Tab Item
   tabItem: {
     flex: 1,
-    padding: '0.75rem 1rem',
-    borderRadius: '12px',
+    padding: '12px 20px',
+    borderRadius: PremiumStyles.radius.xl,
     textAlign: 'center',
     cursor: 'pointer',
     transition: PremiumStyles.animations.transition,
     fontSize: PremiumStyles.typography.sizes.sm,
     fontWeight: PremiumStyles.typography.weights.medium,
-    color: PremiumStyles.colors.textSecondary
+    color: PremiumStyles.colors.textSecondary,
+    border: 'none',
+    background: 'transparent',
+    fontFamily: PremiumStyles.typography.fontFamily
   },
 
   // Tab Item Active
   tabItemActive: {
-    background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
-    color: 'white',
+    background: PremiumStyles.colors.backgroundElevated,
+    color: PremiumStyles.colors.text,
     boxShadow: PremiumStyles.shadows.md
   },
 
-  // Typography
+  // Typography Headings
   headingXL: {
-    fontSize: PremiumStyles.typography.sizes['3xl'],
+    fontSize: PremiumStyles.typography.sizes['4xl'],
     fontWeight: PremiumStyles.typography.weights.bold,
     color: PremiumStyles.colors.text,
-    marginBottom: '0.5rem',
-    letterSpacing: '-0.025em'
+    marginBottom: '8px',
+    letterSpacing: PremiumStyles.typography.letterSpacing.tight,
+    lineHeight: PremiumStyles.typography.lineHeights.tight
   },
 
   headingLG: {
     fontSize: PremiumStyles.typography.sizes['2xl'],
     fontWeight: PremiumStyles.typography.weights.semibold,
     color: PremiumStyles.colors.text,
-    marginBottom: '1rem',
-    letterSpacing: '-0.02em'
+    marginBottom: '16px',
+    letterSpacing: PremiumStyles.typography.letterSpacing.tight,
+    lineHeight: PremiumStyles.typography.lineHeights.snug
   },
 
   headingMD: {
     fontSize: PremiumStyles.typography.sizes.xl,
     fontWeight: PremiumStyles.typography.weights.semibold,
     color: PremiumStyles.colors.text,
-    marginBottom: '0.75rem',
-    letterSpacing: '-0.015em'
+    marginBottom: '12px',
+    letterSpacing: PremiumStyles.typography.letterSpacing.tight,
+    lineHeight: PremiumStyles.typography.lineHeights.snug
   },
 
+  headingSM: {
+    fontSize: PremiumStyles.typography.sizes.lg,
+    fontWeight: PremiumStyles.typography.weights.semibold,
+    color: PremiumStyles.colors.text,
+    marginBottom: '8px',
+    letterSpacing: PremiumStyles.typography.letterSpacing.normal,
+    lineHeight: PremiumStyles.typography.lineHeights.snug
+  },
+
+  // Text styles
   textBase: {
     fontSize: PremiumStyles.typography.sizes.base,
     color: PremiumStyles.colors.text,
-    lineHeight: '1.6'
+    lineHeight: PremiumStyles.typography.lineHeights.relaxed,
+    fontFamily: PremiumStyles.typography.fontFamily
   },
 
   textSecondary: {
     fontSize: PremiumStyles.typography.sizes.sm,
     color: PremiumStyles.colors.textSecondary,
-    lineHeight: '1.5'
+    lineHeight: PremiumStyles.typography.lineHeights.normal,
+    fontFamily: PremiumStyles.typography.fontFamily
   },
 
-  // Status indicators
+  textMuted: {
+    fontSize: PremiumStyles.typography.sizes.xs,
+    color: PremiumStyles.colors.textTertiary,
+    lineHeight: PremiumStyles.typography.lineHeights.normal,
+    fontFamily: PremiumStyles.typography.fontFamily
+  },
+
+  // Status Badge - Refined pill
   statusBadge: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '0.25rem',
-    padding: '0.25rem 0.75rem',
-    borderRadius: '20px',
+    gap: '6px',
+    padding: '6px 12px',
+    borderRadius: PremiumStyles.radius.full,
     fontSize: PremiumStyles.typography.sizes.xs,
-    fontWeight: PremiumStyles.typography.weights.medium,
-    ...PremiumStyles.glass.light,
+    fontWeight: PremiumStyles.typography.weights.semibold,
+    letterSpacing: PremiumStyles.typography.letterSpacing.wide,
+    ...PremiumStyles.glass.ultraLight,
     border: `1px solid ${PremiumStyles.colors.border}`
   },
 
-  // Problem card
+  // Problem Card - Elevated with hover effect
   problemCard: {
     ...PremiumStyles.glass.light,
-    borderRadius: '16px',
-    padding: '1.5rem',
-    marginBottom: '1rem',
+    borderRadius: PremiumStyles.radius['2xl'],
+    padding: '20px 24px',
+    marginBottom: '12px',
     cursor: 'pointer',
     transition: PremiumStyles.animations.transition,
     border: `1px solid ${PremiumStyles.colors.border}`,
     position: 'relative',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 50%)'
   },
 
-  // Code editor container
+  // Code Editor Container
   codeEditorContainer: {
     ...PremiumStyles.glass.medium,
-    borderRadius: '16px',
+    borderRadius: PremiumStyles.radius['2xl'],
     overflow: 'hidden',
     border: `1px solid ${PremiumStyles.colors.border}`,
-    boxShadow: PremiumStyles.shadows.lg
+    boxShadow: PremiumStyles.shadows.xl
   },
 
-  // Stats card
+  // Stats Card - Elevated glass
   statsCard: {
     ...PremiumStyles.glass.light,
-    borderRadius: '16px',
-    padding: '1.5rem',
+    borderRadius: PremiumStyles.radius['2xl'],
+    padding: '24px',
     textAlign: 'center',
     border: `1px solid ${PremiumStyles.colors.border}`,
-    transition: PremiumStyles.animations.transition
+    transition: PremiumStyles.animations.transition,
+    backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 50%)'
   },
 
-  // Progress bar
+  // Progress Bar - Smooth gradient
   progressBar: {
     width: '100%',
-    height: '8px',
+    height: '6px',
     backgroundColor: PremiumStyles.colors.backgroundTertiary,
-    borderRadius: '4px',
+    borderRadius: PremiumStyles.radius.full,
     overflow: 'hidden',
     position: 'relative'
   },
 
   progressFill: {
     height: '100%',
-    background: `linear-gradient(90deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.accent} 100%)`,
-    borderRadius: '4px',
-    transition: PremiumStyles.animations.transition
+    background: PremiumStyles.gradients.green,
+    borderRadius: PremiumStyles.radius.full,
+    transition: `width 0.6s ${PremiumStyles.animations.easeOut}`,
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+  },
+
+  // Input Field - Clean and minimal
+  input: {
+    background: PremiumStyles.colors.backgroundTertiary,
+    border: `1px solid ${PremiumStyles.colors.border}`,
+    borderRadius: PremiumStyles.radius.lg,
+    color: PremiumStyles.colors.text,
+    padding: '14px 18px',
+    fontSize: PremiumStyles.typography.sizes.base,
+    fontFamily: PremiumStyles.typography.fontFamily,
+    outline: 'none',
+    transition: PremiumStyles.animations.transition,
+    width: '100%'
+  },
+
+  // Divider
+  divider: {
+    width: '100%',
+    height: '1px',
+    background: PremiumStyles.colors.border,
+    margin: '24px 0'
+  },
+
+  // Floating Action Button
+  fab: {
+    position: 'fixed',
+    bottom: '32px',
+    right: '32px',
+    width: '56px',
+    height: '56px',
+    borderRadius: PremiumStyles.radius.full,
+    background: PremiumStyles.gradients.green,
+    border: 'none',
+    color: '#000000',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: `${PremiumStyles.shadows.xl}, ${PremiumStyles.shadows.glow.green}`,
+    transition: PremiumStyles.animations.transition,
+    zIndex: 100
+  },
+
+  // Tooltip
+  tooltip: {
+    ...PremiumStyles.glass.solid,
+    borderRadius: PremiumStyles.radius.lg,
+    padding: '8px 12px',
+    fontSize: PremiumStyles.typography.sizes.xs,
+    fontWeight: PremiumStyles.typography.weights.medium,
+    color: PremiumStyles.colors.text,
+    boxShadow: PremiumStyles.shadows.lg,
+    pointerEvents: 'none',
+    whiteSpace: 'nowrap'
   }
 };
 

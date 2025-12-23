@@ -14,7 +14,6 @@ import LoginScreen from './components/Auth/LoginScreen.js';
 import RegisterScreen from './components/Auth/RegisterScreen.js';
 
 // Extracted Data
-import { conceptDatabase, getConcept, detectUnfamiliarConcepts } from './data/ConceptDatabase.js';
 import phaseSystem from './data/PhaseSystem.js';
 
 // Custom Hooks
@@ -22,6 +21,7 @@ import useUserProfile from './hooks/useUserProfile.js';
 import useCodeEditor from './hooks/useCodeEditor.js';
 import useUIState from './hooks/useUIState.js';
 import useAuth from './hooks/useAuth.js';
+import useConcepts from './hooks/useConcepts.js';
 
 // Utility function to create a proper deep copy of files
 const deepCopyFiles = (files) => {
@@ -104,6 +104,9 @@ const UnlimitedKernelAcademy = () => {
         setPlayground,
         resetAll: resetCodeEditor
     } = useCodeEditor(currentChallenge);
+
+    // Load concepts from markdown files
+    const { concepts: mdConcepts, loading: conceptsLoading } = useConcepts();
 
     // Problem bank and utility functions
     const problemBank = generatedProblems;
@@ -1018,8 +1021,6 @@ const UnlimitedKernelAcademy = () => {
                             }}
                             onShowHints={() => setShowHints(!showHints)}
                             onShowConcepts={() => setShowLessons(!showLessons)}
-                            detectUnfamiliarConcepts={detectUnfamiliarConcepts}
-                            getConcept={getConcept}
                             setSelectedConcept={setSelectedConcept}
                             switchToTab={switchToTab}
                         />
@@ -1044,32 +1045,126 @@ const UnlimitedKernelAcademy = () => {
                     )}
 
                     {activeTab === 'concepts' && (
-                        <div style={premiumStyles.glassCard}>
-                            <h2 style={premiumStyles.headingLG}>Kernel Concepts</h2>
-                            <p style={premiumStyles.textSecondary}>
-                                Explore fundamental kernel programming concepts with interactive examples and explanations.
-                            </p>
-                            
-                            <div style={{ 
-                                display: 'grid', 
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-                                gap: '1.5rem', 
-                                marginTop: '2rem' 
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.02)',
+                            borderRadius: '24px',
+                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                            padding: '20px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            flex: 1,
+                            minHeight: 0,
+                            gap: '24px'
+                        }}>
+                            {/* Header */}
+                            <div>
+                                <h1 style={{
+                                    fontSize: '1.5rem',
+                                    fontWeight: 700,
+                                    margin: 0,
+                                    marginBottom: '8px',
+                                    letterSpacing: '-0.02em',
+                                    color: '#f5f5f7'
+                                }}>
+                                    Kernel Concepts
+                                </h1>
+                                <p style={{
+                                    ...premiumStyles.textSecondary,
+                                    margin: 0,
+                                    fontSize: '0.9375rem'
+                                }}>
+                                    Master fundamental kernel programming concepts with interactive examples
+                                </p>
+                            </div>
+
+                            {/* Concepts Grid */}
+                            <div style={{
+                                flex: 1,
+                                overflowY: 'auto',
+                                paddingRight: '8px',
+                                marginRight: '-8px'
                             }}>
-                                {Object.entries(conceptDatabase).map(([key, concept]) => (
-                                    <div
-                                        key={key}
-                                        style={{
-                                            ...premiumStyles.glassCard,
-                                            cursor: 'pointer',
-                                            transition: PremiumStyles.animations.transition
-                                        }}
-                                        onClick={() => setSelectedConcept(concept)}
-                                    >
-                                        <h3 style={premiumStyles.headingMD}>{concept.title}</h3>
-                                        <p style={premiumStyles.textSecondary}>{concept.description}</p>
-                                    </div>
-                                ))}
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                                    gap: '16px'
+                                }}>
+                                    {Object.entries(mdConcepts).map(([key, concept], index) => (
+                                        <div
+                                            key={key}
+                                            style={{
+                                                padding: '24px',
+                                                background: 'rgba(255, 255, 255, 0.03)',
+                                                borderRadius: '20px',
+                                                border: '1px solid rgba(255, 255, 255, 0.06)',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                                                position: 'relative',
+                                                overflow: 'hidden',
+                                                animation: `fadeInUp 0.4s ease ${index * 0.05}s both`
+                                            }}
+                                            onClick={() => setSelectedConcept(concept)}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                                                e.currentTarget.style.transform = 'translateY(-4px) scale(1.01)';
+                                                e.currentTarget.style.borderColor = 'rgba(191, 90, 242, 0.3)';
+                                                e.currentTarget.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(191, 90, 242, 0.1)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                                                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
+                                                e.currentTarget.style.boxShadow = 'none';
+                                            }}
+                                        >
+                                            {/* Top accent line */}
+                                            <div style={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                right: 0,
+                                                height: '3px',
+                                                background: 'linear-gradient(135deg, #bf5af2 0%, #0a84ff 100%)',
+                                                opacity: 0.7
+                                            }} />
+                                            <div style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '10px',
+                                                marginBottom: '12px'
+                                            }}>
+                                                <Lightbulb size={16} color={PremiumStyles.colors.accentPurple} />
+                                                <span style={{
+                                                    fontSize: '0.6875rem',
+                                                    fontWeight: 600,
+                                                    color: PremiumStyles.colors.accentPurple,
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.08em'
+                                                }}>
+                                                    Concept
+                                                </span>
+                                            </div>
+                                            <h3 style={{
+                                                fontSize: '1.0625rem',
+                                                fontWeight: 600,
+                                                color: PremiumStyles.colors.text,
+                                                margin: 0,
+                                                marginBottom: '8px',
+                                                letterSpacing: '-0.01em'
+                                            }}>{concept.title}</h3>
+                                            <p style={{
+                                                fontSize: '0.8125rem',
+                                                color: PremiumStyles.colors.textSecondary,
+                                                lineHeight: 1.5,
+                                                margin: 0,
+                                                display: '-webkit-box',
+                                                WebkitLineClamp: 2,
+                                                WebkitBoxOrient: 'vertical',
+                                                overflow: 'hidden'
+                                            }}>{concept.description}</p>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}

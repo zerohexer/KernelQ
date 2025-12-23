@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { premiumStyles } from '../../styles/PremiumStyles.js';
-import PremiumStyles from '../../styles/PremiumStyles.js';
+import { User, Mail, Lock, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 import GoogleSSOButton from './GoogleSSOButton.js';
 import { OAuthCallbackHandler } from '../../utils/oauth-callback.js';
 
-const RegisterScreen = ({ onRegister, onSwitchToLogin, premiumStyles: styles }) => {
+const RegisterScreen = ({ onRegister, onSwitchToLogin }) => {
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -16,21 +15,14 @@ const RegisterScreen = ({ onRegister, onSwitchToLogin, premiumStyles: styles }) 
     const [success, setSuccess] = useState('');
     const [oauthLoading, setOauthLoading] = useState(false);
 
-    // Handle OAuth callback on component mount
     useEffect(() => {
         const handleOAuthCallback = async () => {
             const oauthData = await OAuthCallbackHandler.checkForOAuthCallback();
-            
+
             if (oauthData) {
                 if (oauthData.success) {
-                    // Validate OAuth data
                     if (OAuthCallbackHandler.validateOAuthData(oauthData)) {
-                        console.log('✅ Processing OAuth registration success');
                         setOauthLoading(true);
-                        
-                        // For register screen, we use onRegister callback
-                        // But since Google OAuth creates the user automatically,
-                        // we actually want to log them in instead
                         if (onRegister) {
                             onRegister(
                                 oauthData.userData,
@@ -43,7 +35,6 @@ const RegisterScreen = ({ onRegister, onSwitchToLogin, premiumStyles: styles }) 
                         setError('Authentication data incomplete. Please try again.');
                     }
                 } else {
-                    // OAuth error
                     setError(oauthData.error || 'Google Sign-In failed. Please try again.');
                 }
             }
@@ -113,14 +104,14 @@ const RegisterScreen = ({ onRegister, onSwitchToLogin, premiumStyles: styles }) 
                     username: formData.username,
                     email: formData.email,
                     password: formData.password,
-                    memberStatus: 'Standard Free User'  // Default to free account
+                    memberStatus: 'Standard Free User'
                 })
             });
 
             const result = await response.json();
 
             if (result.success) {
-                setSuccess('Account created successfully! You can now sign in.');
+                setSuccess('Account created successfully! Redirecting to sign in...');
                 setTimeout(() => {
                     onSwitchToLogin();
                 }, 2000);
@@ -136,14 +127,35 @@ const RegisterScreen = ({ onRegister, onSwitchToLogin, premiumStyles: styles }) 
     };
 
     const handleGoogleSSOSuccess = (oauthData) => {
-        console.log('🎉 Google SSO success:', oauthData);
-        // This will be handled by the OAuth callback effect
+        console.log('Google SSO success:', oauthData);
     };
 
     const handleGoogleSSOError = (error) => {
-        console.error('❌ Google SSO error:', error);
+        console.error('Google SSO error:', error);
         setError(error);
         setOauthLoading(false);
+    };
+
+    const inputStyle = {
+        width: '100%',
+        padding: '14px 16px 14px 48px',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRadius: '12px',
+        background: '#1e1e1e',
+        color: '#f5f5f7',
+        fontSize: '0.9375rem',
+        outline: 'none',
+        transition: 'all 0.2s ease',
+        boxSizing: 'border-box',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    };
+
+    const iconStyle = {
+        position: 'absolute',
+        left: '16px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        pointerEvents: 'none'
     };
 
     return (
@@ -153,7 +165,7 @@ const RegisterScreen = ({ onRegister, onSwitchToLogin, premiumStyles: styles }) 
             left: 0,
             width: '100%',
             height: '100%',
-            background: PremiumStyles.colors.background,
+            background: '#0a0a0c',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -162,65 +174,28 @@ const RegisterScreen = ({ onRegister, onSwitchToLogin, premiumStyles: styles }) 
             padding: '20px 0'
         }}>
             <div style={{
-                ...PremiumStyles.glass.medium,
                 width: '100%',
                 maxWidth: '420px',
                 margin: '20px',
-                padding: '2rem',
-                borderRadius: '20px',
-                border: `1px solid ${PremiumStyles.colors.border}`,
-                boxShadow: PremiumStyles.shadows.xl
+                padding: '40px',
+                background: '#141416',
+                borderRadius: '24px',
+                border: '1px solid rgba(255, 255, 255, 0.08)'
             }}>
-                {/* KernelQ Logo/Header */}
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                    <div style={{
-                        width: '60px',
-                        height: '52px',
-                        borderRadius: '16px',
-                        background: `linear-gradient(135deg, ${PremiumStyles.colors.primary} 0%, ${PremiumStyles.colors.primaryDark} 100%)`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 1rem auto',
-                        boxShadow: PremiumStyles.shadows.md
-                    }}>
-                        <svg width="36" height="32" viewBox="0 0 120 100">
-                            <defs>
-                                <linearGradient id="register-apple-silver" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 0.95 }} />
-                                    <stop offset="100%" style={{ stopColor: '#d1d1d6', stopOpacity: 0.9 }} />
-                                </linearGradient>
-                                <linearGradient id="register-apple-accent" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style={{ stopColor: '#f5f5f7', stopOpacity: 0.9 }} />
-                                    <stop offset="100%" style={{ stopColor: '#e5e5ea', stopOpacity: 0.8 }} />
-                                </linearGradient>
-                            </defs>
-
-                            <path d="M15 15 L15 85 L28 85 L28 55 L50 85 L63 85 L40 55 L63 15 L50 15 L32 45 L28 35 L28 15 Z"
-                                  fill="url(#register-apple-silver)" stroke="none"/>
-
-                            <g transform="translate(50, 15) scale(0.65)">
-                                <path d="M20 20 L60 0 L100 20 L60 40 Z" fill="url(#register-apple-accent)" stroke="rgba(255,255,255,0.3)" strokeWidth="0.5"/>
-                                <path d="M20 20 L60 40 L60 100 L20 80 Z" fill="rgba(245,245,247,0.7)" stroke="rgba(255,255,255,0.2)" strokeWidth="0.5"/>
-                                <path d="M60 40 L100 20 L100 80 L60 100 Z" fill="rgba(229,229,234,0.8)" stroke="rgba(255,255,255,0.2)" strokeWidth="0.5"/>
-                            </g>
-                        </svg>
-                    </div>
-                    
+                {/* Header */}
+                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <h1 style={{
-                        ...premiumStyles.headingXL,
-                        background: `linear-gradient(135deg, ${PremiumStyles.colors.accentOrange}, ${PremiumStyles.colors.warning})`,
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
-                        marginBottom: '0.5rem',
-                        fontSize: PremiumStyles.typography.sizes['2xl']
+                        fontSize: '1.75rem',
+                        fontWeight: 700,
+                        color: '#f5f5f7',
+                        margin: '0 0 8px 0',
+                        letterSpacing: '-0.02em'
                     }}>
                         Join KernelQ
                     </h1>
                     <p style={{
-                        ...premiumStyles.textSecondary,
-                        fontSize: PremiumStyles.typography.sizes.base,
+                        fontSize: '0.9375rem',
+                        color: '#71717a',
                         margin: 0
                     }}>
                         Start your kernel development journey
@@ -241,184 +216,107 @@ const RegisterScreen = ({ onRegister, onSwitchToLogin, premiumStyles: styles }) 
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        marginBottom: '1.5rem',
-                        color: PremiumStyles.colors.textSecondary,
-                        fontSize: PremiumStyles.typography.sizes.sm
+                        margin: '24px 0',
+                        color: '#52525b',
+                        fontSize: '0.8125rem'
                     }}>
                         <div style={{
                             flex: 1,
                             height: '1px',
-                            background: PremiumStyles.colors.border
+                            background: 'rgba(255, 255, 255, 0.08)'
                         }} />
-                        <span style={{ padding: '0 1rem' }}>or</span>
+                        <span style={{ padding: '0 16px' }}>or continue with email</span>
                         <div style={{
                             flex: 1,
                             height: '1px',
-                            background: PremiumStyles.colors.border
+                            background: 'rgba(255, 255, 255, 0.08)'
                         }} />
                     </div>
 
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '0.5rem',
-                            color: PremiumStyles.colors.text,
-                            fontSize: PremiumStyles.typography.sizes.sm,
-                            fontWeight: PremiumStyles.typography.weights.medium
-                        }}>
-                            Username
-                        </label>
+                    {/* Username Input */}
+                    <div style={{ marginBottom: '16px', position: 'relative' }}>
+                        <User size={18} color="#71717a" style={iconStyle} />
                         <input
                             type="text"
                             name="username"
                             value={formData.username}
                             onChange={handleInputChange}
                             disabled={isLoading}
-                            placeholder="Enter your username"
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem 1rem',
-                                border: `1px solid ${PremiumStyles.colors.border}`,
-                                borderRadius: '12px',
-                                background: PremiumStyles.colors.surface,
-                                color: PremiumStyles.colors.text,
-                                fontSize: PremiumStyles.typography.sizes.base,
-                                outline: 'none',
-                                transition: PremiumStyles.animations.transition,
-                                boxSizing: 'border-box',
-                                fontFamily: PremiumStyles.typography.fontFamily
-                            }}
+                            placeholder="Username"
+                            style={inputStyle}
                             onFocus={(e) => {
-                                e.target.style.borderColor = PremiumStyles.colors.accentOrange;
-                                e.target.style.boxShadow = `0 0 0 3px rgba(255, 159, 10, 0.1)`;
+                                e.target.style.borderColor = '#32d74b';
+                                e.target.style.background = '#252528';
                             }}
                             onBlur={(e) => {
-                                e.target.style.borderColor = PremiumStyles.colors.border;
-                                e.target.style.boxShadow = 'none';
+                                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                                e.target.style.background = '#1e1e1e';
                             }}
                         />
                     </div>
 
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '0.5rem',
-                            color: PremiumStyles.colors.text,
-                            fontSize: PremiumStyles.typography.sizes.sm,
-                            fontWeight: PremiumStyles.typography.weights.medium
-                        }}>
-                            Email Address
-                        </label>
+                    {/* Email Input */}
+                    <div style={{ marginBottom: '16px', position: 'relative' }}>
+                        <Mail size={18} color="#71717a" style={iconStyle} />
                         <input
                             type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleInputChange}
                             disabled={isLoading}
-                            placeholder="Enter your email"
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem 1rem',
-                                border: `1px solid ${PremiumStyles.colors.border}`,
-                                borderRadius: '12px',
-                                background: PremiumStyles.colors.surface,
-                                color: PremiumStyles.colors.text,
-                                fontSize: PremiumStyles.typography.sizes.base,
-                                outline: 'none',
-                                transition: PremiumStyles.animations.transition,
-                                boxSizing: 'border-box',
-                                fontFamily: PremiumStyles.typography.fontFamily
-                            }}
+                            placeholder="Email address"
+                            style={inputStyle}
                             onFocus={(e) => {
-                                e.target.style.borderColor = PremiumStyles.colors.accentOrange;
-                                e.target.style.boxShadow = `0 0 0 3px rgba(255, 159, 10, 0.1)`;
+                                e.target.style.borderColor = '#32d74b';
+                                e.target.style.background = '#252528';
                             }}
                             onBlur={(e) => {
-                                e.target.style.borderColor = PremiumStyles.colors.border;
-                                e.target.style.boxShadow = 'none';
+                                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                                e.target.style.background = '#1e1e1e';
                             }}
                         />
                     </div>
 
-
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '0.5rem',
-                            color: PremiumStyles.colors.text,
-                            fontSize: PremiumStyles.typography.sizes.sm,
-                            fontWeight: PremiumStyles.typography.weights.medium
-                        }}>
-                            Password
-                        </label>
+                    {/* Password Input */}
+                    <div style={{ marginBottom: '16px', position: 'relative' }}>
+                        <Lock size={18} color="#71717a" style={iconStyle} />
                         <input
                             type="password"
                             name="password"
                             value={formData.password}
                             onChange={handleInputChange}
                             disabled={isLoading}
-                            placeholder="Create a password"
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem 1rem',
-                                border: `1px solid ${PremiumStyles.colors.border}`,
-                                borderRadius: '12px',
-                                background: PremiumStyles.colors.surface,
-                                color: PremiumStyles.colors.text,
-                                fontSize: PremiumStyles.typography.sizes.base,
-                                outline: 'none',
-                                transition: PremiumStyles.animations.transition,
-                                boxSizing: 'border-box',
-                                fontFamily: PremiumStyles.typography.fontFamily
-                            }}
+                            placeholder="Password"
+                            style={inputStyle}
                             onFocus={(e) => {
-                                e.target.style.borderColor = PremiumStyles.colors.accentOrange;
-                                e.target.style.boxShadow = `0 0 0 3px rgba(255, 159, 10, 0.1)`;
+                                e.target.style.borderColor = '#32d74b';
+                                e.target.style.background = '#252528';
                             }}
                             onBlur={(e) => {
-                                e.target.style.borderColor = PremiumStyles.colors.border;
-                                e.target.style.boxShadow = 'none';
+                                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                                e.target.style.background = '#1e1e1e';
                             }}
                         />
                     </div>
 
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '0.5rem',
-                            color: PremiumStyles.colors.text,
-                            fontSize: PremiumStyles.typography.sizes.sm,
-                            fontWeight: PremiumStyles.typography.weights.medium
-                        }}>
-                            Confirm Password
-                        </label>
+                    {/* Confirm Password Input */}
+                    <div style={{ marginBottom: '24px', position: 'relative' }}>
+                        <Lock size={18} color="#71717a" style={iconStyle} />
                         <input
                             type="password"
                             name="confirmPassword"
                             value={formData.confirmPassword}
                             onChange={handleInputChange}
                             disabled={isLoading}
-                            placeholder="Confirm your password"
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem 1rem',
-                                border: `1px solid ${PremiumStyles.colors.border}`,
-                                borderRadius: '12px',
-                                background: PremiumStyles.colors.surface,
-                                color: PremiumStyles.colors.text,
-                                fontSize: PremiumStyles.typography.sizes.base,
-                                outline: 'none',
-                                transition: PremiumStyles.animations.transition,
-                                boxSizing: 'border-box',
-                                fontFamily: PremiumStyles.typography.fontFamily
-                            }}
+                            placeholder="Confirm password"
+                            style={inputStyle}
                             onFocus={(e) => {
-                                e.target.style.borderColor = PremiumStyles.colors.accentOrange;
-                                e.target.style.boxShadow = `0 0 0 3px rgba(255, 159, 10, 0.1)`;
+                                e.target.style.borderColor = '#32d74b';
+                                e.target.style.background = '#252528';
                             }}
                             onBlur={(e) => {
-                                e.target.style.borderColor = PremiumStyles.colors.border;
-                                e.target.style.boxShadow = 'none';
+                                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                                e.target.style.background = '#1e1e1e';
                             }}
                         />
                     </div>
@@ -426,14 +324,18 @@ const RegisterScreen = ({ onRegister, onSwitchToLogin, premiumStyles: styles }) 
                     {/* Error Message */}
                     {error && (
                         <div style={{
-                            padding: '0.75rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '12px 16px',
                             borderRadius: '12px',
                             background: 'rgba(255, 69, 58, 0.1)',
-                            border: `1px solid rgba(255, 69, 58, 0.2)`,
-                            color: PremiumStyles.colors.error,
-                            fontSize: PremiumStyles.typography.sizes.sm,
-                            marginBottom: '1.5rem'
+                            border: '1px solid rgba(255, 69, 58, 0.2)',
+                            color: '#ff453a',
+                            fontSize: '0.875rem',
+                            marginBottom: '24px'
                         }}>
+                            <AlertCircle size={16} />
                             {error}
                         </div>
                     )}
@@ -441,14 +343,18 @@ const RegisterScreen = ({ onRegister, onSwitchToLogin, premiumStyles: styles }) 
                     {/* Success Message */}
                     {success && (
                         <div style={{
-                            padding: '0.75rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '12px 16px',
                             borderRadius: '12px',
-                            background: 'rgba(48, 209, 88, 0.1)',
-                            border: `1px solid rgba(48, 209, 88, 0.2)`,
-                            color: PremiumStyles.colors.success,
-                            fontSize: PremiumStyles.typography.sizes.sm,
-                            marginBottom: '1.5rem'
+                            background: 'rgba(50, 215, 75, 0.1)',
+                            border: '1px solid rgba(50, 215, 75, 0.2)',
+                            color: '#32d74b',
+                            fontSize: '0.875rem',
+                            marginBottom: '24px'
                         }}>
+                            <CheckCircle size={16} />
                             {success}
                         </div>
                     )}
@@ -459,39 +365,35 @@ const RegisterScreen = ({ onRegister, onSwitchToLogin, premiumStyles: styles }) 
                         disabled={isLoading}
                         style={{
                             width: '100%',
-                            padding: '0.75rem 1rem',
-                            background: isLoading 
-                                ? `rgba(255, 159, 10, 0.5)` 
-                                : `linear-gradient(135deg, ${PremiumStyles.colors.accentOrange}, ${PremiumStyles.colors.warning})`,
-                            color: 'white',
+                            padding: '14px 24px',
+                            background: isLoading ? 'rgba(50, 215, 75, 0.5)' : '#32d74b',
+                            color: '#000',
                             border: 'none',
                             borderRadius: '12px',
-                            fontSize: PremiumStyles.typography.sizes.base,
-                            fontWeight: PremiumStyles.typography.weights.semibold,
+                            fontSize: '0.9375rem',
+                            fontWeight: 600,
                             cursor: isLoading ? 'not-allowed' : 'pointer',
-                            transition: PremiumStyles.animations.transition,
-                            marginBottom: '1.5rem',
-                            fontFamily: PremiumStyles.typography.fontFamily
-                        }}
-                        onMouseOver={(e) => {
-                            if (!isLoading) {
-                                e.target.style.transform = 'translateY(-1px)';
-                                e.target.style.boxShadow = `0 4px 12px rgba(255, 159, 10, 0.3)`;
-                            }
-                        }}
-                        onMouseOut={(e) => {
-                            e.target.style.transform = 'translateY(0)';
-                            e.target.style.boxShadow = 'none';
+                            transition: 'all 0.2s ease',
+                            marginBottom: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px'
                         }}
                     >
-                        {isLoading ? 'Creating Account...' : 'Create Account'}
+                        {isLoading ? 'Creating Account...' : (
+                            <>
+                                Create Account
+                                <ArrowRight size={18} />
+                            </>
+                        )}
                     </button>
 
                     {/* Login Link */}
                     <div style={{ textAlign: 'center' }}>
                         <p style={{
-                            ...premiumStyles.textSecondary,
-                            fontSize: PremiumStyles.typography.sizes.sm,
+                            fontSize: '0.875rem',
+                            color: '#71717a',
                             margin: 0
                         }}>
                             Already have an account?{' '}
@@ -502,13 +404,12 @@ const RegisterScreen = ({ onRegister, onSwitchToLogin, premiumStyles: styles }) 
                                 style={{
                                     background: 'none',
                                     border: 'none',
-                                    color: PremiumStyles.colors.accentOrange,
+                                    color: '#32d74b',
                                     cursor: isLoading ? 'not-allowed' : 'pointer',
-                                    fontSize: PremiumStyles.typography.sizes.sm,
-                                    fontWeight: PremiumStyles.typography.weights.medium,
-                                    textDecoration: 'underline',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 600,
                                     padding: 0,
-                                    fontFamily: PremiumStyles.typography.fontFamily
+                                    fontFamily: 'inherit'
                                 }}
                             >
                                 Sign In

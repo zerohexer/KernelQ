@@ -39,6 +39,7 @@ const MultiFileEditor = ({
   const [fileContents, setFileContents] = useState({});
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [internalScrollPositions, setInternalScrollPositions] = useState({});
+  const [editorKey, setEditorKey] = useState(0); // Force re-mount on reset
   const editorRef = useRef(null);
   const markdownScrollRef = useRef(null);
 
@@ -76,13 +77,27 @@ const MultiFileEditor = ({
   // Initialize file contents from props
   useEffect(() => {
     if (files && files.length > 0) {
+      // Check if any file content changed from external source (e.g., reset)
+      let contentChanged = false;
+      files.forEach(file => {
+        if (fileContents[file.name] !== undefined &&
+            fileContents[file.name] !== file.content) {
+          contentChanged = true;
+        }
+      });
+
       // Always reset file contents when files prop changes
       const contents = {};
       files.forEach(file => {
         contents[file.name] = file.content || '';
       });
       setFileContents(contents);
-      
+
+      // Force editor re-mount if content changed externally
+      if (contentChanged) {
+        setEditorKey(prev => prev + 1);
+      }
+
       // Only set active file if:
       // 1. No active file is currently set, OR
       // 2. Current active file doesn't exist in the new files array
@@ -348,8 +363,7 @@ const MultiFileEditor = ({
         <div style={{
           position: 'relative',
           ...(effectiveIsFullScreen && {
-            backdropFilter: 'blur(20px)',
-            background: 'rgba(80, 80, 80, 0.65)',
+            background: '#1e1e20',
             borderRight: '1px solid rgba(255, 255, 255, 0.1)'
           })
         }}>
@@ -421,6 +435,7 @@ const MultiFileEditor = ({
                   const originalFile = originalFiles.find(f => f.name === activeFile);
                   if (originalFile) {
                     onResetFile(activeFile, originalFile.content);
+                    setEditorKey(prev => prev + 1); // Force editor re-mount
                   }
                 }}
                 title="Reset this file to original"
@@ -501,115 +516,119 @@ const MultiFileEditor = ({
               style={{
                 height: '100%',
                 overflowY: 'auto',
-                padding: '24px 32px',
+                padding: '16px 20px',
                 background: '#1e1e1e',
-                color: '#d4d4d4',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                color: 'rgba(245, 245, 247, 0.8)',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif',
+                fontSize: '0.8125rem',
+                lineHeight: 1.6
               }}
             >
               <ReactMarkdown
                 components={{
                   h1: ({node, ...props}) => <h1 style={{
-                    fontSize: '2.5rem',
+                    fontSize: '1.25rem',
                     fontWeight: 700,
-                    margin: '0 0 1.5rem 0',
-                    color: '#ffffff',
-                    borderBottom: '2px solid #007acc',
-                    paddingBottom: '0.5rem'
+                    margin: '0 0 12px 0',
+                    color: '#f5f5f7',
+                    paddingBottom: '8px',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
                   }} {...props} />,
                   h2: ({node, ...props}) => <h2 style={{
-                    fontSize: '2rem',
+                    fontSize: '1.0625rem',
                     fontWeight: 600,
-                    margin: '2rem 0 1rem 0',
-                    color: '#ffffff',
-                    borderBottom: '1px solid #444'
+                    margin: '20px 0 10px 0',
+                    color: '#f5f5f7'
                   }} {...props} />,
                   h3: ({node, ...props}) => <h3 style={{
-                    fontSize: '1.5rem',
+                    fontSize: '0.9375rem',
                     fontWeight: 600,
-                    margin: '1.5rem 0 0.75rem 0',
-                    color: '#ffffff'
+                    margin: '16px 0 8px 0',
+                    color: '#f5f5f7'
                   }} {...props} />,
                   h4: ({node, ...props}) => <h4 style={{
-                    fontSize: '1.25rem',
+                    fontSize: '0.875rem',
                     fontWeight: 600,
-                    margin: '1.25rem 0 0.5rem 0',
-                    color: '#ffffff'
+                    margin: '12px 0 6px 0',
+                    color: '#f5f5f7'
                   }} {...props} />,
                   p: ({node, ...props}) => <p style={{
-                    margin: '0 0 1rem 0',
-                    lineHeight: '1.7',
-                    fontSize: '1rem'
+                    margin: '0 0 10px 0',
+                    lineHeight: 1.6,
+                    fontSize: '0.8125rem'
                   }} {...props} />,
                   code: ({node, inline, ...props}) => inline ? (
                     <code style={{
-                      background: '#2d2d30',
-                      padding: '2px 6px',
+                      background: 'rgba(50, 215, 75, 0.12)',
+                      padding: '2px 5px',
                       borderRadius: '4px',
-                      color: '#ce9178',
-                      fontFamily: '"Cascadia Code", Consolas, "Courier New", monospace',
-                      fontSize: '0.9em'
+                      color: '#32d74b',
+                      fontFamily: 'SF Mono, Monaco, monospace',
+                      fontSize: '0.75rem'
                     }} {...props} />
                   ) : (
                     <code style={{
                       display: 'block',
-                      background: '#2d2d30',
-                      padding: '16px',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      padding: '12px',
                       borderRadius: '8px',
                       overflowX: 'auto',
-                      color: '#d4d4d4',
-                      fontFamily: '"Cascadia Code", Consolas, "Courier New", monospace',
-                      fontSize: '0.9em',
-                      lineHeight: '1.5',
-                      border: '1px solid #444'
+                      color: 'rgba(245, 245, 247, 0.85)',
+                      fontFamily: 'SF Mono, Monaco, monospace',
+                      fontSize: '0.75rem',
+                      lineHeight: 1.5
                     }} {...props} />
                   ),
                   pre: ({node, ...props}) => <pre style={{
-                    margin: '1rem 0',
-                    background: '#2d2d30',
+                    margin: '12px 0 16px 0',
+                    background: 'rgba(255, 255, 255, 0.04)',
                     borderRadius: '8px',
                     overflow: 'hidden'
                   }} {...props} />,
                   ul: ({node, ...props}) => <ul style={{
-                    margin: '1rem 0',
-                    paddingLeft: '2rem',
-                    lineHeight: '1.7',
+                    margin: '8px 0',
+                    paddingLeft: '20px',
+                    lineHeight: 1.6,
                     listStyleType: 'disc',
-                    listStylePosition: 'outside'
+                    listStylePosition: 'outside',
+                    fontSize: '0.8125rem'
                   }} {...props} />,
                   ol: ({node, ...props}) => <ol style={{
-                    margin: '1rem 0',
-                    paddingLeft: '2rem',
-                    lineHeight: '1.7',
+                    margin: '8px 0',
+                    paddingLeft: '20px',
+                    lineHeight: 1.6,
                     listStyleType: 'decimal',
-                    listStylePosition: 'outside'
+                    listStylePosition: 'outside',
+                    fontSize: '0.8125rem'
                   }} {...props} />,
                   li: ({node, ...props}) => <li style={{
-                    margin: '0.25rem 0',
+                    margin: '4px 0',
                     display: 'list-item'
                   }} {...props} />,
                   blockquote: ({node, ...props}) => <blockquote style={{
-                    margin: '1rem 0',
-                    padding: '0.5rem 1rem',
-                    borderLeft: '4px solid #007acc',
-                    background: '#2d2d30',
-                    fontStyle: 'italic'
+                    margin: '10px 0',
+                    padding: '8px 12px',
+                    borderLeft: '3px solid #32d74b',
+                    background: 'rgba(50, 215, 75, 0.06)',
+                    fontStyle: 'italic',
+                    fontSize: '0.8125rem',
+                    borderRadius: '0 6px 6px 0'
                   }} {...props} />,
                   a: ({node, ...props}) => <a style={{
-                    color: '#3794ff',
+                    color: '#0a84ff',
                     textDecoration: 'none'
                   }} {...props} />,
                   hr: ({node, ...props}) => <hr style={{
-                    margin: '2rem 0',
+                    margin: '16px 0',
                     border: 'none',
-                    borderTop: '1px solid #444'
+                    borderTop: '1px solid rgba(255, 255, 255, 0.08)'
                   }} {...props} />,
                   strong: ({node, ...props}) => <strong style={{
-                    color: '#ffffff',
-                    fontWeight: 700
+                    color: '#f5f5f7',
+                    fontWeight: 600
                   }} {...props} />,
                   em: ({node, ...props}) => <em style={{
-                    color: '#9cdcfe'
+                    color: '#ffd60a'
                   }} {...props} />
                 }}
               >
@@ -619,7 +638,7 @@ const MultiFileEditor = ({
           ) : (
             // Render code files with CodeMirror
             <CodeMirrorKernelEditor
-              key={activeFile}
+              key={`${activeFile}-${editorKey}`}
               value={getCurrentFileContent()}
               onChange={handleCodeChange}
               readOnly={isCurrentFileReadOnly}

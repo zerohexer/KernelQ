@@ -210,28 +210,23 @@ const ChallengeView = ({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: 'rgba(0, 0, 0, 0.7)',
-                backdropFilter: 'blur(10px)',
+                background: 'rgba(0, 0, 0, 0.9)',
                 zIndex: 1000,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '20px'
+                padding: '0'
             }}>
                 <div style={{
-                    background: 'rgba(29, 29, 31, 0.95)',
-                    backdropFilter: 'blur(40px)',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
-                    paddingTop: '65px',
-                    paddingLeft: '25px',
-                    paddingRight: '40px',
-                    paddingBottom: '17px',
-                    width: '90vw',
-                    maxWidth: '1200px',
-                    height: '90vh',
-                    maxHeight: '90vh',
+                    background: '#1a1a1e',
+                    borderRadius: '0',
+                    border: 'none',
+                    boxShadow: 'none',
+                    padding: '24px',
+                    width: '100vw',
+                    maxWidth: '100vw',
+                    height: '100vh',
+                    maxHeight: '100vh',
                     overflow: 'hidden',
                     position: 'relative',
                     display: 'flex',
@@ -242,103 +237,129 @@ const ChallengeView = ({
                         onClick={() => setShowFloatingHelp(false)}
                         style={{
                             position: 'absolute',
-                            top: '16px',
-                            right: '16px',
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            border: 'none',
-                            borderRadius: '8px',
-                            color: '#f5f5f7',
+                            top: '20px',
+                            right: '28px',
+                            background: 'rgba(255, 255, 255, 0.06)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            borderRadius: '10px',
+                            color: 'rgba(245, 245, 247, 0.6)',
                             padding: '8px',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            transition: 'all 0.2s ease',
+                            zIndex: 10
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                            e.currentTarget.style.color = '#f5f5f7';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                            e.currentTarget.style.color = 'rgba(245, 245, 247, 0.6)';
                         }}
                     >
-                        <X size={20} />
+                        <X size={16} />
                     </button>
 
                     {/* Scrollable Content Container */}
-                    <div 
+                    <div
                         ref={floatingHelpScrollRef}
-                        style={{ 
-                            flex: 1, 
-                            overflow: 'auto', 
-                            paddingRight: '20px',
-                            marginRight: '-20px',
-                            scrollBehavior: 'auto'
+                        style={{
+                            flex: 1,
+                            overflow: 'auto',
+                            paddingRight: '16px',
+                            marginRight: '-16px',
+                            scrollBehavior: 'auto',
+                            paddingTop: '8px'
                         }}
                         className="floating-help-scroll"
                     >
                         {/* Challenge Header */}
                         <div style={{ marginBottom: '24px' }}>
-                            <h2 style={{ 
-                                fontSize: '1.875rem',
+                            <h2 style={{
+                                fontSize: '1.5rem',
                                 fontWeight: 700,
                                 color: '#f5f5f7',
                                 margin: 0,
-                                marginBottom: '16px',
-                                letterSpacing: '-0.025em'
+                                marginBottom: '14px',
+                                letterSpacing: '-0.02em',
+                                lineHeight: 1.3,
+                                paddingRight: '40px'
                             }}>
                                 {challenge.id ? `#${challenge.id}: ${challenge.title}` : challenge.title}
                             </h2>
-                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                             <span style={{
-                                background: challenge.difficulty <= 3 ? 
-                                    'linear-gradient(135deg, #30d158 0%, #bf5af2 100%)' :
+                                background: challenge.difficulty <= 3 ?
+                                    'linear-gradient(135deg, #32d74b 0%, #30d158 100%)' :
                                     challenge.difficulty <= 6 ?
-                                    'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)' :
-                                    'linear-gradient(135deg, #ff453a 0%, #bf5af2 100%)',
-                                color: 'white',
-                                padding: '8px 16px',
-                                borderRadius: '20px',
-                                fontSize: '0.875rem',
+                                    'linear-gradient(135deg, #ffd60a 0%, #ff9f0a 100%)' :
+                                    'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)',
+                                color: '#000',
+                                padding: '5px 12px',
+                                borderRadius: '8px',
+                                fontSize: '0.6875rem',
                                 fontWeight: 600,
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '6px'
+                                gap: '5px'
                             }}>
-                                <Star size={14} />
+                                <Star size={11} fill="currentColor" />
                                 <span>Level {challenge.difficulty}</span>
                             </span>
                             <span style={{
-                                background: 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
-                                color: 'white',
-                                padding: '8px 16px',
-                                borderRadius: '20px',
-                                fontSize: '0.875rem',
+                                background: 'rgba(255, 255, 255, 0.06)',
+                                color: '#f5f5f7',
+                                padding: '5px 12px',
+                                borderRadius: '8px',
+                                fontSize: '0.6875rem',
                                 fontWeight: 600,
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '6px'
+                                gap: '5px',
+                                border: '1px solid rgba(255, 255, 255, 0.08)'
                             }}>
-                                <Zap size={14} />
+                                <Zap size={11} fill="#ffd60a" color="#ffd60a" />
                                 <span>{challenge.xp} XP</span>
+                            </span>
+                            <span style={{
+                                background: 'rgba(255, 255, 255, 0.04)',
+                                color: 'rgba(245, 245, 247, 0.7)',
+                                padding: '5px 12px',
+                                borderRadius: '8px',
+                                fontSize: '0.6875rem',
+                                fontWeight: 500,
+                                border: '1px solid rgba(255, 255, 255, 0.06)'
+                            }}>
+                                {challenge.phase}
                             </span>
                         </div>
                     </div>
 
                     {/* Problem Description */}
                     <div style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
+                        background: 'rgba(255, 255, 255, 0.03)',
                         borderRadius: '16px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        padding: '24px',
-                        marginBottom: '24px'
+                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                        padding: '20px',
+                        marginBottom: '20px'
                     }}>
-                        <h3 style={{ 
-                            fontSize: '1.25rem',
+                        <h3 style={{
+                            fontSize: '0.8125rem',
                             fontWeight: 600,
                             color: '#f5f5f7',
                             margin: 0,
-                            marginBottom: '16px'
+                            marginBottom: '12px',
+                            letterSpacing: '-0.01em'
                         }}>
                             Problem Description
                         </h3>
-                        <p style={{ 
-                            fontSize: '1rem',
+                        <p style={{
+                            fontSize: '0.875rem',
                             lineHeight: '1.6',
-                            color: 'rgba(245, 245, 247, 0.8)',
+                            color: 'rgba(245, 245, 247, 0.65)',
                             margin: 0
                         }}>
                             {challenge.description}
@@ -347,30 +368,27 @@ const ChallengeView = ({
 
                     {/* Requirements - EXACT copy from original left panel requirements */}
                     <div style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        backdropFilter: 'blur(20px)',
+                        background: 'rgba(255, 255, 255, 0.03)',
                         borderRadius: '16px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        padding: '24px',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                        marginBottom: '24px'
+                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                        padding: '20px',
+                        marginBottom: '20px'
                     }}>
-                        <h4 style={{ 
-                            fontSize: '1.125rem',
+                        <h4 style={{
+                            fontSize: '0.8125rem',
                             fontWeight: 600,
                             color: '#f5f5f7',
                             margin: 0,
-                            marginBottom: '16px',
-                            letterSpacing: '-0.015em',
-                            fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                            marginBottom: '14px',
+                            letterSpacing: '-0.01em'
                         }}>
                             Requirements
                         </h4>
-                        <ul style={{ 
-                            fontSize: '0.95rem',
+                        <ul style={{
+                            fontSize: '0.8125rem',
                             lineHeight: '1.6',
-                            color: 'rgba(245, 245, 247, 0.7)',
-                            paddingLeft: '20px',
+                            color: 'rgba(245, 245, 247, 0.65)',
+                            paddingLeft: '16px',
                             margin: 0,
                             listStyleType: 'none'
                         }}>
@@ -381,83 +399,82 @@ const ChallengeView = ({
                             ) && (
                                 <>
                                     <li style={{
-                                        marginBottom: '16px',
+                                        marginBottom: '12px',
                                         paddingLeft: '0',
                                         fontWeight: 600,
                                         color: '#ff9f0a',
-                                        fontSize: '1rem',
-                                        borderBottom: '1px solid rgba(255, 159, 10, 0.2)',
-                                        paddingBottom: '8px'
+                                        fontSize: '0.75rem',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em'
                                     }}>
                                         Header File Requirements
                                     </li>
                                     {/* Display header variable declarations (no values) */}
                                     {challenge.validation?.exactRequirements?.variables_declarations?.map((variable, idx) => (
-                                        <li key={`header-var-${idx}`} style={{ 
-                                            marginBottom: '12px',
+                                        <li key={`header-var-${idx}`} style={{
+                                            marginBottom: '10px',
                                             position: 'relative',
-                                            paddingLeft: '20px'
+                                            paddingLeft: '16px',
+                                            fontSize: '0.8125rem'
                                         }}>
                                             <span style={{
                                                 position: 'absolute',
                                                 left: 0,
-                                                top: '8px',
-                                                width: '6px',
-                                                height: '6px',
+                                                top: '7px',
+                                                width: '5px',
+                                                height: '5px',
                                                 borderRadius: '50%',
                                                 background: '#ff9f0a'
                                             }} />
                                             Declare variable: {' '}
                                             {variable.storageClass && variable.storageClass !== 'none' && (
-                                                <code style={{ 
-                                                    background: 'rgba(255, 159, 10, 0.15)',
-                                                    border: '1px solid rgba(255, 159, 10, 0.3)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                <code style={{
+                                                    background: 'rgba(255, 159, 10, 0.12)',
+                                                    padding: '3px 7px',
+                                                    borderRadius: '5px',
+                                                    fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#ff9f0a',
-                                                    fontSize: '0.875rem',
+                                                    fontSize: '0.75rem',
                                                     fontWeight: 500,
-                                                    marginRight: '6px'
+                                                    marginRight: '4px'
                                                 }}>{variable.storageClass}</code>
                                             )}
-                                            <code style={{ 
-                                                background: 'rgba(255, 159, 10, 0.15)',
-                                                border: '1px solid rgba(255, 159, 10, 0.3)',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                            <code style={{
+                                                background: 'rgba(255, 159, 10, 0.12)',
+                                                padding: '3px 7px',
+                                                borderRadius: '5px',
+                                                fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#ff9f0a',
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 fontWeight: 500
-                                            }}>{variable.type}</code> <code style={{ 
-                                                background: 'rgba(255, 159, 10, 0.15)',
-                                                border: '1px solid rgba(255, 159, 10, 0.3)',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                            }}>{variable.type}</code> <code style={{
+                                                background: 'rgba(255, 159, 10, 0.12)',
+                                                padding: '3px 7px',
+                                                borderRadius: '5px',
+                                                fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#ff9f0a',
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 fontWeight: 500
                                             }}>{variable.name}</code>
                                             {variable.value && (
-                                                <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}> {variable.value}</span>
+                                                <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}> {variable.value}</span>
                                             )}
                                         </li>
                                     ))}
                                     {/* Display header macro declarations in floating help */}
                                     {challenge.validation?.exactRequirements?.macro_declarations?.map((macro, idx) => (
                                         <li key={`floating-header-macro-${idx}`} style={{
-                                            marginBottom: '12px',
+                                            marginBottom: '10px',
                                             position: 'relative',
-                                            paddingLeft: '20px'
+                                            paddingLeft: '16px',
+                                            fontSize: '0.8125rem'
                                         }}>
                                             <span style={{
                                                 position: 'absolute',
                                                 left: 0,
-                                                top: '8px',
-                                                width: '6px',
-                                                height: '6px',
+                                                top: '7px',
+                                                width: '5px',
+                                                height: '5px',
                                                 borderRadius: '50%',
                                                 background: '#32d74b'
                                             }} />
@@ -465,24 +482,22 @@ const ChallengeView = ({
                                                 <>
                                                     Define macro: {' '}
                                                     <code style={{
-                                                        background: 'rgba(50, 215, 75, 0.15)',
-                                                        border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '6px',
-                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        background: 'rgba(50, 215, 75, 0.12)',
+                                                        padding: '3px 7px',
+                                                        borderRadius: '5px',
+                                                        fontFamily: 'SF Mono, Monaco, monospace',
                                                         color: '#32d74b',
-                                                        fontSize: '0.875rem',
+                                                        fontSize: '0.75rem',
                                                         fontWeight: 500,
-                                                        marginRight: '6px'
+                                                        marginRight: '4px'
                                                     }}>{macro.preprocessor}</code>
                                                     <code style={{
-                                                        background: 'rgba(50, 215, 75, 0.15)',
-                                                        border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '6px',
-                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        background: 'rgba(50, 215, 75, 0.12)',
+                                                        padding: '3px 7px',
+                                                        borderRadius: '5px',
+                                                        fontFamily: 'SF Mono, Monaco, monospace',
                                                         color: '#32d74b',
-                                                        fontSize: '0.875rem',
+                                                        fontSize: '0.75rem',
                                                         fontWeight: 500
                                                     }}>{macro.value?.split('\n')[0]?.replace(macro.preprocessor + ' ', '') || macro.name}</code>
                                                 </>
@@ -490,28 +505,26 @@ const ChallengeView = ({
                                                 <>
                                                     Define macro: {' '}
                                                     <code style={{
-                                                        background: 'rgba(50, 215, 75, 0.15)',
-                                                        border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '6px',
-                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        background: 'rgba(50, 215, 75, 0.12)',
+                                                        padding: '3px 7px',
+                                                        borderRadius: '5px',
+                                                        fontFamily: 'SF Mono, Monaco, monospace',
                                                         color: '#32d74b',
-                                                        fontSize: '0.875rem',
+                                                        fontSize: '0.75rem',
                                                         fontWeight: 500,
-                                                        marginRight: '6px'
+                                                        marginRight: '4px'
                                                     }}>#define</code>
                                                     <code style={{
-                                                        background: 'rgba(50, 215, 75, 0.15)',
-                                                        border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '6px',
-                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        background: 'rgba(50, 215, 75, 0.12)',
+                                                        padding: '3px 7px',
+                                                        borderRadius: '5px',
+                                                        fontFamily: 'SF Mono, Monaco, monospace',
                                                         color: '#32d74b',
-                                                        fontSize: '0.875rem',
+                                                        fontSize: '0.75rem',
                                                         fontWeight: 500
                                                     }}>{macro.name}</code>
                                                     {macro.type === 'function-like' && macro.parameters && (
-                                                        <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
+                                                        <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>
                                                             {' '}({macro.parameters.join(', ')})
                                                         </span>
                                                     )}
@@ -521,15 +534,15 @@ const ChallengeView = ({
                                                 macro.value.includes('\n') ? (
                                                     <span style={{
                                                         color: 'rgba(245, 245, 247, 0.5)',
-                                                        fontSize: '0.875rem',
-                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                        fontSize: '0.75rem',
+                                                        fontFamily: 'SF Mono, Monaco, monospace',
                                                         whiteSpace: 'pre-wrap',
                                                         wordBreak: 'break-word'
                                                     }}>
                                                         {' '}{macro.value}
                                                     </span>
                                                 ) : (
-                                                    <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
+                                                    <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}>
                                                         {' '}{macro.value}
                                                     </span>
                                                 )
@@ -549,51 +562,50 @@ const ChallengeView = ({
                                                 params: parsed.params
                                             };
                                         };
-                                        
+
                                         const parsed = parseFunction(funcDecl);
-                                        
+
                                         return (
-                                            <li key={`header-func-${idx}`} style={{ 
-                                                marginBottom: '12px',
+                                            <li key={`header-func-${idx}`} style={{
+                                                marginBottom: '10px',
                                                 position: 'relative',
-                                                paddingLeft: '20px'
+                                                paddingLeft: '16px',
+                                                fontSize: '0.8125rem'
                                             }}>
                                                 <span style={{
                                                     position: 'absolute',
                                                     left: 0,
-                                                    top: '8px',
-                                                    width: '6px',
-                                                    height: '6px',
+                                                    top: '7px',
+                                                    width: '5px',
+                                                    height: '5px',
                                                     borderRadius: '50%',
-                                                    background: '#ffcc02'
+                                                    background: '#ffd60a'
                                                 }} />
                                                 Declare function: {' '}
-                                                {parsed.returnType && <code style={{ 
-                                                    background: 'rgba(255, 204, 2, 0.15)',
-                                                    border: '1px solid rgba(255, 204, 2, 0.3)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                    color: '#ffcc02',
-                                                    fontSize: '0.875rem',
+                                                {parsed.returnType && <code style={{
+                                                    background: 'rgba(255, 214, 10, 0.12)',
+                                                    padding: '3px 7px',
+                                                    borderRadius: '5px',
+                                                    fontFamily: 'SF Mono, Monaco, monospace',
+                                                    color: '#ffd60a',
+                                                    fontSize: '0.75rem',
                                                     fontWeight: 500,
-                                                    marginRight: '6px'
+                                                    marginRight: '4px'
                                                 }}>{parsed.returnType}</code>}
-                                                <code style={{ 
-                                                    background: 'rgba(255, 204, 2, 0.15)',
-                                                    border: '1px solid rgba(255, 204, 2, 0.3)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                    color: '#ffcc02',
-                                                    fontSize: '0.875rem',
+                                                <code style={{
+                                                    background: 'rgba(255, 214, 10, 0.12)',
+                                                    padding: '3px 7px',
+                                                    borderRadius: '5px',
+                                                    fontFamily: 'SF Mono, Monaco, monospace',
+                                                    color: '#ffd60a',
+                                                    fontSize: '0.75rem',
                                                     fontWeight: 500
-                                                }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>{parsed.params}</span>
+                                                }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>{parsed.params}</span>
                                             </li>
                                         );
                                     })}
                                     <li style={{
-                                        marginBottom: '24px',
+                                        marginBottom: '16px',
                                         paddingLeft: '0'
                                     }}></li>
                                 </>
@@ -602,13 +614,14 @@ const ChallengeView = ({
                             {/* Source File Requirements Section */}
                             {(challenge.validation?.exactRequirements?.functionNames || challenge.validation?.exactRequirements?.outputMessages) && (
                                 <li style={{
-                                    marginBottom: '16px',
+                                    marginBottom: '12px',
+                                    marginTop: '16px',
                                     paddingLeft: '0',
                                     fontWeight: 600,
-                                    color: '#ff9f0a',
-                                    fontSize: '1rem',
-                                    borderBottom: '1px solid rgba(255, 159, 10, 0.2)',
-                                    paddingBottom: '8px'
+                                    color: '#32d74b',
+                                    fontSize: '0.75rem',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em'
                                 }}>
                                     Source File Requirements
                                 </li>
@@ -616,71 +629,70 @@ const ChallengeView = ({
 
                             {/* Show validation.exactRequirements if available */}
                             {challenge.validation?.exactRequirements?.variables?.map((variable, idx) => (
-                                <li key={`source-var-${idx}`} style={{ 
-                                    marginBottom: '12px',
+                                <li key={`source-var-${idx}`} style={{
+                                    marginBottom: '10px',
                                     position: 'relative',
-                                    paddingLeft: '20px'
+                                    paddingLeft: '16px',
+                                    fontSize: '0.8125rem'
                                 }}>
                                     <span style={{
                                         position: 'absolute',
                                         left: 0,
-                                        top: '8px',
-                                        width: '6px',
-                                        height: '6px',
+                                        top: '7px',
+                                        width: '5px',
+                                        height: '5px',
                                         borderRadius: '50%',
                                         background: '#ff9f0a'
                                     }} />
                                     Define variable: {' '}
                                     {variable.storageClass && variable.storageClass !== 'none' && (
-                                        <code style={{ 
-                                            background: 'rgba(255, 159, 10, 0.15)',
-                                            border: '1px solid rgba(255, 159, 10, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                        <code style={{
+                                            background: 'rgba(255, 159, 10, 0.12)',
+                                            padding: '3px 7px',
+                                            borderRadius: '5px',
+                                            fontFamily: 'SF Mono, Monaco, monospace',
                                             color: '#ff9f0a',
-                                            fontSize: '0.875rem',
+                                            fontSize: '0.75rem',
                                             fontWeight: 500,
-                                            marginRight: '6px'
+                                            marginRight: '4px'
                                         }}>{variable.storageClass}</code>
                                     )}
-                                    <code style={{ 
-                                        background: 'rgba(255, 159, 10, 0.15)',
-                                        border: '1px solid rgba(255, 159, 10, 0.3)',
-                                        padding: '4px 8px',
-                                        borderRadius: '6px',
-                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                    <code style={{
+                                        background: 'rgba(255, 159, 10, 0.12)',
+                                        padding: '3px 7px',
+                                        borderRadius: '5px',
+                                        fontFamily: 'SF Mono, Monaco, monospace',
                                         color: '#ff9f0a',
-                                        fontSize: '0.875rem',
+                                        fontSize: '0.75rem',
                                         fontWeight: 500
-                                    }}>{variable.type}</code> <code style={{ 
-                                        background: 'rgba(255, 159, 10, 0.15)',
-                                        border: '1px solid rgba(255, 159, 10, 0.3)',
-                                        padding: '4px 8px',
-                                        borderRadius: '6px',
-                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                    }}>{variable.type}</code> <code style={{
+                                        background: 'rgba(255, 159, 10, 0.12)',
+                                        padding: '3px 7px',
+                                        borderRadius: '5px',
+                                        fontFamily: 'SF Mono, Monaco, monospace',
                                         color: '#ff9f0a',
-                                        fontSize: '0.875rem',
+                                        fontSize: '0.75rem',
                                         fontWeight: 500
                                     }}>{variable.name}</code>
                                     {variable.value && (
-                                        <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}> = {variable.value}</span>
+                                        <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}> = {variable.value}</span>
                                     )}
                                 </li>
                             ))}
                             {/* Display source macro definitions in floating help */}
                             {challenge.validation?.exactRequirements?.macro_definitions?.map((macro, idx) => (
                                 <li key={`floating-source-macro-${idx}`} style={{
-                                    marginBottom: '12px',
+                                    marginBottom: '10px',
                                     position: 'relative',
-                                    paddingLeft: '20px'
+                                    paddingLeft: '16px',
+                                    fontSize: '0.8125rem'
                                 }}>
                                     <span style={{
                                         position: 'absolute',
                                         left: 0,
-                                        top: '8px',
-                                        width: '6px',
-                                        height: '6px',
+                                        top: '7px',
+                                        width: '5px',
+                                        height: '5px',
                                         borderRadius: '50%',
                                         background: '#32d74b'
                                     }} />
@@ -688,24 +700,22 @@ const ChallengeView = ({
                                         <>
                                             Define macro: {' '}
                                             <code style={{
-                                                background: 'rgba(50, 215, 75, 0.15)',
-                                                border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                background: 'rgba(50, 215, 75, 0.12)',
+                                                padding: '3px 7px',
+                                                borderRadius: '5px',
+                                                fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#32d74b',
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 fontWeight: 500,
-                                                marginRight: '6px'
+                                                marginRight: '4px'
                                             }}>{macro.preprocessor}</code>
                                             <code style={{
-                                                background: 'rgba(50, 215, 75, 0.15)',
-                                                border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                background: 'rgba(50, 215, 75, 0.12)',
+                                                padding: '3px 7px',
+                                                borderRadius: '5px',
+                                                fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#32d74b',
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 fontWeight: 500
                                             }}>{macro.value?.split('\n')[0]?.replace(macro.preprocessor + ' ', '') || macro.name}</code>
                                         </>
@@ -713,28 +723,26 @@ const ChallengeView = ({
                                         <>
                                             Define macro: {' '}
                                             <code style={{
-                                                background: 'rgba(50, 215, 75, 0.15)',
-                                                border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                background: 'rgba(50, 215, 75, 0.12)',
+                                                padding: '3px 7px',
+                                                borderRadius: '5px',
+                                                fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#32d74b',
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 fontWeight: 500,
-                                                marginRight: '6px'
+                                                marginRight: '4px'
                                             }}>#define</code>
                                             <code style={{
-                                                background: 'rgba(50, 215, 75, 0.15)',
-                                                border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                background: 'rgba(50, 215, 75, 0.12)',
+                                                padding: '3px 7px',
+                                                borderRadius: '5px',
+                                                fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#32d74b',
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 fontWeight: 500
                                             }}>{macro.name}</code>
                                             {macro.type === 'function-like' && macro.parameters && (
-                                                <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
+                                                <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>
                                                     {' '}({macro.parameters.join(', ')})
                                                 </span>
                                             )}
@@ -744,15 +752,15 @@ const ChallengeView = ({
                                         macro.value.includes('\n') ? (
                                             <span style={{
                                                 color: 'rgba(245, 245, 247, 0.5)',
-                                                fontSize: '0.875rem',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                fontSize: '0.75rem',
+                                                fontFamily: 'SF Mono, Monaco, monospace',
                                                 whiteSpace: 'pre-wrap',
                                                 wordBreak: 'break-word'
                                             }}>
                                                 {' '}{macro.value}
                                             </span>
                                         ) : (
-                                            <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
+                                            <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}>
                                                 {' '}{macro.value}
                                             </span>
                                         )
@@ -768,86 +776,84 @@ const ChallengeView = ({
                                 const parsed = parseFunction(funcSig);
                                 
                                 return (
-                                    <li key={idx} style={{ 
-                                        marginBottom: '12px',
+                                    <li key={idx} style={{
+                                        marginBottom: '10px',
                                         position: 'relative',
-                                        paddingLeft: '20px'
+                                        paddingLeft: '16px',
+                                        fontSize: '0.8125rem'
                                     }}>
                                         <span style={{
                                             position: 'absolute',
                                             left: 0,
-                                            top: '8px',
-                                            width: '6px',
-                                            height: '6px',
+                                            top: '7px',
+                                            width: '5px',
+                                            height: '5px',
                                             borderRadius: '50%',
-                                            background: '#ffcc02'
+                                            background: '#ffd60a'
                                         }} />
                                         Implement function: {' '}
-                                        {parsed.storageClass && <code style={{ 
-                                            background: 'rgba(255, 204, 2, 0.15)',
-                                            border: '1px solid rgba(255, 204, 2, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#ffcc02',
-                                            fontSize: '0.875rem',
+                                        {parsed.storageClass && <code style={{
+                                            background: 'rgba(255, 214, 10, 0.12)',
+                                            padding: '3px 7px',
+                                            borderRadius: '5px',
+                                            fontFamily: 'SF Mono, Monaco, monospace',
+                                            color: '#ffd60a',
+                                            fontSize: '0.75rem',
                                             fontWeight: 500,
-                                            marginRight: '6px'
+                                            marginRight: '4px'
                                         }}>{parsed.storageClass}</code>}
-                                        {parsed.returnType && <code style={{ 
-                                            background: 'rgba(255, 204, 2, 0.15)',
-                                            border: '1px solid rgba(255, 204, 2, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#ffcc02',
-                                            fontSize: '0.875rem',
+                                        {parsed.returnType && <code style={{
+                                            background: 'rgba(255, 214, 10, 0.12)',
+                                            padding: '3px 7px',
+                                            borderRadius: '5px',
+                                            fontFamily: 'SF Mono, Monaco, monospace',
+                                            color: '#ffd60a',
+                                            fontSize: '0.75rem',
                                             fontWeight: 500,
-                                            marginRight: '6px'
+                                            marginRight: '4px'
                                         }}>{parsed.returnType}</code>}
-                                        {parsed.attribute && <span style={{ color: 'rgba(255, 204, 2, 0.8)', marginRight: '6px' }}>{parsed.attribute}</span>}
-                                        <code style={{ 
-                                            background: 'rgba(255, 204, 2, 0.15)',
-                                            border: '1px solid rgba(255, 204, 2, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#ffcc02',
-                                            fontSize: '0.875rem',
+                                        {parsed.attribute && <span style={{ color: 'rgba(255, 214, 10, 0.8)', marginRight: '4px', fontSize: '0.75rem' }}>{parsed.attribute}</span>}
+                                        <code style={{
+                                            background: 'rgba(255, 214, 10, 0.12)',
+                                            padding: '3px 7px',
+                                            borderRadius: '5px',
+                                            fontFamily: 'SF Mono, Monaco, monospace',
+                                            color: '#ffd60a',
+                                            fontSize: '0.75rem',
                                             fontWeight: 500
-                                        }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>{parsed.params}</span>
+                                        }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>{parsed.params}</span>
                                     </li>
                                 );
                             })}
                             {/* Function-linked outputs with collapsible function details */}
                             {challenge.inputOutput?.functionLinkedOutputs?.map((output, idx) => (
-                                <li key={`linked-${idx}`} style={{ 
-                                    marginBottom: expandedFunctionLinks.has(idx) ? '8px' : '16px',
+                                <li key={`linked-${idx}`} style={{
+                                    marginBottom: expandedFunctionLinks.has(idx) ? '8px' : '12px',
                                     position: 'relative',
-                                    paddingLeft: '20px'
+                                    paddingLeft: '16px',
+                                    fontSize: '0.8125rem'
                                 }}>
                                     <span style={{
                                         position: 'absolute',
                                         left: 0,
-                                        top: '8px',
-                                        width: '6px',
-                                        height: '6px',
+                                        top: '7px',
+                                        width: '5px',
+                                        height: '5px',
                                         borderRadius: '50%',
-                                        background: '#30d158'
+                                        background: '#32d74b'
                                     }} />
                                     <div>
-                                        Output: <code style={{ 
-                                            background: 'rgba(48, 209, 88, 0.15)',
-                                            border: '1px solid rgba(48, 209, 88, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#30d158',
-                                            fontSize: '0.875rem',
+                                        Output: <code style={{
+                                            background: 'rgba(50, 215, 75, 0.12)',
+                                            padding: '3px 7px',
+                                            borderRadius: '5px',
+                                            fontFamily: 'SF Mono, Monaco, monospace',
+                                            color: '#32d74b',
+                                            fontSize: '0.75rem',
                                             fontWeight: 500
                                         }}>"{output.pattern}"</code>
                                     </div>
-                                    <div style={{ 
+                                    <div style={{
                                         marginTop: '8px',
                                         marginLeft: '4px',
                                         marginBottom: '-6px'
@@ -857,21 +863,21 @@ const ChallengeView = ({
                                             style={{
                                                 background: 'none',
                                                 border: 'none',
-                                                color: '#B0B0FF',
-                                                fontSize: '0.8rem',
+                                                color: 'rgba(176, 176, 255, 0.8)',
+                                                fontSize: '0.75rem',
                                                 cursor: 'pointer',
                                                 display: 'flex',
                                                 alignItems: 'center',
-                                                gap: '6px',
+                                                gap: '5px',
                                                 padding: '0px',
                                                 fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif',
                                                 transition: 'color 0.2s ease'
                                             }}
-                                            onMouseEnter={(e) => e.target.style.color = '#ffcc02'}
-                                            onMouseLeave={(e) => e.target.style.color = '#B0B0FF'}
+                                            onMouseEnter={(e) => e.target.style.color = '#ffd60a'}
+                                            onMouseLeave={(e) => e.target.style.color = 'rgba(176, 176, 255, 0.8)'}
                                         >
                                             <span style={{
-                                                fontSize: '0.7rem',
+                                                fontSize: '0.65rem',
                                                 transform: expandedFunctionLinks.has(idx) ? 'rotate(90deg)' : 'rotate(0deg)',
                                                 transition: 'transform 0.2s ease'
                                             }}>▶</span>
@@ -882,18 +888,17 @@ const ChallengeView = ({
                                                 marginTop: '-7px',
                                                 paddingLeft: '16px',
                                                 padding: '10px 4px',
-                                                borderRadius: '6px',
+                                                borderRadius: '5px',
                                                 contain: 'layout style',
                                                 willChange: 'auto'
                                             }}>
-                                                <code style={{ 
-                                                    background: 'rgba(255, 204, 2, 0.15)',
-                                                    border: '0px solid rgba(255, 204, 2, 0.3)',
-                                                    padding: '8px 8px',
-                                                    borderRadius: '6px',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                    color: '#ffcc02',
-                                                    fontSize: '0.85rem',
+                                                <code style={{
+                                                    background: 'rgba(255, 214, 10, 0.12)',
+                                                    padding: '6px 8px',
+                                                    borderRadius: '5px',
+                                                    fontFamily: 'SF Mono, Monaco, monospace',
+                                                    color: '#ffd60a',
+                                                    fontSize: '0.75rem',
                                                     fontWeight: 500,
                                                     display: 'inline-block',
                                                     maxWidth: '100%',
@@ -907,28 +912,28 @@ const ChallengeView = ({
                             ))}
                             {/* Include statements */}
                             {challenge.validation?.exactRequirements?.requiredIncludes?.map((include, idx) => (
-                                <li key={`include-${idx}`} style={{ 
-                                    marginBottom: '12px',
+                                <li key={`include-${idx}`} style={{
+                                    marginBottom: '10px',
                                     position: 'relative',
-                                    paddingLeft: '20px'
+                                    paddingLeft: '16px',
+                                    fontSize: '0.8125rem'
                                 }}>
                                     <span style={{
                                         position: 'absolute',
                                         left: 0,
-                                        top: '8px',
-                                        width: '6px',
-                                        height: '6px',
+                                        top: '7px',
+                                        width: '5px',
+                                        height: '5px',
                                         borderRadius: '50%',
                                         background: '#bf5af2'
                                     }} />
-                                    Include: <code style={{ 
-                                        background: 'rgba(191, 90, 242, 0.15)',
-                                        border: '1px solid rgba(191, 90, 242, 0.3)',
-                                        padding: '4px 8px',
-                                        borderRadius: '6px',
-                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                    Include: <code style={{
+                                        background: 'rgba(191, 90, 242, 0.12)',
+                                        padding: '3px 7px',
+                                        borderRadius: '5px',
+                                        fontFamily: 'SF Mono, Monaco, monospace',
                                         color: '#bf5af2',
-                                        fontSize: '0.875rem',
+                                        fontSize: '0.75rem',
                                         fontWeight: 500
                                     }}>{include}</code>
                                 </li>
@@ -939,30 +944,30 @@ const ChallengeView = ({
                     {/* Skills */}
                     {challenge.skills && (
                         <div style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            borderRadius: '16px',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            padding: '24px'
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            borderRadius: '12px',
+                            padding: '20px'
                         }}>
-                            <h4 style={{ 
-                                fontSize: '1.125rem',
+                            <h4 style={{
+                                fontSize: '0.75rem',
                                 fontWeight: 600,
-                                color: '#f5f5f7',
+                                color: 'rgba(245, 245, 247, 0.5)',
                                 margin: 0,
-                                marginBottom: '16px'
+                                marginBottom: '12px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em'
                             }}>
                                 Skills You'll Learn
                             </h4>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                                 {challenge.skills.map((skill, idx) => (
                                     <span key={idx} style={{
-                                        background: 'rgba(255, 255, 255, 0.1)',
+                                        background: 'rgba(255, 255, 255, 0.06)',
                                         color: 'rgba(245, 245, 247, 0.8)',
-                                        padding: '6px 12px',
-                                        borderRadius: '12px',
-                                        fontSize: '0.8rem',
-                                        fontWeight: 500,
-                                        border: '1px solid rgba(255, 255, 255, 0.15)'
+                                        padding: '5px 10px',
+                                        borderRadius: '6px',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 500
                                     }}>
                                         {skill}
                                     </span>
@@ -1042,8 +1047,7 @@ const ChallengeView = ({
                 right: 0,
                 bottom: 0,
                 zIndex: 1000,
-                background: 'rgba(29, 29, 31, 0.95)',
-                backdropFilter: 'blur(40px)',
+                background: '#0a0a0c',
                 display: 'flex',
                 flexDirection: 'column'
             }}>
@@ -1052,273 +1056,264 @@ const ChallengeView = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '16px 24px',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                    padding: '12px 20px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
                     flexShrink: 0
                 }}>
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '16px'
+                        gap: '12px'
                     }}>
                         <span style={{
-                            fontSize: '1.125rem',
+                            fontSize: '1rem',
                             fontWeight: 600,
-                            color: '#f5f5f7'
+                            color: '#f5f5f7',
+                            letterSpacing: '-0.01em'
                         }}>
                             {challenge.id ? `#${challenge.id}: ${title}` : title}
                         </span>
                         <span style={{
-                            background: 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
-                            color: 'white',
-                            padding: '4px 12px',
-                            borderRadius: '12px',
-                            fontSize: '0.75rem',
+                            background: difficulty <= 3 ?
+                                'linear-gradient(135deg, #32d74b 0%, #30d158 100%)' :
+                                difficulty <= 6 ?
+                                'linear-gradient(135deg, #ffd60a 0%, #ff9f0a 100%)' :
+                                'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)',
+                            color: '#000',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            fontSize: '0.6875rem',
                             fontWeight: 600
                         }}>
                             Level {difficulty}
                         </span>
                     </div>
-                    
+
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '12px'
+                        gap: '8px'
                     }}>
-
                         <button
                             onClick={() => setShowFloatingHelp(true)}
                             style={{
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                border: 'none',
+                                background: 'rgba(255, 255, 255, 0.04)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
                                 borderRadius: '8px',
-                                color: '#f5f5f7',
-                                padding: '8px 12px',
+                                color: 'rgba(245, 245, 247, 0.7)',
+                                padding: '6px 12px',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px',
-                                fontSize: '0.875rem',
-                                fontWeight: 500
+                                fontSize: '0.75rem',
+                                fontWeight: 500,
+                                transition: 'all 0.2s ease'
                             }}
-                            title="Show problem details"
+                            title="Show problem details (Alt+Z)"
                         >
-                            <span>Alt + Z - Show problem details</span>
-                            <HelpCircle size={16} />
+                            <HelpCircle size={14} />
+                            <span>Help</span>
                         </button>
 
                         <button
                             onClick={() => setIsFullScreen(false)}
                             style={{
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                border: 'none',
+                                background: 'rgba(255, 255, 255, 0.04)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
                                 borderRadius: '8px',
-                                color: '#f5f5f7',
-                                padding: '8px',
+                                color: 'rgba(245, 245, 247, 0.7)',
+                                padding: '6px',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center'
+                                justifyContent: 'center',
+                                transition: 'all 0.2s ease'
                             }}
+                            title="Exit fullscreen (Alt+F)"
                         >
-                            <Minimize2 size={16} />
+                            <Minimize2 size={14} />
                         </button>
                     </div>
                 </div>
 
                 {/* Full-screen Editor */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                     {/* Tab Navigation */}
                     <div style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                        padding: '8px 24px',
+                        padding: '12px 20px',
                         display: 'flex',
-                        gap: '4px',
+                        gap: '8px',
                         alignItems: 'center'
                     }}>
-                        <button
-                            onClick={() => setActiveTab('code')}
-                            style={{
-                                background: activeTab === 'code' ?
-                                    'linear-gradient(135deg, #007aff 0%, #0056b3 100%)' :
-                                    'transparent',
-                                color: activeTab === 'code' ? 'white' : 'rgba(245, 245, 247, 0.7)',
-                                border: 'none',
-                                borderRadius: '8px',
-                                padding: '8px 16px',
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px'
-                            }}
-                        >
-                            <Code size={16} />
-                            <span>Code</span>
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('results')}
-                            style={{
-                                background: activeTab === 'results' ?
-                                    'linear-gradient(135deg, #30d158 0%, #28a745 100%)' :
-                                    'transparent',
-                                color: activeTab === 'results' ? 'white' : 'rgba(245, 245, 247, 0.7)',
-                                border: 'none',
-                                borderRadius: '8px',
-                                padding: '8px 16px',
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                position: 'relative'
-                            }}
-                        >
-                            <Terminal size={16} />
-                            <span>Results</span>
-                            {codeEditor.output && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '4px',
-                                    right: '4px',
-                                    width: '6px',
-                                    height: '6px',
-                                    borderRadius: '50%',
-                                    background: '#30d158'
-                                }} />
-                            )}
-                        </button>
+                        {/* Tab Pills */}
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            borderRadius: '10px',
+                            padding: '3px',
+                            display: 'flex',
+                            gap: '2px',
+                            border: '1px solid rgba(255, 255, 255, 0.06)'
+                        }}>
+                            <button
+                                onClick={() => setActiveTab('code')}
+                                style={{
+                                    background: activeTab === 'code' ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                                    color: activeTab === 'code' ? '#f5f5f7' : 'rgba(245, 245, 247, 0.5)',
+                                    border: 'none',
+                                    borderRadius: '7px',
+                                    padding: '6px 16px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px'
+                                }}
+                            >
+                                <Code size={13} />
+                                <span>Code</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('results')}
+                                style={{
+                                    background: activeTab === 'results' ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                                    color: activeTab === 'results' ? '#f5f5f7' : 'rgba(245, 245, 247, 0.5)',
+                                    border: 'none',
+                                    borderRadius: '7px',
+                                    padding: '6px 16px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    position: 'relative'
+                                }}
+                            >
+                                <Terminal size={13} />
+                                <span>Results</span>
+                                {codeEditor.output && (
+                                    <div style={{
+                                        width: '5px',
+                                        height: '5px',
+                                        borderRadius: '50%',
+                                        background: '#32d74b',
+                                        boxShadow: '0 0 6px rgba(50, 215, 75, 0.6)',
+                                        marginLeft: '4px'
+                                    }} />
+                                )}
+                            </button>
+                        </div>
 
                         {/* Spacer */}
                         <div style={{ flex: 1 }} />
 
-                        {/* Reset All Files Button */}
+                        {/* Reset Button */}
                         <button
                             onClick={onReset}
-                            title="Reset all files to original state"
+                            title="Reset all files"
                             style={{
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                color: '#f5f5f7',
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                background: 'rgba(255, 255, 255, 0.04)',
+                                color: 'rgba(245, 245, 247, 0.7)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
                                 borderRadius: '8px',
-                                padding: '8px 12px',
-                                fontSize: '0.875rem',
+                                padding: '6px 12px',
+                                fontSize: '0.75rem',
                                 fontWeight: 500,
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '6px',
+                                gap: '5px',
                                 transition: 'all 0.2s ease'
                             }}
                         >
-                            <Shuffle size={14} />
-                            <span>Reset All</span>
+                            <Shuffle size={13} />
+                            <span>Reset</span>
                         </button>
 
-                        {/* Run & Validate Button */}
+                        {/* Run Button */}
                         <button
                             onClick={onRun}
                             disabled={codeEditor.isRunning}
                             style={{
                                 background: codeEditor.isRunning
-                                    ? 'rgba(48, 209, 88, 0.5)'
-                                    : 'linear-gradient(135deg, #30d158 0%, #28a745 100%)',
-                                color: 'white',
+                                    ? 'rgba(50, 215, 75, 0.3)'
+                                    : 'linear-gradient(135deg, #32d74b 0%, #30d158 100%)',
+                                color: codeEditor.isRunning ? 'rgba(255, 255, 255, 0.7)' : '#000',
                                 border: 'none',
                                 borderRadius: '8px',
-                                padding: '8px 14px',
-                                fontSize: '0.875rem',
+                                padding: '6px 14px',
+                                fontSize: '0.75rem',
                                 fontWeight: 600,
                                 cursor: codeEditor.isRunning ? 'not-allowed' : 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '6px',
+                                gap: '5px',
                                 transition: 'all 0.2s ease',
-                                boxShadow: codeEditor.isRunning ? 'none' : '0 2px 8px rgba(48, 209, 88, 0.3)'
+                                boxShadow: codeEditor.isRunning ? 'none' : '0 2px 10px rgba(50, 215, 75, 0.3)'
                             }}
                         >
-                            {codeEditor.isRunning ? <Timer size={14} /> : <Play size={14} />}
-                            <span>{codeEditor.isRunning ? 'Testing...' : 'Run & Validate'}</span>
+                            {codeEditor.isRunning ? <Timer size={13} /> : <Play size={13} fill="currentColor" />}
+                            <span>{codeEditor.isRunning ? 'Running...' : 'Run'}</span>
                         </button>
                     </div>
 
                     {/* Tab Content */}
-                    <div style={{ flex: 1, padding: '24px', overflow: 'hidden', minHeight: 0 }}>
+                    <div style={{ flex: 1, padding: '0 20px 20px 20px', overflow: 'hidden', minHeight: 0 }}>
                         {activeTab === 'code' && (
                             <div style={{
                                 height: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '16px'
+                                overflow: 'hidden',
+                                borderRadius: '12px'
                             }}>
-                                <div style={{
-                                    background: 'rgba(255, 255, 255, 0.05)',
-                                    borderRadius: '16px',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    overflow: 'hidden',
-                                    flex: 1,
-                                    display: 'flex',
-                                    flexDirection: 'column'
-                                }}>
-                                    <div style={{ padding: '20px', flex: 1 }}>
-                                        <div style={{
-                                            borderRadius: '12px',
-                                            overflow: 'hidden',
-                                            border: '1px solid rgba(255, 255, 255, 0.15)',
-                                            background: 'rgba(0, 0, 0, 0.3)',
-                                            height: '100%'
-                                        }}>
-                                            {codeEditor.files && codeEditor.files.length > 0 ? (
-                                                <MultiFileEditor
-                                                    key={challenge.id || challenge.title || 'multi-file-editor'}
-                                                    files={codeEditor.files}
-                                                    mainFile={challenge.mainFile}
-                                                    onFilesChange={onCodeChange}
-                                                    premiumStyles={PremiumStyles}
-                                                    height="100%"
-                                                    requiredFiles={challenge.requiredFiles || []}
-                                                    allowFileCreation={challenge.requiredFiles && challenge.requiredFiles.length > 0}
-                                                    allowFileDeletion={challenge.requiredFiles && challenge.requiredFiles.length > 0}
-                                                    parentFullScreen={true}
-                                                    editorFullScreen={editorFullScreen}
-                                                    onEditorFullScreenChange={setEditorFullScreen}
-                                                    activeFile={activeFile}
-                                                    onActiveFileChange={setActiveFile}
-                                                    scrollPositions={scrollPositions}
-                                                    onScrollPositionsChange={setScrollPositions}
-                                                    originalFiles={challenge.files}
-                                                    onResetFile={(fileName, originalContent) => {
-                                                        const updatedFiles = codeEditor.files.map(f =>
-                                                            f.name === fileName ? { ...f, content: originalContent } : f
-                                                        );
-                                                        onCodeChange(updatedFiles);
-                                                    }}
-                                                />
-                                            ) : (
-                                                <SemanticCodeEditor
-                                                    key={challenge.id || challenge.title || 'editor'}
-                                                    value={codeEditor.code || challenge.starter || ''}
-                                                    onChange={onCodeChange}
-                                                    height="100%"
-                                                    theme="vs-dark"
-                                                />
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
+                                {codeEditor.files && codeEditor.files.length > 0 ? (
+                                    <MultiFileEditor
+                                        key={challenge.id || challenge.title || 'multi-file-editor'}
+                                        files={codeEditor.files}
+                                        mainFile={challenge.mainFile}
+                                        onFilesChange={onCodeChange}
+                                        premiumStyles={PremiumStyles}
+                                        height="100%"
+                                        requiredFiles={challenge.requiredFiles || []}
+                                        allowFileCreation={challenge.requiredFiles && challenge.requiredFiles.length > 0}
+                                        allowFileDeletion={challenge.requiredFiles && challenge.requiredFiles.length > 0}
+                                        parentFullScreen={true}
+                                        editorFullScreen={editorFullScreen}
+                                        onEditorFullScreenChange={setEditorFullScreen}
+                                        activeFile={activeFile}
+                                        onActiveFileChange={setActiveFile}
+                                        scrollPositions={scrollPositions}
+                                        onScrollPositionsChange={setScrollPositions}
+                                        originalFiles={challenge.files}
+                                        onResetFile={(fileName, originalContent) => {
+                                            const updatedFiles = codeEditor.files.map(f =>
+                                                f.name === fileName ? { ...f, content: originalContent } : f
+                                            );
+                                            onCodeChange(updatedFiles);
+                                        }}
+                                    />
+                                ) : (
+                                    <SemanticCodeEditor
+                                        key={challenge.id || challenge.title || 'editor'}
+                                        value={codeEditor.code || challenge.starter || ''}
+                                        onChange={onCodeChange}
+                                        height="100%"
+                                        theme="vs-dark"
+                                    />
+                                )}
                             </div>
                         )}
 
                         {activeTab === 'results' && (
                             <div style={{
                                 height: '100%',
-                                background: 'rgba(255, 255, 255, 0.05)',
-                                borderRadius: '16px',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                background: 'rgba(255, 255, 255, 0.02)',
+                                borderRadius: '12px',
+                                border: '1px solid rgba(255, 255, 255, 0.06)',
                                 overflow: 'hidden',
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -1326,9 +1321,6 @@ const ChallengeView = ({
                             }}>
                                 {codeEditor.output || codeEditor.overallResult === 'COMPILATION_ERROR' || codeEditor.overallResult === 'PRE_COMPILATION_ERROR' ? (
                                     <div style={{
-                                        background: 'rgba(29, 29, 31, 0.9)',
-                                        borderRadius: '12px',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
                                         flex: 1,
                                         overflow: 'hidden',
                                         display: 'flex',
@@ -1336,16 +1328,16 @@ const ChallengeView = ({
                                         minHeight: 0
                                     }}>
                                         <div style={{
-                                            padding: '20px 24px 16px 24px',
-                                            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                                            background: 'rgba(255, 255, 255, 0.02)',
+                                            padding: '14px 20px',
+                                            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
                                             flexShrink: 0
                                         }}>
                                             <h4 style={{
-                                                fontSize: '1.125rem',
+                                                fontSize: '0.8125rem',
                                                 fontWeight: 600,
                                                 color: '#f5f5f7',
-                                                margin: 0
+                                                margin: 0,
+                                                letterSpacing: '-0.01em'
                                             }}>
                                                 Test Results
                                             </h4>
@@ -1398,26 +1390,26 @@ const ChallengeView = ({
                                         }}>
                                             Run your code to see the results here
                                         </p>
-                                        <button 
+                                        <button
                                             style={{
-                                                background: 'linear-gradient(135deg, #30d158 0%, #28a745 100%)',
-                                                color: 'white',
+                                                background: '#32d74b',
+                                                color: '#000',
                                                 border: 'none',
-                                                borderRadius: '12px',
+                                                borderRadius: '10px',
                                                 padding: '12px 24px',
-                                                fontSize: '1rem',
+                                                fontSize: '0.875rem',
                                                 fontWeight: 600,
                                                 cursor: codeEditor.isRunning ? 'not-allowed' : 'pointer',
-                                                boxShadow: '0 4px 16px rgba(48, 209, 88, 0.3)',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: '8px',
-                                                opacity: codeEditor.isRunning ? 0.6 : 1
+                                                opacity: codeEditor.isRunning ? 0.6 : 1,
+                                                transition: 'all 0.2s ease'
                                             }}
                                             onClick={onRun}
                                             disabled={codeEditor.isRunning}
                                         >
-                                            {codeEditor.isRunning ? <Timer size={18} /> : <Play size={18} />}
+                                            {codeEditor.isRunning ? <Timer size={16} /> : <Play size={16} />}
                                             <span>{codeEditor.isRunning ? 'Testing...' : 'Run & Validate'}</span>
                                         </button>
                                     </div>
@@ -1462,13 +1454,10 @@ const ChallengeView = ({
     
     return (
         <div style={{
-            background: 'rgba(29, 29, 31, 0.8)',
-            backdropFilter: 'blur(40px)',
-            WebkitBackdropFilter: 'blur(40px)',
-            borderRadius: '12px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-            padding: '16px',
+            background: 'rgba(255, 255, 255, 0.02)',
+            borderRadius: '24px',
+            border: '1px solid rgba(255, 255, 255, 0.06)',
+            padding: '20px',
             position: 'relative',
             overflow: 'hidden',
             flexShrink: 0,
@@ -1477,15 +1466,6 @@ const ChallengeView = ({
             display: 'flex',
             flexDirection: 'column'
         }}>
-            {/* Subtle background glow effect */}
-            <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: '1px',
-                background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)'
-            }} />
             
             {/* Main Resizable Layout: Header + Description + Editor */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
@@ -1498,30 +1478,27 @@ const ChallengeView = ({
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
-                    paddingLeft: '4px',
                     paddingRight: '8px',
-                    paddingTop: '4px',
                     height: '100%',
                     overflow: 'auto'
                 }}>
                     {/* Challenge Header */}
                     <div style={{
-                        marginBottom: '4px',
+                        marginBottom: '16px',
                         flexShrink: 0
                     }}>
                         <div style={{
                             display: 'flex',
                             alignItems: 'flex-start',
                             justifyContent: 'space-between',
-                            marginBottom: '8px'
+                            marginBottom: '12px'
                         }}>
-                            <h2 style={{ 
-                                fontSize: 'clamp(1.5rem, 1.3rem + 1vw, 2rem)',
+                            <h2 style={{
+                                fontSize: '1.5rem',
                                 fontWeight: 700,
                                 color: '#f5f5f7',
                                 margin: 0,
-                                letterSpacing: '-0.025em',
-                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
+                                letterSpacing: '-0.02em',
                                 flex: 1
                             }}>
                                 {challenge.id ? `#${challenge.id}: ${title}` : title}
@@ -1529,19 +1506,28 @@ const ChallengeView = ({
                             <button
                                 onClick={() => setIsFullScreen(true)}
                                 style={{
-                                    background: 'rgba(255, 255, 255, 0.1)',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    color: '#f5f5f7',
+                                    background: 'rgba(255, 255, 255, 0.04)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    borderRadius: '10px',
+                                    color: 'rgba(245, 245, 247, 0.6)',
                                     padding: '8px',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    marginLeft: '16px',
-                                    flexShrink: 0
+                                    marginLeft: '12px',
+                                    flexShrink: 0,
+                                    transition: 'all 0.2s ease'
                                 }}
                                 title="Alt + F - Full-screen coding mode"
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                                    e.currentTarget.style.color = '#f5f5f7';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                                    e.currentTarget.style.color = 'rgba(245, 245, 247, 0.6)';
+                                }}
                             >
                                 <Maximize2 size={16} />
                             </button>
@@ -1549,44 +1535,45 @@ const ChallengeView = ({
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                             <span style={{
                                 background: difficulty <= 3 ?
-                                    'linear-gradient(135deg, #30d158 0%, #bf5af2 100%)' :
+                                    'linear-gradient(135deg, #32d74b 0%, #30d158 100%)' :
                                     difficulty <= 6 ?
-                                    'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)' :
-                                    'linear-gradient(135deg, #ff453a 0%, #bf5af2 100%)',
-                                color: 'white',
-                                padding: '4px 10px',
-                                borderRadius: '12px',
-                                fontSize: '0.7rem',
+                                    'linear-gradient(135deg, #ffd60a 0%, #ff9f0a 100%)' :
+                                    'linear-gradient(135deg, #ff9f0a 0%, #ff453a 100%)',
+                                color: difficulty <= 3 ? '#000' : '#000',
+                                padding: '5px 10px',
+                                borderRadius: '8px',
+                                fontSize: '0.6875rem',
                                 fontWeight: 600,
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '4px'
                             }}>
-                                <Star size={11} />
+                                <Star size={11} fill="currentColor" />
                                 <span>Level {difficulty}</span>
                             </span>
                             <span style={{
-                                background: 'linear-gradient(135deg, #007aff 0%, #0056b3 100%)',
-                                color: 'white',
-                                padding: '4px 10px',
-                                borderRadius: '12px',
-                                fontSize: '0.7rem',
+                                background: 'rgba(255, 255, 255, 0.06)',
+                                color: '#f5f5f7',
+                                padding: '5px 10px',
+                                borderRadius: '8px',
+                                fontSize: '0.6875rem',
                                 fontWeight: 600,
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '4px'
+                                gap: '4px',
+                                border: '1px solid rgba(255, 255, 255, 0.08)'
                             }}>
-                                <Zap size={11} />
+                                <Zap size={11} fill="#ffd60a" color="#ffd60a" />
                                 <span>{xp} XP</span>
                             </span>
                             <span style={{
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                color: '#f5f5f7',
-                                padding: '4px 10px',
-                                borderRadius: '12px',
-                                fontSize: '0.7rem',
+                                background: 'rgba(255, 255, 255, 0.04)',
+                                color: 'rgba(245, 245, 247, 0.7)',
+                                padding: '5px 10px',
+                                borderRadius: '8px',
+                                fontSize: '0.6875rem',
                                 fontWeight: 500,
-                                border: '1px solid rgba(255, 255, 255, 0.15)'
+                                border: '1px solid rgba(255, 255, 255, 0.06)'
                             }}>
                                 {phase}
                             </span>
@@ -1595,59 +1582,54 @@ const ChallengeView = ({
                     
                     {/* Problem Description */}
                     <div style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        backdropFilter: 'blur(20px)',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        padding: '12px',
-                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                        padding: '16px',
+                        marginBottom: '12px'
                     }}>
                         <h3 style={{
-                            fontSize: '1rem',
+                            fontSize: '0.8125rem',
                             fontWeight: 600,
                             color: '#f5f5f7',
                             margin: 0,
-                            marginBottom: '8px',
-                            letterSpacing: '-0.02em',
-                            fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                            marginBottom: '10px',
+                            letterSpacing: '-0.01em'
                         }}>
                             Problem Description
                         </h3>
                         <p style={{
-                            fontSize: '0.875rem',
-                            lineHeight: '1.5',
-                            color: 'rgba(245, 245, 247, 0.7)',
-                            margin: 0,
-                            fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif'
+                            fontSize: '0.8125rem',
+                            lineHeight: '1.6',
+                            color: 'rgba(245, 245, 247, 0.65)',
+                            margin: 0
                         }}>
                             {description}
                         </p>
                     </div>
 
 
-                    {/* Skills Preview */}
+                    {/* Requirements Section */}
                     {challenge.skills && challenge.skills.length > 0 && (
                         <div style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            backdropFilter: 'blur(20px)',
-                            borderRadius: '8px',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            padding: '12px',
-                            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            borderRadius: '16px',
+                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                            padding: '16px',
+                            marginBottom: '12px'
                         }}>
                             <h4 style={{
-                                fontSize: '1rem',
+                                fontSize: '0.8125rem',
                                 fontWeight: 600,
                                 color: '#f5f5f7',
                                 margin: 0,
-                                marginBottom: '10px',
-                                letterSpacing: '-0.015em',
-                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                                marginBottom: '12px',
+                                letterSpacing: '-0.01em'
                             }}>
                                 Requirements
                             </h4>
                             <ul style={{
-                                fontSize: '0.85rem',
+                                fontSize: '0.8125rem',
                                 lineHeight: '1.5',
                                 color: 'rgba(245, 245, 247, 0.7)',
                                 paddingLeft: '16px',
@@ -1662,83 +1644,82 @@ const ChallengeView = ({
                                 ) && (
                                     <>
                                         <li style={{
-                                            marginBottom: '16px',
+                                            marginBottom: '12px',
                                             paddingLeft: '0',
                                             fontWeight: 600,
                                             color: '#ff9f0a',
-                                            fontSize: '1rem',
-                                            borderBottom: '1px solid rgba(255, 159, 10, 0.2)',
-                                            paddingBottom: '8px'
+                                            fontSize: '0.75rem',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.05em'
                                         }}>
                                             Header File Requirements
                                         </li>
                                         {/* Display header variable declarations (no values) */}
                                         {validation?.exactRequirements?.variables_declarations?.map((variable, idx) => (
-                                            <li key={`header-var-${idx}`} style={{ 
-                                                marginBottom: '12px',
+                                            <li key={`header-var-${idx}`} style={{
+                                                marginBottom: '10px',
                                                 position: 'relative',
-                                                paddingLeft: '20px'
+                                                paddingLeft: '16px',
+                                                fontSize: '0.8125rem'
                                             }}>
                                                 <span style={{
                                                     position: 'absolute',
                                                     left: 0,
-                                                    top: '8px',
-                                                    width: '6px',
-                                                    height: '6px',
+                                                    top: '7px',
+                                                    width: '5px',
+                                                    height: '5px',
                                                     borderRadius: '50%',
                                                     background: '#ff9f0a'
                                                 }} />
                                                 Declare variable: {' '}
                                                 {variable.storageClass && variable.storageClass !== 'none' && (
-                                                    <code style={{ 
-                                                        background: 'rgba(255, 159, 10, 0.15)',
-                                                        border: '1px solid rgba(255, 159, 10, 0.3)',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '6px',
-                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    <code style={{
+                                                        background: 'rgba(255, 159, 10, 0.12)',
+                                                        padding: '3px 7px',
+                                                        borderRadius: '5px',
+                                                        fontFamily: 'SF Mono, Monaco, monospace',
                                                         color: '#ff9f0a',
-                                                        fontSize: '0.875rem',
+                                                        fontSize: '0.75rem',
                                                         fontWeight: 500,
-                                                        marginRight: '6px'
+                                                        marginRight: '4px'
                                                     }}>{variable.storageClass}</code>
                                                 )}
-                                                <code style={{ 
-                                                    background: 'rgba(255, 159, 10, 0.15)',
-                                                    border: '1px solid rgba(255, 159, 10, 0.3)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                <code style={{
+                                                    background: 'rgba(255, 159, 10, 0.12)',
+                                                    padding: '3px 7px',
+                                                    borderRadius: '5px',
+                                                    fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#ff9f0a',
-                                                    fontSize: '0.875rem',
+                                                    fontSize: '0.75rem',
                                                     fontWeight: 500
-                                                }}>{variable.type}</code> <code style={{ 
-                                                    background: 'rgba(255, 159, 10, 0.15)',
-                                                    border: '1px solid rgba(255, 159, 10, 0.3)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                }}>{variable.type}</code> <code style={{
+                                                    background: 'rgba(255, 159, 10, 0.12)',
+                                                    padding: '3px 7px',
+                                                    borderRadius: '5px',
+                                                    fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#ff9f0a',
-                                                    fontSize: '0.875rem',
+                                                    fontSize: '0.75rem',
                                                     fontWeight: 500
                                                 }}>{variable.name}</code>
                                                 {variable.value && (
-                                                    <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}> {variable.value}</span>
+                                                    <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}> {variable.value}</span>
                                                 )}
                                             </li>
                                         ))}
                                         {/* Display header macro declarations */}
                                         {validation?.exactRequirements?.macro_declarations?.map((macro, idx) => (
                                             <li key={`header-macro-${idx}`} style={{
-                                                marginBottom: '12px',
+                                                marginBottom: '10px',
                                                 position: 'relative',
-                                                paddingLeft: '20px'
+                                                paddingLeft: '16px',
+                                                fontSize: '0.8125rem'
                                             }}>
                                                 <span style={{
                                                     position: 'absolute',
                                                     left: 0,
-                                                    top: '8px',
-                                                    width: '6px',
-                                                    height: '6px',
+                                                    top: '7px',
+                                                    width: '5px',
+                                                    height: '5px',
                                                     borderRadius: '50%',
                                                     background: '#32d74b'
                                                 }} />
@@ -1746,24 +1727,22 @@ const ChallengeView = ({
                                                     <>
                                                         Define macro: {' '}
                                                         <code style={{
-                                                            background: 'rgba(50, 215, 75, 0.15)',
-                                                            border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                            padding: '4px 8px',
-                                                            borderRadius: '6px',
-                                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                            background: 'rgba(50, 215, 75, 0.12)',
+                                                            padding: '3px 7px',
+                                                            borderRadius: '5px',
+                                                            fontFamily: 'SF Mono, Monaco, monospace',
                                                             color: '#32d74b',
-                                                            fontSize: '0.875rem',
+                                                            fontSize: '0.75rem',
                                                             fontWeight: 500,
-                                                            marginRight: '6px'
+                                                            marginRight: '4px'
                                                         }}>{macro.preprocessor}</code>
                                                         <code style={{
-                                                            background: 'rgba(50, 215, 75, 0.15)',
-                                                            border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                            padding: '4px 8px',
-                                                            borderRadius: '6px',
-                                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                            background: 'rgba(50, 215, 75, 0.12)',
+                                                            padding: '3px 7px',
+                                                            borderRadius: '5px',
+                                                            fontFamily: 'SF Mono, Monaco, monospace',
                                                             color: '#32d74b',
-                                                            fontSize: '0.875rem',
+                                                            fontSize: '0.75rem',
                                                             fontWeight: 500
                                                         }}>{macro.value?.split('\n')[0]?.replace(macro.preprocessor + ' ', '') || macro.name}</code>
                                                     </>
@@ -1771,28 +1750,26 @@ const ChallengeView = ({
                                                     <>
                                                         Define macro: {' '}
                                                         <code style={{
-                                                            background: 'rgba(50, 215, 75, 0.15)',
-                                                            border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                            padding: '4px 8px',
-                                                            borderRadius: '6px',
-                                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                            background: 'rgba(50, 215, 75, 0.12)',
+                                                            padding: '3px 7px',
+                                                            borderRadius: '5px',
+                                                            fontFamily: 'SF Mono, Monaco, monospace',
                                                             color: '#32d74b',
-                                                            fontSize: '0.875rem',
+                                                            fontSize: '0.75rem',
                                                             fontWeight: 500,
-                                                            marginRight: '6px'
+                                                            marginRight: '4px'
                                                         }}>#define</code>
                                                         <code style={{
-                                                            background: 'rgba(50, 215, 75, 0.15)',
-                                                            border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                            padding: '4px 8px',
-                                                            borderRadius: '6px',
-                                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                            background: 'rgba(50, 215, 75, 0.12)',
+                                                            padding: '3px 7px',
+                                                            borderRadius: '5px',
+                                                            fontFamily: 'SF Mono, Monaco, monospace',
                                                             color: '#32d74b',
-                                                            fontSize: '0.875rem',
+                                                            fontSize: '0.75rem',
                                                             fontWeight: 500
                                                         }}>{macro.name}</code>
                                                         {macro.type === 'function-like' && macro.parameters && (
-                                                            <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
+                                                            <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>
                                                                 {' '}({macro.parameters.join(', ')})
                                                             </span>
                                                         )}
@@ -1802,15 +1779,15 @@ const ChallengeView = ({
                                                     macro.value.includes('\n') ? (
                                                         <span style={{
                                                             color: 'rgba(245, 245, 247, 0.5)',
-                                                            fontSize: '0.875rem',
-                                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                            fontSize: '0.75rem',
+                                                            fontFamily: 'SF Mono, Monaco, monospace',
                                                             whiteSpace: 'pre-wrap',
                                                             wordBreak: 'break-word'
                                                         }}>
                                                             {' '}{macro.value}
                                                         </span>
                                                     ) : (
-                                                        <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
+                                                        <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}>
                                                             {' '}{macro.value}
                                                         </span>
                                                     )
@@ -1830,46 +1807,45 @@ const ChallengeView = ({
                                                     params: parsed.params
                                                 };
                                             };
-                                            
+
                                             const parsed = parseFunction(funcDecl);
-                                            
+
                                             return (
-                                                <li key={`header-func-${idx}`} style={{ 
-                                                    marginBottom: '12px',
+                                                <li key={`header-func-${idx}`} style={{
+                                                    marginBottom: '10px',
                                                     position: 'relative',
-                                                    paddingLeft: '20px'
+                                                    paddingLeft: '16px',
+                                                    fontSize: '0.8125rem'
                                                 }}>
                                                     <span style={{
                                                         position: 'absolute',
                                                         left: 0,
-                                                        top: '8px',
-                                                        width: '6px',
-                                                        height: '6px',
+                                                        top: '7px',
+                                                        width: '5px',
+                                                        height: '5px',
                                                         borderRadius: '50%',
-                                                        background: '#ffcc02'
+                                                        background: '#ffd60a'
                                                     }} />
                                                     Declare function: {' '}
-                                                    {parsed.returnType && <code style={{ 
-                                                        background: 'rgba(255, 204, 2, 0.15)',
-                                                        border: '1px solid rgba(255, 204, 2, 0.3)',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '6px',
-                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                        color: '#ffcc02',
-                                                        fontSize: '0.875rem',
+                                                    {parsed.returnType && <code style={{
+                                                        background: 'rgba(255, 214, 10, 0.12)',
+                                                        padding: '3px 7px',
+                                                        borderRadius: '5px',
+                                                        fontFamily: 'SF Mono, Monaco, monospace',
+                                                        color: '#ffd60a',
+                                                        fontSize: '0.75rem',
                                                         fontWeight: 500,
-                                                        marginRight: '6px'
+                                                        marginRight: '4px'
                                                     }}>{parsed.returnType}</code>}
-                                                    <code style={{ 
-                                                        background: 'rgba(255, 204, 2, 0.15)',
-                                                        border: '1px solid rgba(255, 204, 2, 0.3)',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '6px',
-                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                        color: '#ffcc02',
-                                                        fontSize: '0.875rem',
+                                                    <code style={{
+                                                        background: 'rgba(255, 214, 10, 0.12)',
+                                                        padding: '3px 7px',
+                                                        borderRadius: '5px',
+                                                        fontFamily: 'SF Mono, Monaco, monospace',
+                                                        color: '#ffd60a',
+                                                        fontSize: '0.75rem',
                                                         fontWeight: 500
-                                                    }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>{parsed.params}</span>
+                                                    }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>{parsed.params}</span>
                                                 </li>
                                             );
                                         })}
@@ -1886,13 +1862,14 @@ const ChallengeView = ({
                                   (validation?.exactRequirements?.macro_definitions && validation.exactRequirements.macro_definitions.length > 0)
                                 ) && (
                                     <li style={{
-                                        marginBottom: '16px',
+                                        marginBottom: '12px',
+                                        marginTop: '16px',
                                         paddingLeft: '0',
                                         fontWeight: 600,
-                                        color: '#ff9f0a',
-                                        fontSize: '1rem',
-                                        borderBottom: '1px solid rgba(255, 159, 10, 0.2)',
-                                        paddingBottom: '8px'
+                                        color: '#32d74b',
+                                        fontSize: '0.75rem',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em'
                                     }}>
                                         Source File Requirements
                                     </li>
@@ -1900,71 +1877,70 @@ const ChallengeView = ({
 
                                 {/* Show validation.exactRequirements if available */}
                                 {validation?.exactRequirements?.variables?.map((variable, idx) => (
-                                    <li key={`source-var-${idx}`} style={{ 
-                                        marginBottom: '12px',
+                                    <li key={`source-var-${idx}`} style={{
+                                        marginBottom: '10px',
                                         position: 'relative',
-                                        paddingLeft: '20px'
+                                        paddingLeft: '16px',
+                                        fontSize: '0.8125rem'
                                     }}>
                                         <span style={{
                                             position: 'absolute',
                                             left: 0,
-                                            top: '8px',
-                                            width: '6px',
-                                            height: '6px',
+                                            top: '7px',
+                                            width: '5px',
+                                            height: '5px',
                                             borderRadius: '50%',
                                             background: '#ff9f0a'
                                         }} />
                                         Define variable: {' '}
                                         {variable.storageClass && variable.storageClass !== 'none' && (
-                                            <code style={{ 
-                                                background: 'rgba(255, 159, 10, 0.15)',
-                                                border: '1px solid rgba(255, 159, 10, 0.3)',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                            <code style={{
+                                                background: 'rgba(255, 159, 10, 0.12)',
+                                                padding: '3px 7px',
+                                                borderRadius: '5px',
+                                                fontFamily: 'SF Mono, Monaco, monospace',
                                                 color: '#ff9f0a',
-                                                fontSize: '0.875rem',
+                                                fontSize: '0.75rem',
                                                 fontWeight: 500,
-                                                marginRight: '6px'
+                                                marginRight: '4px'
                                             }}>{variable.storageClass}</code>
                                         )}
-                                        <code style={{ 
-                                            background: 'rgba(255, 159, 10, 0.15)',
-                                            border: '1px solid rgba(255, 159, 10, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                        <code style={{
+                                            background: 'rgba(255, 159, 10, 0.12)',
+                                            padding: '3px 7px',
+                                            borderRadius: '5px',
+                                            fontFamily: 'SF Mono, Monaco, monospace',
                                             color: '#ff9f0a',
-                                            fontSize: '0.875rem',
+                                            fontSize: '0.75rem',
                                             fontWeight: 500
-                                        }}>{variable.type}</code> <code style={{ 
-                                            background: 'rgba(255, 159, 10, 0.15)',
-                                            border: '1px solid rgba(255, 159, 10, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                        }}>{variable.type}</code> <code style={{
+                                            background: 'rgba(255, 159, 10, 0.12)',
+                                            padding: '3px 7px',
+                                            borderRadius: '5px',
+                                            fontFamily: 'SF Mono, Monaco, monospace',
                                             color: '#ff9f0a',
-                                            fontSize: '0.875rem',
+                                            fontSize: '0.75rem',
                                             fontWeight: 500
                                         }}>{variable.name}</code>
                                         {variable.value && (
-                                            <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}> = {variable.value}</span>
+                                            <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}> = {variable.value}</span>
                                         )}
                                     </li>
                                 ))}
                                 {/* Display source macro definitions */}
                                 {validation?.exactRequirements?.macro_definitions?.map((macro, idx) => (
                                     <li key={`source-macro-${idx}`} style={{
-                                        marginBottom: '12px',
+                                        marginBottom: '10px',
                                         position: 'relative',
-                                        paddingLeft: '20px'
+                                        paddingLeft: '16px',
+                                        fontSize: '0.8125rem'
                                     }}>
                                         <span style={{
                                             position: 'absolute',
                                             left: 0,
-                                            top: '8px',
-                                            width: '6px',
-                                            height: '6px',
+                                            top: '7px',
+                                            width: '5px',
+                                            height: '5px',
                                             borderRadius: '50%',
                                             background: '#32d74b'
                                         }} />
@@ -1972,24 +1948,22 @@ const ChallengeView = ({
                                             <>
                                                 Define macro: {' '}
                                                 <code style={{
-                                                    background: 'rgba(50, 215, 75, 0.15)',
-                                                    border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    background: 'rgba(50, 215, 75, 0.12)',
+                                                    padding: '3px 7px',
+                                                    borderRadius: '5px',
+                                                    fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#32d74b',
-                                                    fontSize: '0.875rem',
+                                                    fontSize: '0.75rem',
                                                     fontWeight: 500,
-                                                    marginRight: '6px'
+                                                    marginRight: '4px'
                                                 }}>{macro.preprocessor}</code>
                                                 <code style={{
-                                                    background: 'rgba(50, 215, 75, 0.15)',
-                                                    border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    background: 'rgba(50, 215, 75, 0.12)',
+                                                    padding: '3px 7px',
+                                                    borderRadius: '5px',
+                                                    fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#32d74b',
-                                                    fontSize: '0.875rem',
+                                                    fontSize: '0.75rem',
                                                     fontWeight: 500
                                                 }}>{macro.value?.split('\n')[0]?.replace(macro.preprocessor + ' ', '') || macro.name}</code>
                                             </>
@@ -1997,28 +1971,26 @@ const ChallengeView = ({
                                             <>
                                                 Define macro: {' '}
                                                 <code style={{
-                                                    background: 'rgba(50, 215, 75, 0.15)',
-                                                    border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    background: 'rgba(50, 215, 75, 0.12)',
+                                                    padding: '3px 7px',
+                                                    borderRadius: '5px',
+                                                    fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#32d74b',
-                                                    fontSize: '0.875rem',
+                                                    fontSize: '0.75rem',
                                                     fontWeight: 500,
-                                                    marginRight: '6px'
+                                                    marginRight: '4px'
                                                 }}>#define</code>
                                                 <code style={{
-                                                    background: 'rgba(50, 215, 75, 0.15)',
-                                                    border: '1px solid rgba(50, 215, 75, 0.3)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '6px',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    background: 'rgba(50, 215, 75, 0.12)',
+                                                    padding: '3px 7px',
+                                                    borderRadius: '5px',
+                                                    fontFamily: 'SF Mono, Monaco, monospace',
                                                     color: '#32d74b',
-                                                    fontSize: '0.875rem',
+                                                    fontSize: '0.75rem',
                                                     fontWeight: 500
                                                 }}>{macro.name}</code>
                                                 {macro.type === 'function-like' && macro.parameters && (
-                                                    <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.875rem' }}>
+                                                    <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>
                                                         {' '}({macro.parameters.join(', ')})
                                                     </span>
                                                 )}
@@ -2028,15 +2000,15 @@ const ChallengeView = ({
                                             macro.value.includes('\n') ? (
                                                 <span style={{
                                                     color: 'rgba(245, 245, 247, 0.5)',
-                                                    fontSize: '0.875rem',
-                                                    fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                                    fontSize: '0.75rem',
+                                                    fontFamily: 'SF Mono, Monaco, monospace',
                                                     whiteSpace: 'pre-wrap',
                                                     wordBreak: 'break-word'
                                                 }}>
                                                     {' '}{macro.value}
                                                 </span>
                                             ) : (
-                                                <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.875rem' }}>
+                                                <span style={{ color: 'rgba(245, 245, 247, 0.5)', fontSize: '0.75rem' }}>
                                                     {' '}{macro.value}
                                                 </span>
                                             )
@@ -2044,94 +2016,92 @@ const ChallengeView = ({
                                     </li>
                                 ))}
                                 {/* Display function signatures from function_signatures_source test case */}
-                                {validation?.testCases?.some(tc => tc.id === 'function_signatures_source') && 
+                                {validation?.testCases?.some(tc => tc.id === 'function_signatures_source') &&
                                  validation?.testCases?.find(tc => tc.id === 'function_signatures_source')?.expectedSymbols?.map((funcSig, idx) => {
                                     // Parse function signature dynamically for function implementations (left panel)
                                     const parseFunction = parseFunctionSignature;
-                                    
+
                                     const parsed = parseFunction(funcSig);
-                                    
+
                                     return (
-                                        <li key={idx} style={{ 
-                                            marginBottom: '12px',
+                                        <li key={idx} style={{
+                                            marginBottom: '10px',
                                             position: 'relative',
-                                            paddingLeft: '20px'
+                                            paddingLeft: '16px',
+                                            fontSize: '0.8125rem'
                                         }}>
                                             <span style={{
                                                 position: 'absolute',
                                                 left: 0,
-                                                top: '8px',
-                                                width: '6px',
-                                                height: '6px',
+                                                top: '7px',
+                                                width: '5px',
+                                                height: '5px',
                                                 borderRadius: '50%',
-                                                background: '#ffcc02'
+                                                background: '#ffd60a'
                                             }} />
                                             Implement function: {' '}
-                                            {parsed.storageClass && <code style={{ 
-                                                background: 'rgba(255, 204, 2, 0.15)',
-                                                border: '1px solid rgba(255, 204, 2, 0.3)',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                color: '#ffcc02',
-                                                fontSize: '0.875rem',
+                                            {parsed.storageClass && <code style={{
+                                                background: 'rgba(255, 214, 10, 0.12)',
+                                                padding: '3px 7px',
+                                                borderRadius: '5px',
+                                                fontFamily: 'SF Mono, Monaco, monospace',
+                                                color: '#ffd60a',
+                                                fontSize: '0.75rem',
                                                 fontWeight: 500,
-                                                marginRight: '6px'
+                                                marginRight: '4px'
                                             }}>{parsed.storageClass}</code>}
-                                            {parsed.returnType && <code style={{ 
-                                                background: 'rgba(255, 204, 2, 0.15)',
-                                                border: '1px solid rgba(255, 204, 2, 0.3)',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                color: '#ffcc02',
-                                                fontSize: '0.875rem',
+                                            {parsed.returnType && <code style={{
+                                                background: 'rgba(255, 214, 10, 0.12)',
+                                                padding: '3px 7px',
+                                                borderRadius: '5px',
+                                                fontFamily: 'SF Mono, Monaco, monospace',
+                                                color: '#ffd60a',
+                                                fontSize: '0.75rem',
                                                 fontWeight: 500,
-                                                marginRight: '6px'
+                                                marginRight: '4px'
                                             }}>{parsed.returnType}</code>}
-                                            {parsed.attribute && <span style={{ color: 'rgba(255, 204, 2, 0.8)', marginRight: '6px' }}>{parsed.attribute}</span>}
-                                            <code style={{ 
-                                                background: 'rgba(255, 204, 2, 0.15)',
-                                                border: '1px solid rgba(255, 204, 2, 0.3)',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                color: '#ffcc02',
-                                                fontSize: '0.875rem',
+                                            {parsed.attribute && <span style={{ color: 'rgba(255, 214, 10, 0.8)', marginRight: '4px', fontSize: '0.75rem' }}>{parsed.attribute}</span>}
+                                            <code style={{
+                                                background: 'rgba(255, 214, 10, 0.12)',
+                                                padding: '3px 7px',
+                                                borderRadius: '5px',
+                                                fontFamily: 'SF Mono, Monaco, monospace',
+                                                color: '#ffd60a',
+                                                fontSize: '0.75rem',
                                                 fontWeight: 500
-                                            }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)' }}>{parsed.params}</span>
+                                            }}>{parsed.name}</code> <span style={{ color: 'rgba(245, 245, 247, 0.6)', fontSize: '0.75rem' }}>{parsed.params}</span>
                                         </li>
                                     );
                                 })}
                                 {/* Function-linked outputs with collapsible function details */}
                                 {inputOutput?.functionLinkedOutputs?.map((output, idx) => (
-                                    <li key={`linked-${idx}`} style={{ 
-                                        marginBottom: expandedFunctionLinks.has(idx) ? '8px' : '16px',
+                                    <li key={`linked-${idx}`} style={{
+                                        marginBottom: expandedFunctionLinks.has(idx) ? '8px' : '12px',
                                         position: 'relative',
-                                        paddingLeft: '20px'
+                                        paddingLeft: '16px',
+                                        fontSize: '0.8125rem'
                                     }}>
                                         <span style={{
                                             position: 'absolute',
                                             left: 0,
-                                            top: '8px',
-                                            width: '6px',
-                                            height: '6px',
+                                            top: '7px',
+                                            width: '5px',
+                                            height: '5px',
                                             borderRadius: '50%',
-                                            background: '#30d158'
+                                            background: '#32d74b'
                                         }} />
                                         <div>
-                                            Output: <code style={{ 
-                                                background: 'rgba(48, 209, 88, 0.15)',
-                                                border: '1px solid rgba(48, 209, 88, 0.3)',
-                                                padding: '4px 8px',
-                                                borderRadius: '6px',
-                                                fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                color: '#30d158',
-                                                fontSize: '0.875rem',
+                                            Output: <code style={{
+                                                background: 'rgba(50, 215, 75, 0.12)',
+                                                padding: '3px 7px',
+                                                borderRadius: '5px',
+                                                fontFamily: 'SF Mono, Monaco, monospace',
+                                                color: '#32d74b',
+                                                fontSize: '0.75rem',
                                                 fontWeight: 500
                                             }}>"{output.pattern}"</code>
                                         </div>
-                                        <div style={{ 
+                                        <div style={{
                                             marginTop: '8px',
                                             marginLeft: '4px',
                                             marginBottom: '-6px'
@@ -2141,21 +2111,21 @@ const ChallengeView = ({
                                                 style={{
                                                     background: 'none',
                                                     border: 'none',
-                                                    color: '#B0B0FF',
-                                                    fontSize: '0.8rem',
+                                                    color: 'rgba(176, 176, 255, 0.8)',
+                                                    fontSize: '0.75rem',
                                                     cursor: 'pointer',
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    gap: '6px',
+                                                    gap: '5px',
                                                     padding: '0px',
                                                     fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif',
                                                     transition: 'color 0.2s ease'
                                                 }}
-                                                onMouseEnter={(e) => e.target.style.color = '#ffcc02'}
-                                                onMouseLeave={(e) => e.target.style.color = '#B0B0FF'}
+                                                onMouseEnter={(e) => e.target.style.color = '#ffd60a'}
+                                                onMouseLeave={(e) => e.target.style.color = 'rgba(176, 176, 255, 0.8)'}
                                             >
                                                 <span style={{
-                                                    fontSize: '0.7rem',
+                                                    fontSize: '0.65rem',
                                                     transform: expandedFunctionLinks.has(idx) ? 'rotate(90deg)' : 'rotate(0deg)',
                                                     transition: 'transform 0.2s ease'
                                                 }}>▶</span>
@@ -2166,16 +2136,15 @@ const ChallengeView = ({
                                                     marginTop: '-7px',
                                                     paddingLeft: '16px',
                                                     padding: '10px 4px',
-                                                    borderRadius: '6px'
+                                                    borderRadius: '5px'
                                                 }}>
-                                                    <code style={{ 
-                                                        background: 'rgba(255, 204, 2, 0.15)',
-                                                        border: '0px solid rgba(255, 204, 2, 0.3)',
-                                                        padding: '8px 8px',
-                                                        borderRadius: '6px',
-                                                        fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                                        color: '#ffcc02',
-                                                        fontSize: '0.85rem',
+                                                    <code style={{
+                                                        background: 'rgba(255, 214, 10, 0.12)',
+                                                        padding: '6px 8px',
+                                                        borderRadius: '5px',
+                                                        fontFamily: 'SF Mono, Monaco, monospace',
+                                                        color: '#ffd60a',
+                                                        fontSize: '0.75rem',
                                                         fontWeight: 500,
                                                         display: 'inline-block',
                                                         maxWidth: '100%',
@@ -2191,55 +2160,55 @@ const ChallengeView = ({
                                 ))}
                                 {/* Regular output messages (fallback for non-linked outputs) */}
                                 {!inputOutput?.functionLinkedOutputs?.length && validation?.exactRequirements?.outputMessages?.map((msg, idx) => (
-                                    <li key={idx} style={{ 
-                                        marginBottom: '12px',
+                                    <li key={idx} style={{
+                                        marginBottom: '10px',
                                         position: 'relative',
-                                        paddingLeft: '20px'
+                                        paddingLeft: '16px',
+                                        fontSize: '0.8125rem'
                                     }}>
                                         <span style={{
                                             position: 'absolute',
                                             left: 0,
-                                            top: '8px',
-                                            width: '6px',
-                                            height: '6px',
+                                            top: '7px',
+                                            width: '5px',
+                                            height: '5px',
                                             borderRadius: '50%',
-                                            background: '#30d158'
+                                            background: '#32d74b'
                                         }} />
-                                        Output: <code style={{ 
-                                            background: 'rgba(48, 209, 88, 0.15)',
-                                            border: '1px solid rgba(48, 209, 88, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-                                            color: '#30d158',
-                                            fontSize: '0.875rem',
+                                        Output: <code style={{
+                                            background: 'rgba(50, 215, 75, 0.12)',
+                                            padding: '3px 7px',
+                                            borderRadius: '5px',
+                                            fontFamily: 'SF Mono, Monaco, monospace',
+                                            color: '#32d74b',
+                                            fontSize: '0.75rem',
                                             fontWeight: 500
                                         }}>"{msg}"</code>
                                     </li>
                                 ))}
                                 {validation?.exactRequirements?.requiredIncludes?.map((inc, idx) => (
-                                    <li key={idx} style={{ 
-                                        marginBottom: '12px',
+                                    <li key={idx} style={{
+                                        marginBottom: '10px',
                                         position: 'relative',
-                                        paddingLeft: '20px'
+                                        paddingLeft: '16px',
+                                        fontSize: '0.8125rem'
                                     }}>
                                         <span style={{
                                             position: 'absolute',
                                             left: 0,
-                                            top: '8px',
-                                            width: '6px',
-                                            height: '6px',
+                                            top: '7px',
+                                            width: '5px',
+                                            height: '5px',
                                             borderRadius: '50%',
                                             background: '#bf5af2'
                                         }} />
-                                        Include: <code style={{ 
-                                            background: 'rgba(191, 90, 242, 0.15)',
-                                            border: '1px solid rgba(191, 90, 242, 0.3)',
-                                            padding: '4px 8px',
-                                            borderRadius: '6px',
-                                            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
+                                        Include: <code style={{
+                                            background: 'rgba(191, 90, 242, 0.12)',
+                                            padding: '3px 7px',
+                                            borderRadius: '5px',
+                                            fontFamily: 'SF Mono, Monaco, monospace',
                                             color: '#bf5af2',
-                                            fontSize: '0.875rem',
+                                            fontSize: '0.75rem',
                                             fontWeight: 500
                                         }}>&lt;{inc}&gt;</code>
                                     </li>
@@ -2271,35 +2240,31 @@ const ChallengeView = ({
 
                     {challenge.skills && (
                         <div style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            backdropFilter: 'blur(20px)',
-                            borderRadius: '8px',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            padding: '12px',
-                            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            borderRadius: '16px',
+                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                            padding: '16px'
                         }}>
                             <h4 style={{
-                                fontSize: '1rem',
+                                fontSize: '0.8125rem',
                                 fontWeight: 600,
                                 color: '#f5f5f7',
                                 margin: 0,
-                                marginBottom: '10px',
-                                letterSpacing: '-0.015em',
-                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+                                marginBottom: '12px',
+                                letterSpacing: '-0.01em'
                             }}>
                                 Skills You'll Learn
                             </h4>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                                 {challenge.skills.map((skill, idx) => (
                                     <span key={idx} style={{
-                                        background: 'rgba(255, 255, 255, 0.1)',
-                                        backdropFilter: 'blur(20px)',
-                                        color: 'rgba(245, 245, 247, 0.8)',
-                                        padding: '4px 10px',
+                                        background: 'rgba(255, 255, 255, 0.04)',
+                                        color: 'rgba(245, 245, 247, 0.7)',
+                                        padding: '6px 10px',
                                         borderRadius: '8px',
-                                        fontSize: '0.75rem',
+                                        fontSize: '0.6875rem',
                                         fontWeight: 500,
-                                        border: '1px solid rgba(255, 255, 255, 0.15)'
+                                        border: '1px solid rgba(255, 255, 255, 0.06)'
                                     }}>
                                         {skill}
                                     </span>
@@ -2313,105 +2278,100 @@ const ChallengeView = ({
                 <div style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '8px',
-                    paddingLeft: '8px',
+                    gap: '12px',
+                    paddingLeft: '12px',
                     height: '100%',
                     minHeight: 0,
                     overflow: 'hidden'
                 }}>
                     {/* Tab Navigation */}
                     <div style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        backdropFilter: 'blur(20px)',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        padding: '4px',
                         display: 'flex',
-                        gap: '4px',
+                        gap: '8px',
                         flexShrink: 0,
                         alignItems: 'center'
                     }}>
-                        <button
-                            onClick={() => setActiveTab('code')}
-                            style={{
-                                background: activeTab === 'code' ?
-                                    'linear-gradient(135deg, #007aff 0%, #0056b3 100%)' :
-                                    'transparent',
-                                color: activeTab === 'code' ? 'white' : 'rgba(245, 245, 247, 0.7)',
-                                border: 'none',
-                                borderRadius: '6px',
-                                padding: '8px 16px',
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-                                flex: 1,
-                                justifyContent: 'center',
-                                boxShadow: activeTab === 'code' ? '0 2px 8px rgba(0, 122, 255, 0.3)' : 'none'
-                            }}
-                        >
-                            <Code size={16} />
-                            <span>Code</span>
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('results')}
-                            style={{
-                                background: activeTab === 'results' ?
-                                    'linear-gradient(135deg, #30d158 0%, #28a745 100%)' :
-                                    'transparent',
-                                color: activeTab === 'results' ? 'white' : 'rgba(245, 245, 247, 0.7)',
-                                border: 'none',
-                                borderRadius: '6px',
-                                padding: '8px 16px',
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-                                flex: 1,
-                                justifyContent: 'center',
-                                boxShadow: activeTab === 'results' ? '0 2px 8px rgba(48, 209, 88, 0.3)' : 'none',
-                                position: 'relative'
-                            }}
-                        >
-                            <Terminal size={16} />
-                            <span>Results</span>
-                            {codeEditor.output && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '6px',
-                                    right: '6px',
-                                    width: '8px',
-                                    height: '8px',
-                                    borderRadius: '50%',
-                                    background: '#30d158',
-                                    boxShadow: '0 0 6px rgba(48, 209, 88, 0.6)'
-                                }} />
-                            )}
-                        </button>
-                        {/* Reset All Files Button */}
+                        {/* Tab Pills */}
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            borderRadius: '12px',
+                            padding: '4px',
+                            display: 'flex',
+                            gap: '4px',
+                            border: '1px solid rgba(255, 255, 255, 0.06)'
+                        }}>
+                            <button
+                                onClick={() => setActiveTab('code')}
+                                style={{
+                                    background: activeTab === 'code' ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                                    color: activeTab === 'code' ? '#f5f5f7' : 'rgba(245, 245, 247, 0.5)',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    padding: '8px 20px',
+                                    fontSize: '0.8125rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px'
+                                }}
+                            >
+                                <Code size={14} />
+                                <span>Code</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('results')}
+                                style={{
+                                    background: activeTab === 'results' ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                                    color: activeTab === 'results' ? '#f5f5f7' : 'rgba(245, 245, 247, 0.5)',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    padding: '8px 20px',
+                                    fontSize: '0.8125rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    position: 'relative'
+                                }}
+                            >
+                                <Terminal size={14} />
+                                <span>Results</span>
+                                {codeEditor.output && (
+                                    <div style={{
+                                        width: '6px',
+                                        height: '6px',
+                                        borderRadius: '50%',
+                                        background: '#32d74b',
+                                        boxShadow: '0 0 8px rgba(50, 215, 75, 0.6)',
+                                        marginLeft: '4px'
+                                    }} />
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Spacer */}
+                        <div style={{ flex: 1 }} />
+
+                        {/* Reset Button */}
                         <button
                             onClick={onReset}
-                            title="Reset all files to original state"
+                            title="Reset all files"
                             style={{
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                color: '#f5f5f7',
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                borderRadius: '6px',
-                                padding: '8px 12px',
-                                fontSize: '0.8rem',
+                                background: 'rgba(255, 255, 255, 0.04)',
+                                color: 'rgba(245, 245, 247, 0.7)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderRadius: '10px',
+                                padding: '8px 14px',
+                                fontSize: '0.75rem',
                                 fontWeight: 500,
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '5px',
+                                gap: '6px',
                                 transition: 'all 0.2s ease',
                                 flexShrink: 0
                             }}
@@ -2420,31 +2380,31 @@ const ChallengeView = ({
                             <span>Reset</span>
                         </button>
 
-                        {/* Run & Validate Button */}
+                        {/* Run Button */}
                         <button
                             onClick={onRun}
                             disabled={codeEditor.isRunning}
                             style={{
                                 background: codeEditor.isRunning
-                                    ? 'rgba(48, 209, 88, 0.5)'
-                                    : 'linear-gradient(135deg, #30d158 0%, #28a745 100%)',
-                                color: 'white',
+                                    ? 'rgba(50, 215, 75, 0.3)'
+                                    : 'linear-gradient(135deg, #32d74b 0%, #30d158 100%)',
+                                color: codeEditor.isRunning ? 'rgba(255, 255, 255, 0.7)' : '#000',
                                 border: 'none',
-                                borderRadius: '6px',
-                                padding: '8px 14px',
-                                fontSize: '0.8rem',
+                                borderRadius: '10px',
+                                padding: '8px 16px',
+                                fontSize: '0.75rem',
                                 fontWeight: 600,
                                 cursor: codeEditor.isRunning ? 'not-allowed' : 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '5px',
+                                gap: '6px',
                                 transition: 'all 0.2s ease',
-                                boxShadow: codeEditor.isRunning ? 'none' : '0 2px 8px rgba(48, 209, 88, 0.3)',
+                                boxShadow: codeEditor.isRunning ? 'none' : '0 2px 12px rgba(50, 215, 75, 0.3)',
                                 flexShrink: 0
                             }}
                         >
-                            {codeEditor.isRunning ? <Timer size={13} /> : <Play size={13} />}
-                            <span>{codeEditor.isRunning ? 'Testing...' : 'Run'}</span>
+                            {codeEditor.isRunning ? <Timer size={13} /> : <Play size={13} fill="currentColor" />}
+                            <span>{codeEditor.isRunning ? 'Running...' : 'Run'}</span>
                         </button>
                     </div>
                     
@@ -2452,30 +2412,25 @@ const ChallengeView = ({
                     {activeTab === 'code' && (
                         <>
                             <div style={{
-                                background: 'rgba(255, 255, 255, 0.05)',
-                                backdropFilter: 'blur(20px)',
-                                borderRadius: '8px',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                background: 'rgba(255, 255, 255, 0.02)',
+                                borderRadius: '16px',
+                                border: '1px solid rgba(255, 255, 255, 0.06)',
                                 overflow: 'hidden',
-                                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
                                 flex: 1,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 minHeight: 0
                             }}>
                                 <div style={{
-                                    padding: '8px',
                                     flex: 1,
                                     display: 'flex',
                                     flexDirection: 'column',
                                     minHeight: 0
                                 }}>
                                     <div style={{
-                                        borderRadius: '8px',
+                                        borderRadius: '16px',
                                         overflow: 'hidden',
-                                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                                        background: 'rgba(0, 0, 0, 0.3)',
+                                        background: 'rgba(0, 0, 0, 0.4)',
                                         flex: 1,
                                         minHeight: 0
                                     }}>
@@ -2523,7 +2478,6 @@ const ChallengeView = ({
                     {activeTab === 'results' && (
                         <div style={{
                             background: 'rgba(255, 255, 255, 0.05)',
-                            backdropFilter: 'blur(20px)',
                             borderRadius: '8px',
                             border: '1px solid rgba(255, 255, 255, 0.1)',
                             overflow: 'hidden',
@@ -2535,8 +2489,7 @@ const ChallengeView = ({
                         }}>
                             {codeEditor.output || codeEditor.overallResult === 'COMPILATION_ERROR' || codeEditor.overallResult === 'PRE_COMPILATION_ERROR' ? (
                                 <div style={{
-                                    background: 'rgba(29, 29, 31, 0.9)',
-                                    backdropFilter: 'blur(20px)',
+                                    background: '#1d1d1f',
                                     borderRadius: '8px',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
                                     padding: '0',
@@ -2611,25 +2564,22 @@ const ChallengeView = ({
                                     </p>
                                     <button
                                         style={{
-                                            background: 'linear-gradient(135deg, #30d158 0%, #28a745 100%)',
-                                            color: 'white',
+                                            background: '#32d74b',
+                                            color: '#000',
                                             border: 'none',
-                                            borderRadius: '8px',
-                                            padding: '10px 20px',
+                                            borderRadius: '10px',
+                                            padding: '12px 24px',
                                             fontSize: '0.875rem',
                                             fontWeight: 600,
                                             cursor: codeEditor.isRunning ? 'not-allowed' : 'pointer',
-                                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                            boxShadow: '0 2px 8px rgba(48, 209, 88, 0.3)',
+                                            transition: 'all 0.2s ease',
                                             display: 'flex',
                                             alignItems: 'center',
-                                            gap: '6px',
-                                            fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+                                            gap: '8px',
                                             opacity: codeEditor.isRunning ? 0.6 : 1
                                         }}
                                         onClick={() => {
                                             onRun();
-                                            // Results will automatically appear in this tab after execution
                                         }}
                                         disabled={codeEditor.isRunning}
                                     >
