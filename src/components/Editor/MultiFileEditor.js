@@ -120,7 +120,11 @@ const MultiFileEditor = ({
   }, [files, mainFile, activeFile]);
 
   // Auto file re-switch during zoom to fix Monaco scrollbar bug
+  // Skip on mobile - keyboard popup triggers resize and causes unwanted editor recreation
   useEffect(() => {
+    // Don't run this on mobile - keyboard appearance triggers resize events
+    if (isMobile) return;
+
     const handleResize = () => {
       clearTimeout(resizeTimeoutRef.current);
       resizeTimeoutRef.current = setTimeout(() => {
@@ -140,7 +144,7 @@ const MultiFileEditor = ({
       window.removeEventListener('resize', handleResize);
       clearTimeout(resizeTimeoutRef.current);
     };
-  }, [activeFile]);
+  }, [activeFile, isMobile]);
 
   // Restore scroll position for markdown files when switching files
   useEffect(() => {

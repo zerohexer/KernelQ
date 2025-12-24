@@ -689,7 +689,10 @@ const CodeMirrorKernelEditor = ({
                 lspClientRef.current = null;
             }
         };
-    }, [enableLSP, lspServerUri, documentUri, isMobile]);
+    // Note: isMobile is intentionally NOT in deps - we don't want to reinitialize
+    // the editor when keyboard appears/disappears on mobile
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [enableLSP, lspServerUri, documentUri]);
 
     // Sync files with LSP when allFiles or fileContents change
     useEffect(() => {
