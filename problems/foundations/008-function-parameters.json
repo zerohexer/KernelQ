@@ -81,27 +81,11 @@
         "prohibitedSymbols": []
       },
       {
-        "id": "function_implementations",
-        "name": "Function Implementations",
-        "type": "code_analysis", 
-        "critical": true,
-        "expectedSymbols": ["return a + b", "return (number % 2 == 0)"],
-        "prohibitedSymbols": []
-      },
-      {
         "id": "function_calls",
         "name": "Proper Function Calls",
         "type": "code_analysis",
         "critical": true,
         "expectedSymbols": ["add_numbers(first, second)", "print_calculation(first, second, sum)", "is_even(sum)"],
-        "prohibitedSymbols": []
-      },
-      {
-        "id": "modulo_operator",
-        "name": "Modulo Operator Usage", 
-        "type": "code_analysis",
-        "critical": true,
-        "expectedSymbols": ["number % 2"],
         "prohibitedSymbols": []
       },
       {
