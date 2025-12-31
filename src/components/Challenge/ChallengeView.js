@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Target, Book, Star, Zap, Code, Terminal, Play, Timer, Shuffle, Maximize2, Minimize2, HelpCircle, CheckCircle2, Circle, X } from 'lucide-react';
+import { Target, Book, Star, Zap, Code, Terminal, Play, Timer, Shuffle, Maximize2, Minimize2, HelpCircle, CheckCircle2, Circle, X, Bot } from 'lucide-react';
 import PremiumStyles from '../../styles/PremiumStyles';
 import ResizableSplitter from '../Layout/ResizableSplitter';
 import MultiFileEditor from '../Editor/MultiFileEditor';
 import SemanticCodeEditor from '../Editor/SemanticCodeEditor';
 import TestResultsView from './TestResultsView';
+import AiTutorPanel from './AiTutorPanel';
 import useIsMobile from '../../hooks/useIsMobile';
 
 const ChallengeView = ({
@@ -1288,6 +1289,26 @@ const ChallengeView = ({
                                     }} />
                                 )}
                             </button>
+                            <button
+                                onClick={() => setActiveTab('ai-tutor')}
+                                style={{
+                                    background: activeTab === 'ai-tutor' ? 'rgba(255, 214, 10, 0.15)' : 'transparent',
+                                    color: activeTab === 'ai-tutor' ? '#ffd60a' : 'rgba(245, 245, 247, 0.5)',
+                                    border: 'none',
+                                    borderRadius: '7px',
+                                    padding: '6px 16px',
+                                    fontSize: '0.855rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px'
+                                }}
+                            >
+                                <Bot size={13} />
+                                <span>AI Tutor</span>
+                            </button>
                         </div>
 
                         {/* Spacer */}
@@ -1509,6 +1530,20 @@ const ChallengeView = ({
                                         </button>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {activeTab === 'ai-tutor' && (
+                            <div style={{
+                                height: '100%',
+                                overflow: 'hidden',
+                                borderRadius: '12px'
+                            }}>
+                                <AiTutorPanel
+                                    challenge={challenge}
+                                    codeEditor={codeEditor}
+                                    onSwitchToCode={() => setActiveTab('code')}
+                                />
                             </div>
                         )}
                     </div>
@@ -2446,6 +2481,26 @@ const ChallengeView = ({
                                     }} />
                                 )}
                             </button>
+                            <button
+                                onClick={() => setActiveTab('ai-tutor')}
+                                style={{
+                                    background: activeTab === 'ai-tutor' ? 'rgba(255, 214, 10, 0.15)' : 'transparent',
+                                    color: activeTab === 'ai-tutor' ? '#ffd60a' : 'rgba(245, 245, 247, 0.5)',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    padding: '8px 20px',
+                                    fontSize: '0.855rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px'
+                                }}
+                            >
+                                <Bot size={14} />
+                                <span>AI Tutor</span>
+                            </button>
                         </div>
 
                         {/* Spacer */}
@@ -2683,6 +2738,25 @@ const ChallengeView = ({
                                     </button>
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {activeTab === 'ai-tutor' && (
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            borderRadius: '12px',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            overflow: 'hidden',
+                            flex: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            minHeight: 0
+                        }}>
+                            <AiTutorPanel
+                                challenge={challenge}
+                                codeEditor={codeEditor}
+                                onSwitchToCode={() => setActiveTab('code')}
+                            />
                         </div>
                     )}
                 </div>
