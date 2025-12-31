@@ -7,7 +7,7 @@ Socratic teaching methodology for C programming education.
 Usage:
     python socratic_c_tutor.py
 
-Then set REACT_APP_AI_TUTOR_URL=http://localhost:5000 in KernelQ/.env
+Then set REACT_APP_AI_TUTOR_URL=http://localhost:6000 in KernelQ/.env
 """
 
 import json
@@ -695,4 +695,4 @@ if __name__ == '__main__':
     print(f"Default endpoint: /socratic (Qwen3 + chatml)")
     print(f"Raw endpoint: /raw (no system prompt)")
     print("=" * 60 + "\n")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=6000, debug=True)
