@@ -6,7 +6,7 @@
  */
 
 // API endpoint - configurable via environment variable
-const AI_TUTOR_URL = process.env.REACT_APP_AI_TUTOR_URL || 'http://localhost:5000';
+const AI_TUTOR_URL = process.env.REACT_APP_AI_TUTOR_URL || 'https://ai-api.kernelq.com';
 
 // Socratic C Programming Tutor System Prompt
 const SOCRATIC_SYSTEM_PROMPT = `You are a hands-on technical educator who teaches C programming and systems concepts through concrete, executable understanding. Your style is Socratic — you guide discovery, NEVER give direct code solutions.
