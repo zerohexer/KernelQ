@@ -1,18 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Trash2, StopCircle, Bot, User, AlertCircle, Lightbulb, Code, HelpCircle } from 'lucide-react';
-import useAiTutor from '../../hooks/useAiTutor';
 
 /**
  * AiTutorPanel - Socratic AI Tutor Chat Interface
  *
  * Provides a chat-based learning experience where the AI guides
  * students through problem-solving using Socratic methodology.
+ *
+ * Note: aiTutor state is passed from parent (ChallengeView) to persist
+ * chat history across tab switches.
  */
-const AiTutorPanel = ({ challenge, codeEditor, onSwitchToCode }) => {
+const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
     const [inputMessage, setInputMessage] = useState('');
     const chatContainerRef = useRef(null);
     const inputRef = useRef(null);
 
+    // Use aiTutor state from parent component (persists across tab switches)
     const {
         chatHistory,
         isLoading,
@@ -24,7 +27,7 @@ const AiTutorPanel = ({ challenge, codeEditor, onSwitchToCode }) => {
         requestErrorHelp,
         askAboutFunction,
         hasHistory
-    } = useAiTutor(challenge, codeEditor);
+    } = aiTutor;
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
@@ -60,12 +63,23 @@ const AiTutorPanel = ({ challenge, codeEditor, onSwitchToCode }) => {
     const hasError = codeEditor?.output?.toLowerCase().includes('error') ||
                     codeEditor?.output?.toLowerCase().includes('fail');
 
+    // Strip <think>...</think> tags from Qwen3 thinking model output
+    const stripThinkTags = (content) => {
+        if (!content) return content;
+        // Remove <think>...</think> blocks (including multiline)
+        return content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    };
+
     // Render markdown-like content with code blocks
     const renderMessage = (content) => {
         if (!content) return null;
 
+        // First strip any thinking tags from the content
+        const cleanContent = stripThinkTags(content);
+        if (!cleanContent) return null;
+
         // Split by code blocks
-        const parts = content.split(/(```[\s\S]*?```)/g);
+        const parts = cleanContent.split(/(```[\s\S]*?```)/g);
 
         return parts.map((part, idx) => {
             if (part.startsWith('```')) {
