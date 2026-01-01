@@ -76,9 +76,10 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
         if (!text) return text;
 
         // Split by inline code first
-        return text.split(/(`[^`]+`)/g).map((segment, segIdx) => {
+        const result = [];
+        text.split(/(`[^`]+`)/g).forEach((segment, segIdx) => {
             if (segment.startsWith('`') && segment.endsWith('`')) {
-                return (
+                result.push(
                     <code key={`${keyPrefix}-code-${segIdx}`} style={{
                         background: 'rgba(255, 214, 10, 0.15)',
                         padding: '2px 6px',
@@ -90,15 +91,18 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                         {segment.slice(1, -1)}
                     </code>
                 );
+            } else {
+                // Handle bold
+                segment.split(/(\*\*[^*]+\*\*)/g).forEach((boldPart, boldIdx) => {
+                    if (boldPart.startsWith('**') && boldPart.endsWith('**')) {
+                        result.push(<strong key={`${keyPrefix}-bold-${segIdx}-${boldIdx}`}>{boldPart.slice(2, -2)}</strong>);
+                    } else if (boldPart) {
+                        result.push(<span key={`${keyPrefix}-text-${segIdx}-${boldIdx}`}>{boldPart}</span>);
+                    }
+                });
             }
-            // Handle bold
-            return segment.split(/(\*\*[^*]+\*\*)/g).map((boldPart, boldIdx) => {
-                if (boldPart.startsWith('**') && boldPart.endsWith('**')) {
-                    return <strong key={`${keyPrefix}-bold-${boldIdx}`}>{boldPart.slice(2, -2)}</strong>;
-                }
-                return boldPart;
-            });
         });
+        return result;
     };
 
     // Render markdown-like content with code blocks, headers, lists
