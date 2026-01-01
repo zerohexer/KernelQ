@@ -225,17 +225,65 @@ const useAiTutor = (challenge, codeEditor) => {
 
         const lastUserMessage = chatHistory[lastUserMessageIndex].content;
 
-        // Remove messages from the last user message onwards (including the response)
+        // Get the history up to (but not including) the last user message
+        const trimmedHistory = chatHistory.slice(0, lastUserMessageIndex);
+
+        // Cancel any ongoing stream
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+
+        // Update state to remove the last exchange
         setChatHistories(prev => ({
             ...prev,
-            [problemId]: prev[problemId].slice(0, lastUserMessageIndex)
+            [problemId]: [...trimmedHistory, { role: 'user', content: lastUserMessage, timestamp: Date.now() }]
         }));
 
-        // Re-send the message
-        setTimeout(() => {
-            sendUserMessageStreaming(lastUserMessage);
-        }, 100);
-    }, [problemId, chatHistory, sendUserMessageStreaming]);
+        setIsLoading(true);
+        setError(null);
+        setStreamingMessage('');
+
+        try {
+            const contextMessage = buildFullContext();
+            const messages = [
+                { role: 'system', content: contextMessage },
+                ...trimmedHistory.map(m => ({ role: m.role, content: m.content })),
+                { role: 'user', content: lastUserMessage }
+            ];
+
+            let fullResponse = '';
+
+            await streamMessage(
+                messages,
+                (chunk) => {
+                    fullResponse += chunk;
+                    setStreamingMessage(fullResponse);
+                },
+                abortControllerRef.current.signal
+            );
+
+            // Add complete response to history
+            setChatHistories(prev => ({
+                ...prev,
+                [problemId]: [
+                    ...trimmedHistory,
+                    { role: 'user', content: lastUserMessage, timestamp: Date.now() },
+                    { role: 'assistant', content: fullResponse, timestamp: Date.now() }
+                ]
+            }));
+            setStreamingMessage('');
+        } catch (err) {
+            if (err.name === 'AbortError') {
+                return;
+            }
+            const errorMsg = err.message || 'Failed to get response from AI tutor';
+            setError(errorMsg);
+        } finally {
+            setIsLoading(false);
+            abortControllerRef.current = null;
+        }
+    }, [problemId, chatHistory, buildFullContext]);
 
     return {
         // State
