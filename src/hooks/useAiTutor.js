@@ -206,6 +206,37 @@ const useAiTutor = (challenge, codeEditor) => {
         await sendUserMessageStreaming(question);
     }, [sendUserMessageStreaming]);
 
+    /**
+     * Retry the last response - removes last assistant message and regenerates
+     */
+    const retryLastMessage = useCallback(async () => {
+        if (!problemId || chatHistory.length === 0) return;
+
+        // Find the last user message
+        let lastUserMessageIndex = -1;
+        for (let i = chatHistory.length - 1; i >= 0; i--) {
+            if (chatHistory[i].role === 'user') {
+                lastUserMessageIndex = i;
+                break;
+            }
+        }
+
+        if (lastUserMessageIndex === -1) return;
+
+        const lastUserMessage = chatHistory[lastUserMessageIndex].content;
+
+        // Remove messages from the last user message onwards (including the response)
+        setChatHistories(prev => ({
+            ...prev,
+            [problemId]: prev[problemId].slice(0, lastUserMessageIndex)
+        }));
+
+        // Re-send the message
+        setTimeout(() => {
+            sendUserMessageStreaming(lastUserMessage);
+        }, 100);
+    }, [problemId, chatHistory, sendUserMessageStreaming]);
+
     return {
         // State
         chatHistory,
@@ -218,6 +249,7 @@ const useAiTutor = (challenge, codeEditor) => {
         sendMessageSync: sendUserMessage,
         clearHistory,
         cancelStream,
+        retryLastMessage,
 
         // Contextual helpers
         requestErrorHelp,
