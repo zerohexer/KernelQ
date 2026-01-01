@@ -438,59 +438,103 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                 )}
 
                 {/* Chat history */}
-                {chatHistory.map((msg, idx) => (
-                    <div
-                        key={idx}
-                        style={{
-                            display: 'flex',
-                            gap: '12px',
-                            alignItems: 'flex-start',
-                            flexDirection: msg.role === 'user' ? 'row-reverse' : 'row'
-                        }}
-                    >
-                        {/* Avatar */}
-                        <div style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            background: msg.role === 'user'
-                                ? 'linear-gradient(135deg, #0a84ff, #5e5ce6)'
-                                : 'linear-gradient(135deg, #ffd60a, #ff9f0a)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0
-                        }}>
-                            {msg.role === 'user'
-                                ? <User size={16} color="#fff" />
-                                : <Bot size={16} color="#000" />
-                            }
-                        </div>
+                {chatHistory.map((msg, idx) => {
+                    // Check if this is the last user message and AI has responded
+                    const isLastUserMessage = msg.role === 'user' &&
+                        chatHistory.slice(idx + 1).every(m => m.role !== 'user');
+                    const hasAiResponse = idx < chatHistory.length - 1 &&
+                        chatHistory[idx + 1]?.role === 'assistant';
+                    const showRetry = isLastUserMessage && hasAiResponse && !isLoading && !streamingMessage;
 
-                        {/* Message bubble */}
-                        <div style={{
-                            maxWidth: '80%',
-                            background: msg.role === 'user'
-                                ? 'rgba(10, 132, 255, 0.15)'
-                                : 'rgba(255, 255, 255, 0.05)',
-                            borderRadius: msg.role === 'user'
-                                ? '16px 16px 4px 16px'
-                                : '16px 16px 16px 4px',
-                            padding: '12px 16px',
-                            border: msg.role === 'user'
-                                ? '1px solid rgba(10, 132, 255, 0.2)'
-                                : '1px solid rgba(255, 255, 255, 0.08)'
-                        }}>
+                    return (
+                        <div
+                            key={idx}
+                            style={{
+                                display: 'flex',
+                                gap: '12px',
+                                alignItems: 'flex-start',
+                                flexDirection: msg.role === 'user' ? 'row-reverse' : 'row'
+                            }}
+                        >
+                            {/* Avatar */}
                             <div style={{
-                                fontSize: '0.875rem',
-                                lineHeight: 1.6,
-                                color: '#f5f5f7'
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                background: msg.role === 'user'
+                                    ? 'linear-gradient(135deg, #0a84ff, #5e5ce6)'
+                                    : 'linear-gradient(135deg, #ffd60a, #ff9f0a)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
                             }}>
-                                {renderMessage(msg.content)}
+                                {msg.role === 'user'
+                                    ? <User size={16} color="#fff" />
+                                    : <Bot size={16} color="#000" />
+                                }
+                            </div>
+
+                            {/* Message bubble and retry button container */}
+                            <div style={{
+                                maxWidth: '80%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start'
+                            }}>
+                                <div style={{
+                                    background: msg.role === 'user'
+                                        ? 'rgba(10, 132, 255, 0.15)'
+                                        : 'rgba(255, 255, 255, 0.05)',
+                                    borderRadius: msg.role === 'user'
+                                        ? '16px 16px 4px 16px'
+                                        : '16px 16px 16px 4px',
+                                    padding: '12px 16px',
+                                    border: msg.role === 'user'
+                                        ? '1px solid rgba(10, 132, 255, 0.2)'
+                                        : '1px solid rgba(255, 255, 255, 0.08)'
+                                }}>
+                                    <div style={{
+                                        fontSize: '0.875rem',
+                                        lineHeight: 1.6,
+                                        color: '#f5f5f7'
+                                    }}>
+                                        {renderMessage(msg.content)}
+                                    </div>
+                                </div>
+
+                                {/* Retry button below user message */}
+                                {showRetry && (
+                                    <button
+                                        onClick={retryLastMessage}
+                                        style={{
+                                            background: 'transparent',
+                                            border: 'none',
+                                            padding: '4px 8px',
+                                            marginTop: '4px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            cursor: 'pointer',
+                                            color: 'rgba(255, 255, 255, 0.4)',
+                                            fontSize: '0.7rem',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.4)';
+                                        }}
+                                    >
+                                        <RefreshCw size={12} />
+                                        Retry
+                                    </button>
+                                )}
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
 
                 {/* Streaming message */}
                 {streamingMessage && (
@@ -685,48 +729,11 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
 
                 <div style={{
                     marginTop: '8px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
+                    fontSize: '0.7rem',
+                    color: 'rgba(255, 255, 255, 0.3)',
+                    textAlign: 'center'
                 }}>
-                    <div style={{
-                        fontSize: '0.7rem',
-                        color: 'rgba(255, 255, 255, 0.3)'
-                    }}>
-                        Press Enter to send, Shift+Enter for new line
-                    </div>
-                    {hasHistory && !isLoading && (
-                        <button
-                            type="button"
-                            onClick={retryLastMessage}
-                            style={{
-                                background: 'transparent',
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
-                                borderRadius: '6px',
-                                padding: '4px 10px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                cursor: 'pointer',
-                                color: 'rgba(255, 255, 255, 0.5)',
-                                fontSize: '0.7rem',
-                                transition: 'all 0.2s ease'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                                e.currentTarget.style.color = 'rgba(255, 255, 255, 0.8)';
-                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'transparent';
-                                e.currentTarget.style.color = 'rgba(255, 255, 255, 0.5)';
-                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                            }}
-                        >
-                            <RefreshCw size={12} />
-                            Retry
-                        </button>
-                    )}
+                    Press Enter to send, Shift+Enter for new line
                 </div>
             </form>
 
