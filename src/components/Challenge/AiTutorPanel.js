@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Trash2, StopCircle, Bot, User, AlertCircle, Lightbulb, Code, HelpCircle, RefreshCw } from 'lucide-react';
 import { PremiumStyles, premiumStyles } from '../../styles/PremiumStyles';
+import useIsMobile from '../../hooks/useIsMobile';
 
 /**
  * AiTutorPanel - Socratic AI Tutor Chat Interface
@@ -15,6 +16,7 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
     const [inputMessage, setInputMessage] = useState('');
     const chatContainerRef = useRef(null);
     const inputRef = useRef(null);
+    const isMobile = useIsMobile();
 
     // Use aiTutor state from parent component (persists across tab switches)
     const {
@@ -38,12 +40,12 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
         }
     }, [chatHistory, streamingMessage]);
 
-    // Focus input on mount
+    // Focus input on mount (desktop only - avoid triggering keyboard on mobile)
     useEffect(() => {
-        if (inputRef.current) {
+        if (inputRef.current && !isMobile) {
             inputRef.current.focus();
         }
-    }, []);
+    }, [isMobile]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -432,31 +434,33 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
         }}>
             {/* Header */}
             <div style={{
-                padding: '16px 20px',
+                padding: isMobile ? '12px 14px' : '16px 20px',
                 borderBottom: `1px solid ${PremiumStyles.colors.border}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 background: PremiumStyles.colors.surface
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Bot size={20} color="rgba(245, 245, 247, 0.6)" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '10px' }}>
+                    <Bot size={isMobile ? 18 : 20} color="rgba(245, 245, 247, 0.6)" />
                     <span style={{
-                        fontSize: PremiumStyles.typography.sizes.base,
+                        fontSize: isMobile ? PremiumStyles.typography.sizes.sm : PremiumStyles.typography.sizes.base,
                         fontWeight: PremiumStyles.typography.weights.semibold,
                         color: 'rgba(245, 245, 247, 0.9)'
                     }}>
                         AI Tutor
                     </span>
-                    <span style={{
-                        fontSize: PremiumStyles.typography.sizes.xs,
-                        color: 'rgba(245, 245, 247, 0.5)',
-                        background: 'rgba(255, 255, 255, 0.06)',
-                        padding: '2px 8px',
-                        borderRadius: PremiumStyles.radius.sm
-                    }}>
-                        In Development
-                    </span>
+                    {!isMobile && (
+                        <span style={{
+                            fontSize: PremiumStyles.typography.sizes.xs,
+                            color: 'rgba(245, 245, 247, 0.5)',
+                            background: 'rgba(255, 255, 255, 0.06)',
+                            padding: '2px 8px',
+                            borderRadius: PremiumStyles.radius.sm
+                        }}>
+                            In Development
+                        </span>
+                    )}
                 </div>
                 {hasHistory && (
                     <button
@@ -465,7 +469,7 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                             background: 'rgba(245, 245, 247, 0.9)',
                             border: 'none',
                             borderRadius: PremiumStyles.radius.sm,
-                            padding: '6px 10px',
+                            padding: isMobile ? '5px 8px' : '6px 10px',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px',
@@ -479,7 +483,7 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                         onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                     >
                         <Trash2 size={12} />
-                        Clear
+                        {!isMobile && 'Clear'}
                     </button>
                 )}
             </div>
@@ -487,13 +491,13 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
             {/* Quick Actions (shown when no chat history) */}
             {!hasHistory && (
                 <div style={{
-                    padding: '20px',
+                    padding: isMobile ? '14px' : '20px',
                     borderBottom: `1px solid ${PremiumStyles.colors.border}`
                 }}>
                     <div style={{
-                        fontSize: PremiumStyles.typography.sizes.sm,
+                        fontSize: isMobile ? PremiumStyles.typography.sizes.xs : PremiumStyles.typography.sizes.sm,
                         color: PremiumStyles.colors.textSecondary,
-                        marginBottom: '12px',
+                        marginBottom: isMobile ? '10px' : '12px',
                         fontWeight: PremiumStyles.typography.weights.medium
                     }}>
                         Quick Actions
@@ -501,7 +505,7 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                     <div style={{
                         display: 'flex',
                         flexWrap: 'wrap',
-                        gap: '8px'
+                        gap: isMobile ? '6px' : '8px'
                     }}>
                         {/* Error help button */}
                         {hasError && (
@@ -511,26 +515,26 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                                     background: 'rgba(255, 69, 58, 0.1)',
                                     border: '1px solid rgba(255, 69, 58, 0.3)',
                                     borderRadius: PremiumStyles.radius.md,
-                                    padding: '8px 14px',
+                                    padding: isMobile ? '6px 10px' : '8px 14px',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '8px',
+                                    gap: isMobile ? '6px' : '8px',
                                     cursor: 'pointer',
                                     color: PremiumStyles.colors.error,
-                                    fontSize: PremiumStyles.typography.sizes.sm,
+                                    fontSize: isMobile ? PremiumStyles.typography.sizes.xs : PremiumStyles.typography.sizes.sm,
                                     fontWeight: PremiumStyles.typography.weights.medium,
                                     transition: 'all 0.2s ease'
                                 }}
                                 onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 69, 58, 0.2)'}
                                 onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 69, 58, 0.1)'}
                             >
-                                <AlertCircle size={14} />
-                                Help with error
+                                <AlertCircle size={isMobile ? 12 : 14} />
+                                {isMobile ? 'Error help' : 'Help with error'}
                             </button>
                         )}
 
-                        {/* Function help buttons */}
-                        {functionNames.slice(0, 4).map((fn, idx) => (
+                        {/* Function help buttons - show fewer on mobile */}
+                        {functionNames.slice(0, isMobile ? 2 : 4).map((fn, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => askAboutFunction(fn)}
@@ -538,13 +542,13 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                                     background: 'rgba(255, 255, 255, 0.04)',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
                                     borderRadius: PremiumStyles.radius.md,
-                                    padding: '8px 14px',
+                                    padding: isMobile ? '6px 10px' : '8px 14px',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '8px',
+                                    gap: isMobile ? '6px' : '8px',
                                     cursor: 'pointer',
                                     color: 'rgba(245, 245, 247, 0.7)',
-                                    fontSize: PremiumStyles.typography.sizes.sm,
+                                    fontSize: isMobile ? PremiumStyles.typography.sizes.xs : PremiumStyles.typography.sizes.sm,
                                     fontWeight: PremiumStyles.typography.weights.medium,
                                     fontFamily: PremiumStyles.typography.fontFamilyMono,
                                     transition: 'all 0.2s ease'
@@ -552,7 +556,7 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                                 onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'}
                                 onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'}
                             >
-                                <Code size={14} />
+                                <Code size={isMobile ? 12 : 14} />
                                 {fn}()
                             </button>
                         ))}
@@ -564,21 +568,21 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                                 background: 'rgba(255, 255, 255, 0.04)',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
                                 borderRadius: PremiumStyles.radius.md,
-                                padding: '8px 14px',
+                                padding: isMobile ? '6px 10px' : '8px 14px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '8px',
+                                gap: isMobile ? '6px' : '8px',
                                 cursor: 'pointer',
                                 color: 'rgba(245, 245, 247, 0.7)',
-                                fontSize: PremiumStyles.typography.sizes.sm,
+                                fontSize: isMobile ? PremiumStyles.typography.sizes.xs : PremiumStyles.typography.sizes.sm,
                                 fontWeight: PremiumStyles.typography.weights.medium,
                                 transition: 'all 0.2s ease'
                             }}
                             onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'}
                             onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'}
                         >
-                            <Lightbulb size={14} />
-                            Where do I start?
+                            <Lightbulb size={isMobile ? 12 : 14} />
+                            {isMobile ? 'Start?' : 'Where do I start?'}
                         </button>
                     </div>
                 </div>
@@ -590,27 +594,36 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                 style={{
                     flex: 1,
                     overflow: 'auto',
-                    padding: '16px 20px',
+                    padding: isMobile ? '12px 14px' : '16px 20px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '16px'
+                    gap: isMobile ? '12px' : '16px'
                 }}
             >
                 {/* Welcome message if no history */}
                 {!hasHistory && !streamingMessage && (
                     <div style={{
                         textAlign: 'center',
-                        padding: '40px 20px',
+                        padding: isMobile ? '24px 16px' : '40px 20px',
                         color: 'rgba(245, 245, 247, 0.5)'
                     }}>
-                        <Bot size={48} style={{ marginBottom: '16px', opacity: 0.5 }} color="rgba(245, 245, 247, 0.5)" />
-                        <div style={{ fontSize: PremiumStyles.typography.sizes.lg, marginBottom: '8px', color: 'rgba(245, 245, 247, 0.7)', fontWeight: PremiumStyles.typography.weights.medium }}>
+                        <Bot size={isMobile ? 36 : 48} style={{ marginBottom: isMobile ? '12px' : '16px', opacity: 0.5 }} color="rgba(245, 245, 247, 0.5)" />
+                        <div style={{ fontSize: isMobile ? PremiumStyles.typography.sizes.base : PremiumStyles.typography.sizes.lg, marginBottom: '8px', color: 'rgba(245, 245, 247, 0.7)', fontWeight: PremiumStyles.typography.weights.medium }}>
                             I'm your Socratic C tutor
                         </div>
-                        <div style={{ fontSize: PremiumStyles.typography.sizes.sm, lineHeight: 1.6 }}>
-                            I won't give you direct solutions—instead, I'll guide you<br />
-                            with questions, building blocks, and memory diagrams.<br />
-                            <strong style={{ color: 'rgba(245, 245, 247, 0.8)' }}>You write every line yourself.</strong>
+                        <div style={{ fontSize: isMobile ? PremiumStyles.typography.sizes.xs : PremiumStyles.typography.sizes.sm, lineHeight: 1.6 }}>
+                            {isMobile ? (
+                                <>
+                                    I'll guide you with questions, not solutions.<br />
+                                    <strong style={{ color: 'rgba(245, 245, 247, 0.8)' }}>You write every line yourself.</strong>
+                                </>
+                            ) : (
+                                <>
+                                    I won't give you direct solutions—instead, I'll guide you<br />
+                                    with questions, building blocks, and memory diagrams.<br />
+                                    <strong style={{ color: 'rgba(245, 245, 247, 0.8)' }}>You write every line yourself.</strong>
+                                </>
+                            )}
                         </div>
                     </div>
                 )}
@@ -629,15 +642,15 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                             key={idx}
                             style={{
                                 display: 'flex',
-                                gap: '12px',
+                                gap: isMobile ? '8px' : '12px',
                                 alignItems: 'flex-start',
                                 flexDirection: msg.role === 'user' ? 'row-reverse' : 'row'
                             }}
                         >
                             {/* Avatar */}
                             <div style={{
-                                width: '32px',
-                                height: '32px',
+                                width: isMobile ? '28px' : '32px',
+                                height: isMobile ? '28px' : '32px',
                                 borderRadius: PremiumStyles.radius.full,
                                 background: msg.role === 'user'
                                     ? 'rgba(255, 255, 255, 0.1)'
@@ -648,14 +661,14 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                                 flexShrink: 0
                             }}>
                                 {msg.role === 'user'
-                                    ? <User size={16} color="rgba(245, 245, 247, 0.7)" />
-                                    : <Bot size={16} color="rgba(245, 245, 247, 0.6)" />
+                                    ? <User size={isMobile ? 14 : 16} color="rgba(245, 245, 247, 0.7)" />
+                                    : <Bot size={isMobile ? 14 : 16} color="rgba(245, 245, 247, 0.6)" />
                                 }
                             </div>
 
                             {/* Message bubble and retry button container */}
                             <div style={{
-                                maxWidth: '80%',
+                                maxWidth: isMobile ? '85%' : '80%',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start'
@@ -665,15 +678,15 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                                         ? 'rgba(10, 132, 255, 0.15)'
                                         : PremiumStyles.colors.surface,
                                     borderRadius: msg.role === 'user'
-                                        ? '16px 16px 4px 16px'
-                                        : '16px 16px 16px 4px',
-                                    padding: '12px 16px',
+                                        ? isMobile ? '14px 14px 4px 14px' : '16px 16px 4px 16px'
+                                        : isMobile ? '14px 14px 14px 4px' : '16px 16px 16px 4px',
+                                    padding: isMobile ? '10px 12px' : '12px 16px',
                                     border: msg.role === 'user'
                                         ? '1px solid rgba(10, 132, 255, 0.2)'
                                         : `1px solid ${PremiumStyles.colors.border}`
                                 }}>
                                     <div style={{
-                                        fontSize: '0.93rem',
+                                        fontSize: isMobile ? '0.85rem' : '0.93rem',
                                         lineHeight: 1.6,
                                         color: 'rgba(245, 245, 247, 0.75)'
                                     }}>
@@ -723,12 +736,12 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                         return (
                             <div style={{
                                 display: 'flex',
-                                gap: '12px',
+                                gap: isMobile ? '8px' : '12px',
                                 alignItems: 'flex-start'
                             }}>
                                 <div style={{
-                                    width: '32px',
-                                    height: '32px',
+                                    width: isMobile ? '28px' : '32px',
+                                    height: isMobile ? '28px' : '32px',
                                     borderRadius: PremiumStyles.radius.full,
                                     background: 'rgba(255, 255, 255, 0.08)',
                                     display: 'flex',
@@ -736,26 +749,26 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                                     justifyContent: 'center',
                                     flexShrink: 0
                                 }}>
-                                    <Bot size={16} color="rgba(245, 245, 247, 0.6)" />
+                                    <Bot size={isMobile ? 14 : 16} color="rgba(245, 245, 247, 0.6)" />
                                 </div>
                                 <div style={{
                                     background: 'rgba(255, 255, 255, 0.04)',
                                     borderRadius: PremiumStyles.radius.xl,
-                                    padding: '10px 16px',
+                                    padding: isMobile ? '8px 12px' : '10px 16px',
                                     border: `1px solid ${PremiumStyles.colors.border}`,
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '8px'
+                                    gap: isMobile ? '6px' : '8px'
                                 }}>
                                     <div style={{
-                                        width: '6px',
-                                        height: '6px',
+                                        width: isMobile ? '5px' : '6px',
+                                        height: isMobile ? '5px' : '6px',
                                         borderRadius: '50%',
                                         background: 'rgba(245, 245, 247, 0.4)',
                                         animation: 'pulse 1.5s infinite'
                                     }} />
                                     <span style={{
-                                        fontSize: '0.85rem',
+                                        fontSize: isMobile ? '0.8rem' : '0.85rem',
                                         color: 'rgba(245, 245, 247, 0.5)',
                                         fontStyle: 'italic'
                                     }}>
@@ -769,12 +782,12 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                     return (
                         <div style={{
                             display: 'flex',
-                            gap: '12px',
+                            gap: isMobile ? '8px' : '12px',
                             alignItems: 'flex-start'
                         }}>
                             <div style={{
-                                width: '32px',
-                                height: '32px',
+                                width: isMobile ? '28px' : '32px',
+                                height: isMobile ? '28px' : '32px',
                                 borderRadius: PremiumStyles.radius.full,
                                 background: 'rgba(255, 255, 255, 0.08)',
                                 display: 'flex',
@@ -782,25 +795,25 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                                 justifyContent: 'center',
                                 flexShrink: 0
                             }}>
-                                <Bot size={16} color="rgba(245, 245, 247, 0.6)" />
+                                <Bot size={isMobile ? 14 : 16} color="rgba(245, 245, 247, 0.6)" />
                             </div>
                             <div style={{
-                                maxWidth: '80%',
+                                maxWidth: isMobile ? '85%' : '80%',
                                 background: PremiumStyles.colors.surface,
-                                borderRadius: '16px 16px 16px 4px',
-                                padding: '12px 16px',
+                                borderRadius: isMobile ? '14px 14px 14px 4px' : '16px 16px 16px 4px',
+                                padding: isMobile ? '10px 12px' : '12px 16px',
                                 border: `1px solid ${PremiumStyles.colors.border}`
                             }}>
                                 <div style={{
-                                    fontSize: '0.93rem',
+                                    fontSize: isMobile ? '0.85rem' : '0.93rem',
                                     lineHeight: 1.6,
                                     color: 'rgba(245, 245, 247, 0.75)'
                                 }}>
                                     {renderMessage(streamingMessage)}
                                     <span style={{
                                         display: 'inline-block',
-                                        width: '8px',
-                                        height: '16px',
+                                        width: isMobile ? '6px' : '8px',
+                                        height: isMobile ? '14px' : '16px',
                                         background: 'rgba(245, 245, 247, 0.5)',
                                         marginLeft: '2px',
                                         animation: 'blink 1s infinite'
@@ -815,12 +828,12 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                 {isLoading && !streamingMessage && (
                     <div style={{
                         display: 'flex',
-                        gap: '12px',
+                        gap: isMobile ? '8px' : '12px',
                         alignItems: 'flex-start'
                     }}>
                         <div style={{
-                            width: '32px',
-                            height: '32px',
+                            width: isMobile ? '28px' : '32px',
+                            height: isMobile ? '28px' : '32px',
                             borderRadius: PremiumStyles.radius.full,
                             background: 'rgba(255, 255, 255, 0.08)',
                             display: 'flex',
@@ -828,24 +841,24 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                             justifyContent: 'center',
                             flexShrink: 0
                         }}>
-                            <Bot size={16} color="rgba(245, 245, 247, 0.6)" />
+                            <Bot size={isMobile ? 14 : 16} color="rgba(245, 245, 247, 0.6)" />
                         </div>
                         <div style={{
                             background: PremiumStyles.colors.surface,
                             borderRadius: PremiumStyles.radius.xl,
-                            padding: '12px 20px',
+                            padding: isMobile ? '10px 16px' : '12px 20px',
                             border: `1px solid ${PremiumStyles.colors.border}`
                         }}>
                             <div style={{
                                 display: 'flex',
-                                gap: '4px'
+                                gap: isMobile ? '3px' : '4px'
                             }}>
                                 {[0, 1, 2].map(i => (
                                     <div
                                         key={i}
                                         style={{
-                                            width: '8px',
-                                            height: '8px',
+                                            width: isMobile ? '6px' : '8px',
+                                            height: isMobile ? '6px' : '8px',
                                             borderRadius: PremiumStyles.radius.full,
                                             background: 'rgba(245, 245, 247, 0.5)',
                                             animation: `bounce 1.4s infinite ease-in-out`,
@@ -864,14 +877,14 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                         background: 'rgba(255, 69, 58, 0.1)',
                         border: '1px solid rgba(255, 69, 58, 0.3)',
                         borderRadius: PremiumStyles.radius.md,
-                        padding: '12px 16px',
+                        padding: isMobile ? '10px 12px' : '12px 16px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '10px',
+                        gap: isMobile ? '8px' : '10px',
                         color: PremiumStyles.colors.error,
-                        fontSize: PremiumStyles.typography.sizes.sm
+                        fontSize: isMobile ? PremiumStyles.typography.sizes.xs : PremiumStyles.typography.sizes.sm
                     }}>
-                        <AlertCircle size={16} />
+                        <AlertCircle size={isMobile ? 14 : 16} />
                         {error}
                     </div>
                 )}
@@ -879,13 +892,13 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
 
             {/* Input Area */}
             <form onSubmit={handleSubmit} style={{
-                padding: '16px 20px',
+                padding: isMobile ? '12px 14px' : '16px 20px',
                 borderTop: `1px solid ${PremiumStyles.colors.border}`,
                 background: PremiumStyles.colors.surface
             }}>
                 <div style={{
                     display: 'flex',
-                    gap: '12px',
+                    gap: isMobile ? '8px' : '12px',
                     alignItems: 'flex-end'
                 }}>
                     <textarea
@@ -893,23 +906,23 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                         value={inputMessage}
                         onChange={(e) => setInputMessage(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Ask about pointers, functions, errors..."
+                        placeholder={isMobile ? "Ask a question..." : "Ask about pointers, functions, errors..."}
                         disabled={isLoading}
                         rows={1}
                         style={{
                             flex: 1,
                             background: PremiumStyles.colors.surfaceHover,
                             border: `1px solid ${PremiumStyles.colors.border}`,
-                            borderRadius: PremiumStyles.radius.lg,
-                            padding: '12px 16px',
-                            fontSize: PremiumStyles.typography.sizes.sm,
+                            borderRadius: isMobile ? PremiumStyles.radius.md : PremiumStyles.radius.lg,
+                            padding: isMobile ? '10px 12px' : '12px 16px',
+                            fontSize: isMobile ? PremiumStyles.typography.sizes.xs : PremiumStyles.typography.sizes.sm,
                             color: 'rgba(245, 245, 247, 0.8)',
                             resize: 'none',
                             outline: 'none',
                             fontFamily: PremiumStyles.typography.fontFamily,
                             transition: 'border-color 0.2s ease',
-                            minHeight: '44px',
-                            maxHeight: '120px'
+                            minHeight: isMobile ? '40px' : '44px',
+                            maxHeight: isMobile ? '80px' : '120px'
                         }}
                         onFocus={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)'}
                         onBlur={(e) => e.target.style.borderColor = PremiumStyles.colors.border}
@@ -922,8 +935,8 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                             style={{
                                 background: 'rgba(245, 245, 247, 0.9)',
                                 border: 'none',
-                                borderRadius: PremiumStyles.radius.lg,
-                                padding: '12px',
+                                borderRadius: isMobile ? PremiumStyles.radius.md : PremiumStyles.radius.lg,
+                                padding: isMobile ? '10px' : '12px',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -931,7 +944,7 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                                 transition: 'all 0.2s ease'
                             }}
                         >
-                            <StopCircle size={20} color="#000" />
+                            <StopCircle size={isMobile ? 18 : 20} color="#000" />
                         </button>
                     ) : (
                         <button
@@ -942,8 +955,8 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                                     ? 'rgba(255, 255, 255, 0.15)'
                                     : PremiumStyles.colors.surfaceHover,
                                 border: 'none',
-                                borderRadius: PremiumStyles.radius.lg,
-                                padding: '12px',
+                                borderRadius: isMobile ? PremiumStyles.radius.md : PremiumStyles.radius.lg,
+                                padding: isMobile ? '10px' : '12px',
                                 cursor: inputMessage.trim() ? 'pointer' : 'not-allowed',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -952,19 +965,22 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                                 opacity: inputMessage.trim() ? 1 : 0.5
                             }}
                         >
-                            <Send size={20} color={inputMessage.trim() ? 'rgba(245, 245, 247, 0.8)' : PremiumStyles.colors.textTertiary} />
+                            <Send size={isMobile ? 18 : 20} color={inputMessage.trim() ? 'rgba(245, 245, 247, 0.8)' : PremiumStyles.colors.textTertiary} />
                         </button>
                     )}
                 </div>
 
-                <div style={{
-                    marginTop: '8px',
-                    fontSize: PremiumStyles.typography.sizes.xs,
-                    color: PremiumStyles.colors.textMuted,
-                    textAlign: 'center'
-                }}>
-                    Press Enter to send, Shift+Enter for new line
-                </div>
+                {/* Hide hint text on mobile to save space */}
+                {!isMobile && (
+                    <div style={{
+                        marginTop: '8px',
+                        fontSize: PremiumStyles.typography.sizes.xs,
+                        color: PremiumStyles.colors.textMuted,
+                        textAlign: 'center'
+                    }}>
+                        Press Enter to send, Shift+Enter for new line
+                    </div>
+                )}
             </form>
 
             {/* CSS for animations */}
