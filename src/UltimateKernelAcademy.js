@@ -109,6 +109,9 @@ const UnlimitedKernelAcademy = () => {
     // AI Tutor state - lifted here to persist across tab switches
     const aiTutor = useAiTutor(currentChallenge, codeEditor);
 
+    // ChallengeView internal tab state - lifted here to persist across main tab switches
+    const [challengeActiveTab, setChallengeActiveTab] = useState('code');
+
     // Load concepts from markdown files
     const { concepts: mdConcepts, loading: conceptsLoading } = useConcepts();
 
@@ -1028,6 +1031,8 @@ const UnlimitedKernelAcademy = () => {
                             setSelectedConcept={setSelectedConcept}
                             switchToTab={switchToTab}
                             aiTutor={aiTutor}
+                            challengeActiveTab={challengeActiveTab}
+                            setChallengeActiveTab={setChallengeActiveTab}
                         />
                     )}
 

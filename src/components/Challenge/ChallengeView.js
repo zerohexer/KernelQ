@@ -20,10 +20,11 @@ const ChallengeView = ({
     getConcept,
     setSelectedConcept,
     switchToTab,
-    aiTutor
+    aiTutor,
+    challengeActiveTab: activeTab,
+    setChallengeActiveTab: setActiveTab
 }) => {
     const isMobile = useIsMobile(); // Detect mobile device
-    const [activeTab, setActiveTab] = useState('code');
     const [leftPanelWidth, setLeftPanelWidth] = useState(40); // Initial width as percentage - splitter moved left for more code space
     const [expandedFunctionLinks, setExpandedFunctionLinks] = useState(new Set()); // Track which function links are expanded
     const [isFullScreen, setIsFullScreen] = useState(false); // True full-screen mode
