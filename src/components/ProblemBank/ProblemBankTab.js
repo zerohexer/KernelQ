@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, Circle, Star, Zap, Filter, X, ChevronRight } from 'lucide-react';
+import { CheckCircle, Circle, Zap, Filter, X } from 'lucide-react';
 import { PremiumStyles, premiumStyles } from '../../styles/PremiumStyles';
 
 const ProblemBankTab = ({
@@ -12,32 +12,8 @@ const ProblemBankTab = ({
   getProblemStats
 }) => {
   const stats = getProblemStats ? getProblemStats() : { total: problems.length, completed: 0 };
-  const [hoveredCard, setHoveredCard] = useState(null);
+  const [hoveredRow, setHoveredRow] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
-
-  // Get difficulty color gradient
-  const getDifficultyGradient = (difficulty) => {
-    if (difficulty <= 3) return PremiumStyles.gradients.easy;
-    if (difficulty <= 6) return PremiumStyles.gradients.medium;
-    if (difficulty <= 8) return PremiumStyles.gradients.hard;
-    return PremiumStyles.gradients.expert;
-  };
-
-  // Get difficulty label
-  const getDifficultyLabel = (difficulty) => {
-    if (difficulty <= 3) return 'Beginner';
-    if (difficulty <= 6) return 'Intermediate';
-    if (difficulty <= 8) return 'Advanced';
-    return 'Expert';
-  };
-
-  // Get accent color based on difficulty
-  const getAccentColor = (difficulty) => {
-    if (difficulty <= 3) return PremiumStyles.colors.accent;
-    if (difficulty <= 6) return PremiumStyles.colors.accentYellow;
-    if (difficulty <= 8) return PremiumStyles.colors.accentOrange;
-    return PremiumStyles.colors.accentRed;
-  };
 
   const activeFiltersCount = [
     filters.phase !== 'all',
@@ -244,7 +220,7 @@ const ProblemBankTab = ({
         </div>
       )}
 
-      {/* Problems Grid */}
+      {/* Problems Table */}
       <div style={{
         flex: 1,
         overflowY: 'auto',
@@ -253,218 +229,109 @@ const ProblemBankTab = ({
       }}>
         {problems.length > 0 ? (
           <div style={{
-            display: 'grid',
-            gap: '16px',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))'
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px',
+            background: 'rgba(255, 255, 255, 0.02)',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            border: '1px solid rgba(255, 255, 255, 0.06)'
           }}>
             {problems.map((problem, index) => {
               const isCompleted = completedChallenges.has(problem.id);
-              const isHovered = hoveredCard === problem.id;
-              const accentColor = getAccentColor(problem.difficulty);
+              const isHovered = hoveredRow === problem.id;
+
+              // Get difficulty text and color like LeetCode
+              const getDifficultyText = (diff) => {
+                if (diff <= 3) return { text: 'Easy', color: PremiumStyles.colors.accent };
+                if (diff <= 6) return { text: 'Med.', color: PremiumStyles.colors.accentYellow };
+                if (diff <= 8) return { text: 'Hard', color: PremiumStyles.colors.accentOrange };
+                return { text: 'Expert', color: PremiumStyles.colors.accentRed };
+              };
+              const diffInfo = getDifficultyText(problem.difficulty);
 
               return (
                 <div
                   key={problem.id}
                   onClick={() => onSelectProblem(problem)}
-                  onMouseEnter={() => setHoveredCard(problem.id)}
-                  onMouseLeave={() => setHoveredCard(null)}
+                  onMouseEnter={() => setHoveredRow(problem.id)}
+                  onMouseLeave={() => setHoveredRow(null)}
                   style={{
-                    position: 'relative',
-                    padding: '24px',
-                    background: isHovered
-                      ? 'rgba(255, 255, 255, 0.06)'
-                      : 'rgba(255, 255, 255, 0.03)',
-                    borderRadius: '20px',
-                    border: `1px solid ${isHovered ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.06)'}`,
-                    cursor: 'pointer',
-                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                    transform: isHovered ? 'translateY(-4px) scale(1.01)' : 'translateY(0) scale(1)',
-                    boxShadow: isHovered
-                      ? `0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 60px ${accentColor}15`
-                      : '0 4px 20px rgba(0, 0, 0, 0.3)',
-                    overflow: 'hidden',
-                    animation: `fadeInUp 0.4s ease ${index * 0.05}s both`,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: '100%'
-                  }}
-                >
-                  {/* Top accent line */}
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '3px',
-                    background: isCompleted
-                      ? PremiumStyles.gradients.green
-                      : getDifficultyGradient(problem.difficulty),
-                    opacity: isHovered ? 1 : 0.7,
-                    transition: 'opacity 0.3s ease'
-                  }} />
-
-                  {/* Card shine effect on hover */}
-                  {isHovered && (
-                    <div style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%)',
-                      pointerEvents: 'none'
-                    }} />
-                  )}
-
-                  {/* Header */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    justifyContent: 'space-between',
-                    marginBottom: '12px'
-                  }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{
-                        fontSize: '0.6875rem',
-                        fontWeight: 600,
-                        color: PremiumStyles.colors.textTertiary,
-                        marginBottom: '4px',
-                        letterSpacing: '0.08em',
-                        textTransform: 'uppercase'
-                      }}>
-                        Challenge #{problem.id}
-                      </div>
-                      <h3 style={{
-                        fontSize: '1.0625rem',
-                        fontWeight: 600,
-                        color: PremiumStyles.colors.text,
-                        margin: 0,
-                        letterSpacing: '-0.01em',
-                        lineHeight: 1.3,
-                        minHeight: '2.76em',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
-                      }}>
-                        {problem.title}
-                      </h3>
-                    </div>
-
-                    {/* Completion Status */}
-                    <div style={{
-                      flexShrink: 0,
-                      marginLeft: '12px'
-                    }}>
-                      {isCompleted ? (
-                        <div style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '50%',
-                          background: 'rgba(50, 215, 75, 0.15)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxShadow: '0 0 12px rgba(50, 215, 75, 0.3)'
-                        }}>
-                          <CheckCircle size={18} color={PremiumStyles.colors.accent} />
-                        </div>
-                      ) : (
-                        <div style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '50%',
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          <Circle size={18} color={PremiumStyles.colors.textTertiary} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p style={{
-                    fontSize: '0.95rem',
-                    color: PremiumStyles.colors.textSecondary,
-                    lineHeight: 1.5,
-                    margin: 0,
-                    marginBottom: '16px',
-                    minHeight: '3em',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden'
-                  }}>
-                    {problem.description}
-                  </p>
-
-                  {/* Footer Badges */}
-                  <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    flexWrap: 'wrap',
-                    marginTop: 'auto'
+                    padding: '14px 20px',
+                    background: isHovered
+                      ? 'rgba(255, 255, 255, 0.06)'
+                      : index % 2 === 0
+                        ? 'rgba(255, 255, 255, 0.02)'
+                        : 'transparent',
+                    cursor: 'pointer',
+                    transition: 'background 0.15s ease',
+                    gap: '16px'
+                  }}
+                >
+                  {/* Status Icon */}
+                  <div style={{ flexShrink: 0, width: '24px' }}>
+                    {isCompleted ? (
+                      <CheckCircle size={18} color={PremiumStyles.colors.accent} />
+                    ) : (
+                      <Circle size={18} color={PremiumStyles.colors.textTertiary} style={{ opacity: 0.4 }} />
+                    )}
+                  </div>
+
+                  {/* Problem Number & Title */}
+                  <div style={{
+                    flex: 1,
+                    minWidth: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
                   }}>
-                    {/* Difficulty Badge */}
                     <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      padding: '5px 10px',
-                      background: getDifficultyGradient(problem.difficulty),
-                      borderRadius: '8px',
-                      fontSize: '0.6875rem',
-                      fontWeight: 600,
-                      color: '#000',
-                      letterSpacing: '0.02em'
-                    }}>
-                      <Star size={11} fill="currentColor" />
-                      Lv.{problem.difficulty}
-                    </span>
-
-                    {/* XP Badge */}
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      padding: '5px 10px',
-                      background: 'rgba(255, 255, 255, 0.06)',
-                      borderRadius: '8px',
-                      fontSize: '0.6875rem',
-                      fontWeight: 600,
-                      color: PremiumStyles.colors.text,
-                      border: '1px solid rgba(255, 255, 255, 0.08)'
-                    }}>
-                      <Zap size={11} fill="currentColor" color={PremiumStyles.colors.accentYellow} />
-                      {problem.xp} XP
-                    </span>
-
-                    {/* Phase Badge */}
-                    <span style={{
-                      padding: '5px 10px',
-                      background: 'rgba(255, 255, 255, 0.04)',
-                      borderRadius: '8px',
-                      fontSize: '0.6875rem',
-                      fontWeight: 500,
+                      fontSize: '0.875rem',
                       color: PremiumStyles.colors.textSecondary,
-                      border: '1px solid rgba(255, 255, 255, 0.06)'
+                      flexShrink: 0
                     }}>
-                      {problem.phase}
+                      {problem.id}.
                     </span>
-
-                    {/* Arrow indicator on hover */}
-                    <div style={{
-                      marginLeft: 'auto',
-                      opacity: isHovered ? 1 : 0,
-                      transform: isHovered ? 'translateX(0)' : 'translateX(-8px)',
-                      transition: 'all 0.25s ease'
+                    <span style={{
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      color: PremiumStyles.colors.text,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
                     }}>
-                      <ChevronRight size={18} color={PremiumStyles.colors.textSecondary} />
-                    </div>
+                      {problem.title}
+                    </span>
+                  </div>
+
+                  {/* XP */}
+                  <div style={{
+                    flexShrink: 0,
+                    fontSize: '0.75rem',
+                    color: PremiumStyles.colors.textTertiary,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <Zap size={12} color={PremiumStyles.colors.accentYellow} />
+                    {problem.xp}
+                  </div>
+
+                  {/* Difficulty */}
+                  <div style={{
+                    flexShrink: 0,
+                    width: '50px',
+                    textAlign: 'right'
+                  }}>
+                    <span style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      color: diffInfo.color
+                    }}>
+                      {diffInfo.text}
+                    </span>
                   </div>
                 </div>
               );
