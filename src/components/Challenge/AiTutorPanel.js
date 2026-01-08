@@ -899,7 +899,7 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                 <div style={{
                     display: 'flex',
                     gap: isMobile ? '8px' : '12px',
-                    alignItems: 'flex-end'
+                    alignItems: 'center'
                 }}>
                     <textarea
                         ref={inputRef}
