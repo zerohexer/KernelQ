@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Code, Book, Target, Lightbulb } from 'lucide-react';
 import generatedProblems from './data/generated-problems.js';
 
@@ -40,6 +41,10 @@ const deepCopyFiles = (files) => {
 
 
 const UnlimitedKernelAcademy = () => {
+    // URL routing hooks
+    const { problemId: urlProblemId } = useParams();
+    const navigate = useNavigate();
+
     // Backend API configuration - supports both localhost and cloudflared
     const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '/api';
     console.log('🔧 Frontend loaded with BACKEND_URL:', BACKEND_URL);
@@ -412,6 +417,8 @@ const UnlimitedKernelAcademy = () => {
         };
         setCurrentChallenge(problemCopy);
         switchToTab('learning');
+        // Update URL to reflect the selected problem
+        navigate(`/problem/${problem.id}`, { replace: false });
     };
 
     // Playground kernel module compilation
@@ -761,14 +768,42 @@ const UnlimitedKernelAcademy = () => {
         }
     };
 
+    // Load problem from URL parameter on mount or URL change
+    useEffect(() => {
+        if (urlProblemId) {
+            const numericId = parseInt(urlProblemId, 10);
+            const problem = problemBank.find(p => p.id === numericId);
+
+            if (problem) {
+                // Only load if different from current challenge to avoid infinite loops
+                if (!currentChallenge || currentChallenge.id !== numericId) {
+                    console.log(`🔗 Loading problem ${numericId} from URL`);
+                    const problemCopy = {
+                        ...problem,
+                        files: problem.files ? deepCopyFiles(problem.files) : undefined
+                    };
+                    setCurrentChallenge(problemCopy);
+                    switchToTab('learning');
+                }
+            } else {
+                console.warn(`⚠️ Problem ${urlProblemId} not found in problem bank`);
+                // Redirect to home if problem doesn't exist
+                navigate('/', { replace: true });
+            }
+        }
+    }, [urlProblemId]);
+
     // Initialize with phase selection or first challenge
     useEffect(() => {
+        // Skip auto-generation if we're loading a problem from URL
+        if (urlProblemId) return;
+
         if (userProfile.currentPhase === null) {
             setShowPhaseSelector(true);
         } else if (!currentChallenge) {
             generateNewChallenge();
         }
-    }, [userProfile.currentPhase]);
+    }, [userProfile.currentPhase, urlProblemId]);
 
     // Load solved problems when user is authenticated (including on page reload)
     useEffect(() => {
