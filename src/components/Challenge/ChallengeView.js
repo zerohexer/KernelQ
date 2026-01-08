@@ -7,7 +7,6 @@ import SemanticCodeEditor from '../Editor/SemanticCodeEditor';
 import TestResultsView from './TestResultsView';
 import AiTutorPanel from './AiTutorPanel';
 import useIsMobile from '../../hooks/useIsMobile';
-import useAiTutor from '../../hooks/useAiTutor';
 
 const ChallengeView = ({
     challenge,
@@ -20,7 +19,8 @@ const ChallengeView = ({
     detectUnfamiliarConcepts,
     getConcept,
     setSelectedConcept,
-    switchToTab
+    switchToTab,
+    aiTutor
 }) => {
     const isMobile = useIsMobile(); // Detect mobile device
     const [activeTab, setActiveTab] = useState('code');
@@ -49,9 +49,6 @@ const ChallengeView = ({
     const [activeFile, setActiveFile] = useState(challenge?.mainFile || null); // Track active file across fullscreen toggles
     const [scrollPositions, setScrollPositions] = useState({}); // Track scroll positions per file across fullscreen toggles
     const scrollContainerRef = useRef(null); // Ref for scroll position preservation
-
-    // AI Tutor state - lifted up to persist across tab switches
-    const aiTutor = useAiTutor(challenge, codeEditor);
     const floatingHelpScrollRef = useRef(null); // Ref for FloatingHelp modal scroll position
 
     // Keyboard shortcut handlers

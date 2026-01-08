@@ -22,6 +22,7 @@ import useCodeEditor from './hooks/useCodeEditor.js';
 import useUIState from './hooks/useUIState.js';
 import useAuth from './hooks/useAuth.js';
 import useConcepts from './hooks/useConcepts.js';
+import useAiTutor from './hooks/useAiTutor.js';
 
 // Utility function to create a proper deep copy of files
 const deepCopyFiles = (files) => {
@@ -104,6 +105,9 @@ const UnlimitedKernelAcademy = () => {
         setPlayground,
         resetAll: resetCodeEditor
     } = useCodeEditor(currentChallenge);
+
+    // AI Tutor state - lifted here to persist across tab switches
+    const aiTutor = useAiTutor(currentChallenge, codeEditor);
 
     // Load concepts from markdown files
     const { concepts: mdConcepts, loading: conceptsLoading } = useConcepts();
@@ -1023,6 +1027,7 @@ const UnlimitedKernelAcademy = () => {
                             onShowConcepts={() => setShowLessons(!showLessons)}
                             setSelectedConcept={setSelectedConcept}
                             switchToTab={switchToTab}
+                            aiTutor={aiTutor}
                         />
                     )}
 
