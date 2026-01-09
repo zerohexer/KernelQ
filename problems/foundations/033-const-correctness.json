@@ -1,0 +1,344 @@
+{
+  "id": 33,
+  "title": "Const Correctness - Writing Safe APIs",
+  "phase": "foundations",
+  "difficulty": 5,
+  "xp": 50,
+  "description": "Master the const keyword to write safe, professional APIs that prevent accidental data modification. Learn to distinguish between pointer-to-const, const-pointer, and const-pointer-to-const. Understand const propagation through function call chains and why const correctness is fundamental to production C code - not an advanced feature, but a safety practice that should be used from day one.",
+  "mainFile": "config_system.c",
+  "files": [
+    {
+      "name": "config_system.h",
+      "content": "#ifndef CONFIG_SYSTEM_H\n#define CONFIG_SYSTEM_H\n\n#include <linux/types.h>\n\n#define MAX_CONFIG_NAME 32\n#define MAX_CONFIG_VALUE 64\n#define MAX_CONFIGS 10\n\n/* ========================================================================== */\n/* PATTERN SCAFFOLDING: Const Correctness in Data Structures */\n/* ========================================================================== */\n/* This teaches you PROFESSIONAL API DESIGN with const!\n *\n * THE PROBLEM:\n * - Without const, functions can accidentally modify data they shouldn't\n * - Bugs from unintended modifications are hard to debug\n * - Professional C code uses const everywhere for safety\n *\n * THE SOLUTION:\n * - Mark data that shouldn't change as const\n * - Use const in function parameters to guarantee no modification\n * - Compiler enforces const correctness at compile time\n *\n * REAL-WORLD EXAMPLES:\n * Linux kernel uses const extensively:\n * - const char *name in struct device\n * - const struct file_operations (function pointer tables)\n * - int copy_to_user(void __user *to, const void *from, unsigned long n)\n *\n * THREE TYPES OF CONST:\n * 1. const int *ptr        - Pointer to const data (can't change *ptr)\n * 2. int * const ptr       - Const pointer (can't change ptr itself)\n * 3. const int * const ptr - Both pointer and data are const\n */\n\n/* Configuration entry - read-only after initialization */\ntypedef struct {\n    char name[MAX_CONFIG_NAME];\n    char value[MAX_CONFIG_VALUE];\n    uint32_t priority;\n    bool is_readonly;\n} ConfigEntry;\n\n/* Configuration database */\ntypedef struct {\n    ConfigEntry entries[MAX_CONFIGS];\n    int count;\n} ConfigDatabase;\n\n/* ========================================================================== */\n/* TODO: CONST-CORRECT FUNCTION DECLARATIONS */\n/* ========================================================================== */\n/* TASK: Declare functions with proper const qualifiers\n *\n * GUIDELINES:\n * 1. If a function READS data but doesn't modify it → use const\n * 2. If a function parameter is a pointer to data that won't change → const Type *\n * 3. Return const Type * if the returned data shouldn't be modified\n *\n * EXAMPLE PATTERNS:\n * - void print_config(const ConfigEntry *entry);  // entry won't be modified\n * - const char* get_value(const char *key);        // key won't change, return shouldn't change\n * - int set_value(const char *key, const char *val); // keys and values are read-only inputs\n */\n\n/* Initialize database with default configs */\nvoid config_db_init(ConfigDatabase *db);\n\n/* Add a configuration entry (name and value should be const - we're just reading them) */\n/* TODO: Add proper const qualifiers to parameters */\nint config_add(ConfigDatabase *db, const char *name, const char *value, uint32_t priority, bool readonly);\n\n/* Get configuration value by name (name is read-only, return value is read-only) */\n/* TODO: Add proper const qualifiers */\nconst char* config_get(const ConfigDatabase *db, const char *name);\n\n/* Print a single config entry (entry should be const - we're just reading it) */\n/* TODO: Add proper const qualifiers */\nvoid config_print(const ConfigEntry *entry);\n\n/* Print all configs (db should be const - we're just reading it) */\n/* TODO: Add proper const qualifiers */\nvoid config_print_all(const ConfigDatabase *db);\n\n/* Validate config name (name should be const - we're just checking it) */\n/* TODO: Add proper const qualifiers */\nbool config_validate_name(const char *name);\n\n/* Helper: Check if a string is valid (str should be const) */\n/* TODO: Add proper const qualifiers */\nbool is_valid_string(const char *str);\n\n/* ========================================================================== */\n/* CONST PROPAGATION EXAMPLE */\n/* ========================================================================== */\n/* When a function calls another function, const must propagate:\n *\n * bool config_validate_name(const char *name) {\n *     return is_valid_string(name);  // OK: const char* → const char*\n * }\n *\n * If is_valid_string() didn't take const char*, you'd get a compiler warning!\n * This is GOOD - it prevents accidentally passing const data to functions that might modify it.\n */\n\n#endif /* CONFIG_SYSTEM_H */\n",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "config_system.c",
+      "content": "#include \"config_system.h\"\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/string.h>\n\n/* Module parameters for dynamic testing */\nstatic char *test_config_name = \"TestConfig\";\nstatic char *test_config_value = \"TestValue\";\nstatic int test_priority = 5;\n\nmodule_param(test_config_name, charp, 0644);\nMODULE_PARM_DESC(test_config_name, \"Configuration name for testing\");\nmodule_param(test_config_value, charp, 0644);\nMODULE_PARM_DESC(test_config_value, \"Configuration value for testing\");\nmodule_param(test_priority, int, 0644);\nMODULE_PARM_DESC(test_priority, \"Priority for test configuration\");\n\n/* ========================================================================== */\n/* TODO: IMPLEMENT CONST-CORRECT HELPER FUNCTIONS */\n/* ========================================================================== */\n\n/* TODO: Implement is_valid_string with const correctness */\n/* ALGORITHM:\n * 1. Check if str is NULL → return false\n * 2. Check if first character is '\\0' (empty string) → return false\n * 3. Loop through string (read-only, we're not modifying it!)\n * 4. Check for valid characters (alphanumeric, underscore, hyphen)\n * 5. Return true if all valid\n *\n * CONST PATTERN:\n * bool is_valid_string(const char *str) {\n *     const char *p = str;  // We can assign const char* to const char*\n *     while (*p) {          // Read-only access to characters\n *         // Check validity...\n *         p++;              // Move pointer (OK: we're changing p, not *p)\n *     }\n *     return true;\n * }\n */\nbool is_valid_string(const char *str) {\n    /* TODO: Implement string validation with const correctness */\n    return false;\n}\n\n/* TODO: Implement config_validate_name with const correctness */\n/* ALGORITHM:\n * 1. Check if name is NULL → return false\n * 2. Check name length (should be < MAX_CONFIG_NAME)\n * 3. Call is_valid_string(name) - const propagates!\n * 4. Return result\n *\n * CONST PROPAGATION:\n * const char *name → passed to → const char *str\n * This is SAFE - we're promising not to modify at every level\n */\nbool config_validate_name(const char *name) {\n    /* TODO: Implement name validation */\n    return false;\n}\n\n/* ========================================================================== */\n/* TODO: IMPLEMENT CONFIGURATION DATABASE FUNCTIONS */\n/* ========================================================================== */\n\n/* Initialize database */\nvoid config_db_init(ConfigDatabase *db) {\n    /* TODO: Initialize database */\n}\n\n/* TODO: Implement config_add with const correctness */\n/* ALGORITHM:\n * 1. Validate parameters (db not NULL, name and value valid)\n * 2. Check if database is full (count >= MAX_CONFIGS)\n * 3. Validate name using config_validate_name(name) - const parameter!\n * 4. Copy name and value to entry (strscpy for safety)\n * 5. Set priority and readonly flag\n * 6. Increment count\n * 7. Return 0 on success, -1 on error\n *\n * CONST CORRECTNESS:\n * - name and value are const char* (we're reading from them)\n * - db is ConfigDatabase* (we're modifying it - not const!)\n * - strscpy(dest, const char *src, ...) expects const src\n */\nint config_add(ConfigDatabase *db, const char *name, const char *value, \n               uint32_t priority, bool readonly) {\n    /* TODO: Implement config addition with const-correct parameters */\n    return -1;\n}\n\n/* TODO: Implement config_get with const correctness */\n/* ALGORITHM:\n * 1. Validate db and name (both const - we're not modifying them)\n * 2. Loop through entries (read-only)\n * 3. Compare names (strcmp - both parameters are const char*)\n * 4. Return const char* to value (caller shouldn't modify it!)\n * 5. Return NULL if not found\n *\n * CONST CORRECTNESS:\n * - db is const ConfigDatabase* (we promise not to modify database)\n * - name is const char* (we promise not to modify search key)\n * - Return const char* (caller promises not to modify returned value)\n *\n * WHY RETURN const char*?\n * - The value is stored in the database\n * - We don't want callers modifying it directly\n * - Forces explicit copy if modification is needed\n */\nconst char* config_get(const ConfigDatabase *db, const char *name) {\n    /* TODO: Implement config retrieval with const correctness */\n    return NULL;\n}\n\n/* TODO: Implement config_print with const correctness */\n/* ALGORITHM:\n * 1. Check if entry is NULL\n * 2. Print all entry fields using printk\n * 3. Format: \"Config: [name] = [value] (priority: X, readonly: Y)\"\n *\n * CONST CORRECTNESS:\n * - entry is const ConfigEntry* (we're just reading it to print)\n * - All field accesses are read-only\n */\nvoid config_print(const ConfigEntry *entry) {\n    /* TODO: Implement config printing */\n}\n\n/* TODO: Implement config_print_all with const correctness */\n/* ALGORITHM:\n * 1. Check if db is NULL\n * 2. Print header with count\n * 3. Loop through all entries\n * 4. Call config_print for each entry (const propagates!)\n *\n * CONST PROPAGATION:\n * const ConfigDatabase *db → const ConfigEntry *entry → config_print(const ConfigEntry*)\n * Every step maintains const correctness\n */\nvoid config_print_all(const ConfigDatabase *db) {\n    /* TODO: Implement print all configs */\n}\n\n/* ========================================================================== */\n/* MODULE INIT: Test const correctness */\n/* ========================================================================== */\nstatic int __init config_system_init(void)\n{\n    ConfigDatabase db;\n    const char *value;\n    \n    printk(KERN_INFO \"Config system module loaded\\n\");\n    printk(KERN_INFO \"Testing with config: %s = %s (priority %d)\\n\",\n           test_config_name, test_config_value, test_priority);\n    \n    /* Test 1: Initialize database */\n    printk(KERN_INFO \"Test 1: Initialize database\\n\");\n    config_db_init(&db);\n    \n    /* Test 2: Add default configs (const strings) */\n    printk(KERN_INFO \"Test 2: Adding default configurations\\n\");\n    config_add(&db, \"kernel_version\", \"6.1.0\", 10, true);\n    config_add(&db, \"debug_level\", \"INFO\", 5, false);\n    config_add(&db, \"max_connections\", \"100\", 7, false);\n    \n    /* Test 3: Add dynamic config from module parameters */\n    printk(KERN_INFO \"Test 3: Adding dynamic configuration\\n\");\n    config_add(&db, test_config_name, test_config_value, test_priority, false);\n    \n    /* Test 4: Print all configs (const database) */\n    printk(KERN_INFO \"Test 4: Printing all configurations\\n\");\n    config_print_all(&db);\n    \n    /* Test 5: Retrieve specific config (const return) */\n    printk(KERN_INFO \"Test 5: Retrieving specific configuration\\n\");\n    value = config_get(&db, \"kernel_version\");\n    if (value) {\n        printk(KERN_INFO \"Retrieved: kernel_version = %s\\n\", value);\n    }\n    \n    /* Test 6: Retrieve dynamic config */\n    printk(KERN_INFO \"Test 6: Retrieving dynamic configuration\\n\");\n    value = config_get(&db, test_config_name);\n    if (value) {\n        printk(KERN_INFO \"Retrieved: %s = %s\\n\", test_config_name, value);\n    }\n    \n    /* Test 7: Test validation */\n    printk(KERN_INFO \"Test 7: Testing validation\\n\");\n    if (config_validate_name(\"valid_name_123\")) {\n        printk(KERN_INFO \"Validation: 'valid_name_123' is valid\\n\");\n    }\n    if (!config_validate_name(\"invalid@name!\")) {\n        printk(KERN_INFO \"Validation: 'invalid@name!' is correctly rejected\\n\");\n    }\n    \n    printk(KERN_INFO \"All tests completed successfully\\n\");\n    return 0;\n}\n\nstatic void __exit config_system_exit(void)\n{\n    printk(KERN_INFO \"Config system module unloaded\\n\");\n}\n\nmodule_init(config_system_init);\nmodule_exit(config_system_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Const correctness demonstration in configuration system\");\nMODULE_VERSION(\"1.0\");\n",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "Makefile",
+      "content": "# Config system module Makefile\nobj-m += config_system.o\n\n# Kernel build directory\nKDIR := /lib/modules/$(shell uname -r)/build\n\n# Default target\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\ninstall: all\n\tmake -C $(KDIR) M=$(PWD) modules_install\n\nhelp:\n\tmake -C $(KDIR) M=$(PWD) help\n\n.PHONY: all clean install help\n",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "const keyword semantics",
+    "pointer-to-const (const Type *ptr)",
+    "const-pointer (Type * const ptr)",
+    "const-pointer-to-const (const Type * const ptr)",
+    "const propagation through function calls",
+    "const-correct API design",
+    "compile-time safety guarantees",
+    "professional C coding practices"
+  ],
+  "skills": [
+    "Using const for function parameters",
+    "Distinguishing const pointer types",
+    "Writing const-correct APIs",
+    "Understanding const propagation",
+    "Preventing accidental modifications",
+    "Reading const qualifiers correctly",
+    "Returning const pointers",
+    "Applying const in production code"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "config_system_init",
+        "config_system_exit",
+        "config_db_init",
+        "config_add",
+        "config_get",
+        "config_print",
+        "config_print_all",
+        "config_validate_name",
+        "is_valid_string"
+      ],
+      "variables_declarations": [
+        {
+          "name": "ConfigEntry",
+          "type": "typedef struct",
+          "value": "{char name[MAX_CONFIG_NAME]; char value[MAX_CONFIG_VALUE]; uint32_t priority; bool is_readonly;}",
+          "storageClass": "none"
+        },
+        {
+          "name": "ConfigDatabase",
+          "type": "typedef struct",
+          "value": "{ConfigEntry entries[MAX_CONFIGS]; int count;}",
+          "storageClass": "none"
+        }
+      ],
+      "variables": [
+        {
+          "name": "test_config_name",
+          "type": "char*",
+          "value": "TestConfig",
+          "storageClass": "static"
+        },
+        {
+          "name": "test_config_value",
+          "type": "char*",
+          "value": "TestValue",
+          "storageClass": "static"
+        },
+        {
+          "name": "test_priority",
+          "type": "int",
+          "value": 5,
+          "storageClass": "static"
+        }
+      ],
+      "function_definitions": [
+        {
+          "name": "is_valid_string",
+          "returnType": "bool",
+          "parameters": ["const char *str"],
+          "description": "Validate string contains only allowed characters"
+        },
+        {
+          "name": "config_validate_name",
+          "returnType": "bool",
+          "parameters": ["const char *name"],
+          "description": "Validate configuration name"
+        },
+        {
+          "name": "config_db_init",
+          "returnType": "void",
+          "parameters": ["ConfigDatabase *db"],
+          "description": "Initialize configuration database"
+        },
+        {
+          "name": "config_add",
+          "returnType": "int",
+          "parameters": ["ConfigDatabase *db", "const char *name", "const char *value", "uint32_t priority", "bool readonly"],
+          "description": "Add configuration entry with const-correct parameters"
+        },
+        {
+          "name": "config_get",
+          "returnType": "const char*",
+          "parameters": ["const ConfigDatabase *db", "const char *name"],
+          "description": "Get configuration value with const correctness"
+        },
+        {
+          "name": "config_print",
+          "returnType": "void",
+          "parameters": ["const ConfigEntry *entry"],
+          "description": "Print configuration entry"
+        },
+        {
+          "name": "config_print_all",
+          "returnType": "void",
+          "parameters": ["const ConfigDatabase *db"],
+          "description": "Print all configurations"
+        }
+      ],
+      "outputMessages": [
+        "Config system module loaded",
+        "Config database initialized",
+        "Added config: kernel_version = 6.1.0",
+        "Added config: debug_level = INFO",
+        "Added config: max_connections = 100",
+        "Retrieved: kernel_version = 6.1.0",
+        "Validation: 'valid_name_123' is valid",
+        "Validation: 'invalid@name!' is correctly rejected",
+        "All tests completed successfully",
+        "Config system module unloaded"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/string.h",
+        "linux/types.h"
+      ],
+      "mustContain": [
+        "const char *name",
+        "const char *value",
+        "const ConfigDatabase *db",
+        "const ConfigEntry *entry",
+        "const char* config_get",
+        "bool config_validate_name(const char *name)",
+        "bool is_valid_string(const char *str)",
+        "strscpy(",
+        "strcmp("
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_declarations",
+        "name": "Function Declarations in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "void config_db_init(ConfigDatabase *db)",
+          "int config_add(ConfigDatabase *db, const char *name, const char *value, uint32_t priority, bool readonly)",
+          "const char* config_get(const ConfigDatabase *db, const char *name)",
+          "void config_print(const ConfigEntry *entry)",
+          "void config_print_all(const ConfigDatabase *db)",
+          "bool config_validate_name(const char *name)",
+          "bool is_valid_string(const char *str)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "const_function_signatures",
+        "name": "Const Correctness in Function Signatures",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "const char *name",
+          "const char *value",
+          "const ConfigDatabase *db",
+          "const ConfigEntry *entry",
+          "const char* config_get",
+          "bool config_validate_name(const char *name)",
+          "bool is_valid_string(const char *str)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Implementations in Source",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "bool is_valid_string(const char *str)",
+          "bool config_validate_name(const char *name)",
+          "void config_db_init(ConfigDatabase *db)",
+          "int config_add(ConfigDatabase *db, const char *name, const char *value, uint32_t priority, bool readonly)",
+          "const char* config_get(const ConfigDatabase *db, const char *name)",
+          "void config_print(const ConfigEntry *entry)",
+          "void config_print_all(const ConfigDatabase *db)",
+          "static int __init config_system_init(void)",
+          "static void __exit config_system_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          { "pattern": "Config system module loaded", "exact": true, "linkedFunction": "static int __init config_system_init(void)" },
+          { "pattern": "Config database initialized", "exact": true, "linkedFunction": "void config_db_init(ConfigDatabase *db)" },
+          { "pattern": "Added config: kernel_version = 6.1.0", "exact": true, "linkedFunction": "int config_add(ConfigDatabase *db, const char *name, const char *value, uint32_t priority, bool readonly)" },
+          { "pattern": "Retrieved: kernel_version = 6.1.0", "exact": true, "linkedFunction": "const char* config_get(const ConfigDatabase *db, const char *name)" },
+          { "pattern": "Validation: 'valid_name_123' is valid", "exact": true, "linkedFunction": "bool config_validate_name(const char *name)" },
+          { "pattern": "All tests completed successfully", "exact": true, "linkedFunction": "static int __init config_system_init(void)" },
+          { "pattern": "Config system module unloaded", "exact": true, "linkedFunction": "static void __exit config_system_exit(void)" }
+        ]
+      },
+      {
+        "id": "comprehensive_const_validation",
+        "name": "Comprehensive Const Correctness Validation",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "setupCommands": [
+            "echo 'Starting comprehensive const correctness validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: TCC Header Validation'",
+            "echo 'Creating minimal kernel header stubs for TCC...'",
+            "mkdir -p /tmp/linux",
+            "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
+            "echo '#define KERN_ERR' >> /tmp/linux/kernel.h",
+            "echo 'int printk(const char *fmt, ...);' >> /tmp/linux/kernel.h",
+            "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
+            "echo '#define MODULE_AUTHOR(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_DESCRIPTION(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_VERSION(x)' >> /tmp/linux/module.h",
+            "echo '#define module_init(x)' >> /tmp/linux/module.h",
+            "echo '#define module_exit(x)' >> /tmp/linux/module.h",
+            "echo '#define module_param(name, type, perm)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_PARM_DESC(var, desc)' >> /tmp/linux/module.h",
+            "echo '#define __init' > /tmp/linux/init.h",
+            "echo '#define __exit' >> /tmp/linux/init.h",
+            "echo 'typedef int bool;' > /tmp/linux/types.h",
+            "echo 'typedef unsigned int uint32_t;' >> /tmp/linux/types.h",
+            "echo '#define true 1' >> /tmp/linux/types.h",
+            "echo '#define false 0' >> /tmp/linux/types.h",
+            "echo '#define MAX_CONFIG_NAME 32' >> /tmp/linux/types.h",
+            "echo '#define MAX_CONFIG_VALUE 64' >> /tmp/linux/types.h",
+            "echo '#define MAX_CONFIGS 10' >> /tmp/linux/types.h",
+            "echo 'char *strscpy(char *dest, const char *src, unsigned long count);' > /tmp/linux/string.h",
+            "echo 'int strcmp(const char *s1, const char *s2);' >> /tmp/linux/string.h",
+            "echo 'Creating test file that includes student header...'",
+            "echo '#include \"/lib/modules/config_system.h\"' > /tmp/test.c",
+            "echo 'int main() { ConfigDatabase db; config_db_init(&db); config_add(&db, \"test\", \"val\", 1, 0); config_get(&db, \"test\"); return 0; }' >> /tmp/test.c",
+            "echo 'Running TCC validation with comprehensive error detection...'",
+            "/usr/bin/tcc -I/tmp -Wimplicit-function-declaration -Werror -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
+            "TCC_EXIT_CODE=$?",
+            "if [ $TCC_EXIT_CODE -ne 0 ]; then echo 'FAIL: Function declaration missing or commented in header'; echo 'TCC Error Details:'; cat /tmp/tcc_error.log; else echo 'PASS: All function declarations found in header file'; fi",
+            "",
+            "echo 'Phase 2: Compile-Time Const Checking'",
+            "echo 'Verifying const qualifiers are present in function signatures...'",
+            "grep -E 'const char \\*name' /lib/modules/config_system.h && echo 'PASS: const char *name found' || echo 'FAIL: Missing const in name parameter'",
+            "grep -E 'const char \\*value' /lib/modules/config_system.h && echo 'PASS: const char *value found' || echo 'FAIL: Missing const in value parameter'",
+            "grep -E 'const ConfigDatabase \\*db' /lib/modules/config_system.h && echo 'PASS: const ConfigDatabase *db found' || echo 'FAIL: Missing const in db parameter'",
+            "grep -E 'const ConfigEntry \\*entry' /lib/modules/config_system.h && echo 'PASS: const ConfigEntry *entry found' || echo 'FAIL: Missing const in entry parameter'",
+            "grep -E 'const char\\* config_get' /lib/modules/config_system.h && echo 'PASS: const char* return type found' || echo 'FAIL: Missing const return type'",
+            "echo 'Phase 2: Loading and Basic Testing'",
+            "rmmod config_system 2>/dev/null || true",
+            "insmod /lib/modules/config_system.ko",
+            "sleep 1",
+            "dmesg | tail -30",
+            "echo 'Phase 3: Runtime Validation'",
+            "dmesg | grep 'Config database initialized' && echo 'PASS: Database initialized' || echo 'FAIL: Init failed'",
+            "dmesg | grep 'Added config: kernel_version = 6.1.0' && echo 'PASS: Config add working' || echo 'FAIL: Add failed'",
+            "dmesg | grep 'Retrieved: kernel_version = 6.1.0' && echo 'PASS: Config get working' || echo 'FAIL: Get failed'",
+            "dmesg | grep \"Validation: 'valid_name_123' is valid\" && echo 'PASS: Validation working' || echo 'FAIL: Validation failed'",
+            "dmesg | grep 'All tests completed successfully' && echo 'PASS: All tests passed' || echo 'FAIL: Tests incomplete'",
+            "echo 'Phase 4: Dynamic Parameter Testing'",
+            "rmmod config_system",
+            "insmod /lib/modules/config_system.ko test_config_name=DynamicTest test_config_value=DynamicValue test_priority=8",
+            "sleep 1",
+            "dmesg | tail -20 | grep 'DynamicTest' && echo 'PASS: Dynamic parameters working' || echo 'FAIL: Dynamic params failed'",
+            "dmesg | tail -20 | grep 'Retrieved: DynamicTest = DynamicValue' && echo 'PASS: Dynamic config retrieved' || echo 'FAIL: Dynamic retrieval failed'",
+            "rmmod config_system",
+            "echo 'PASS: All const correctness validation completed successfully'"
+          ],
+          "expected": {
+            "dmesg": [
+              "Config system module loaded",
+              "Config database initialized",
+              "Added config: kernel_version = 6.1.0",
+              "Added config: debug_level = INFO",
+              "Added config: max_connections = 100",
+              "Retrieved: kernel_version = 6.1.0",
+              "Validation: 'valid_name_123' is valid",
+              "Validation: 'invalid@name!' is correctly rejected",
+              "All tests completed successfully",
+              "Config system module unloaded"
+            ],
+            "stdout": [
+              "PASS: const char \\*name found",
+              "PASS: const char \\*value found",
+              "PASS: const ConfigDatabase \\*db found",
+              "PASS: const ConfigEntry \\*entry found",
+              "PASS: const char\\* return type found",
+              "PASS: Database initialized",
+              "PASS: Config add working",
+              "PASS: Config get working",
+              "PASS: Validation working",
+              "PASS: All tests passed",
+              "PASS: Dynamic parameters working",
+              "PASS: Dynamic config retrieved",
+              "PASS: All const correctness validation completed successfully"
+            ]
+          },
+          "timeout": 15
+        }
+      }
+    ]
+  }
+}

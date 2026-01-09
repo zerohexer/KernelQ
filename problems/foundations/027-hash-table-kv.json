@@ -1,0 +1,320 @@
+{
+  "id": 27,
+  "title": "Hash Tables - Key-Value Store",
+  "phase": "foundations",
+  "difficulty": 4,
+  "xp": 45,
+  "description": "Implement a simple hash table key-value store in kernel space. Learn how hash tables provide O(1) average-case lookups using hash functions and collision handling with chaining. This is the same pattern used for caches, symbol tables, and fast lookups throughout the kernel.",
+  "mainFile": "kv_store.c",
+  "files": [
+    {
+      "name": "kv_store.h",
+      "content": "#ifndef KV_STORE_H\n#define KV_STORE_H\n\n#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>\n#include <linux/slab.h>\n#include <linux/string.h>\n\n#define HASH_TABLE_SIZE 16\n#define MAX_KEY_LEN 32\n#define MAX_VALUE_LEN 64\n\n/* Key-value entry with chaining for collisions */\nstruct kv_entry {\n    char *key;\n    char *value;\n    struct kv_entry *next;\n};\n\n/* Hash table structure */\nstruct kv_table {\n    int size;\n    struct kv_entry **buckets;\n};\n\n/* Global table for testing */\nextern struct kv_table *global_table;\n\n/* TODO: Declare your functions here */\n/* unsigned int kv_hash(const char *key); */\n/* struct kv_table *kv_table_create(int size); */\n/* int kv_set(struct kv_table *ht, const char *key, const char *value); */\n/* char *kv_get(struct kv_table *ht, const char *key); */\n/* int kv_delete(struct kv_table *ht, const char *key); */\n/* void kv_table_destroy(struct kv_table *ht); */\n\n#endif /* KV_STORE_H */",
+      "readOnly": false,
+      "language": "h"
+    },
+    {
+      "name": "kv_store.c",
+      "content": "#include \"kv_store.h\"\n\n/* Global table */\nstruct kv_table *global_table;\n\nchar *test_key = \"username\";\nchar *test_value = \"zerohexer\";\n\n/* IMPORTANT: DO NOT REMOVE OR MODIFY THE LINES BELOW! */\nmodule_param(test_key, charp, 0644);\nMODULE_PARM_DESC(test_key, \"Key for testing\");\nmodule_param(test_value, charp, 0644);\nMODULE_PARM_DESC(test_value, \"Value for testing\");\n/* END OF REQUIRED MODULE PARAMETER SECTION */\n\n/*\n * Hash function - convert string to bucket index\n *\n * Simple algorithm: h = h * 31 + char\n * Same key always returns same number (deterministic)\n *\n * Example trace for \"foo\":\n *   h = 0\n *   h = 0 * 31 + 'f' = 102\n *   h = 102 * 31 + 'o' = 3273\n *   h = 3273 * 31 + 'o' = 101472\n *   return 101472\n */\nunsigned int kv_hash(const char *key)\n{\n    /* TODO: Implement hash function */\n    /* TODO: Loop through each character */\n    /* TODO: h = h * 31 + *key */\n    /* TODO: Return h */\n    return 0;\n}\n\n/*\n * Create hash table with n buckets\n *\n * Memory layout after create(4):\n *\n * ht:\n * +------------------+\n * | size: 4          |\n * | buckets: --------+--> [NULL][NULL][NULL][NULL]\n * +------------------+       [0]   [1]   [2]   [3]\n */\nstruct kv_table *kv_table_create(int size)\n{\n    /* TODO: Allocate kv_table struct with kmalloc */\n    /* TODO: If NULL, return NULL */\n    /* TODO: Set ht->size = size */\n    /* TODO: Allocate buckets array with kcalloc (all NULL) */\n    /* TODO: If NULL, free ht and return NULL */\n    /* TODO: Print \"KV table created with %d buckets\" */\n    /* TODO: Return ht */\n    return NULL;\n}\n\n/*\n * Set key-value pair (insert or update)\n *\n * Two cases:\n * 1. Key exists -> update value (kfree old, kstrdup new)\n * 2. Key doesn't exist -> create entry, head insert\n *\n * Head insertion pattern:\n *   entry->next = bucket[index]\n *   bucket[index] = entry\n */\nint kv_set(struct kv_table *ht, const char *key, const char *value)\n{\n    /* TODO: Check for NULL parameters, return -EINVAL */\n    /* TODO: Calculate bucket index: hash(key) % size */\n    \n    /* TODO: Search for existing key in chain */\n    /* TODO: If found, update value (kfree old, kstrdup new) */\n    /* TODO: Print \"Updated key: %s\" and return 0 */\n    \n    /* TODO: Key not found - create new entry */\n    /* TODO: Allocate entry with kmalloc */\n    /* TODO: entry->key = kstrdup(key) */\n    /* TODO: entry->value = kstrdup(value) */\n    /* TODO: Head insert: entry->next = bucket, bucket = entry */\n    /* TODO: Print \"Inserted key: %s at bucket %d\" */\n    /* TODO: Return 0 on success, -ENOMEM on allocation failure */\n    return -ENOSYS;\n}\n\n/*\n * Get value by key\n *\n * 1. Hash key to find bucket\n * 2. Walk chain, strcmp each key\n * 3. Return value if found, NULL if not\n */\nchar *kv_get(struct kv_table *ht, const char *key)\n{\n    /* TODO: Check for NULL parameters */\n    /* TODO: Calculate bucket index */\n    /* TODO: Walk the chain at that bucket */\n    /* TODO: If strcmp(entry->key, key) == 0, return entry->value */\n    /* TODO: Return NULL if not found */\n    return NULL;\n}\n\n/*\n * Delete entry by key\n *\n * Must handle two cases:\n * - Entry is head: bucket[index] = entry->next\n * - Entry in middle: prev->next = entry->next\n */\nint kv_delete(struct kv_table *ht, const char *key)\n{\n    /* TODO: Check for NULL parameters */\n    /* TODO: Calculate bucket index */\n    /* TODO: Walk chain, keep track of prev pointer */\n    /* TODO: When found:\n     *       - Unlink: if prev==NULL then bucket=next, else prev->next=next\n     *       - Free: kfree(key), kfree(value), kfree(entry)\n     *       - Print \"Deleted key: %s\"\n     *       - Return 0 */\n    /* TODO: Return -ENOENT if not found */\n    return -ENOSYS;\n}\n\n/*\n * Destroy table and free all memory\n *\n * Pattern: save next BEFORE freeing current\n */\nvoid kv_table_destroy(struct kv_table *ht)\n{\n    /* TODO: Check for NULL */\n    /* TODO: For each bucket:\n     *       - Walk the chain\n     *       - Save next = current->next BEFORE freeing\n     *       - kfree(key), kfree(value), kfree(entry)\n     *       - current = next */\n    /* TODO: kfree(buckets) */\n    /* TODO: kfree(ht) */\n    /* TODO: Print \"KV table destroyed\" */\n}\n\nstatic int __init kv_store_init(void)\n{\n    char *result;\n    \n    printk(KERN_INFO \"KV Store module loaded\\n\");\n    printk(KERN_INFO \"Testing with key=%s, value=%s\\n\", test_key, test_value);\n    \n    /* Create table */\n    global_table = kv_table_create(HASH_TABLE_SIZE);\n    if (!global_table) {\n        printk(KERN_ERR \"Failed to create table\\n\");\n        return -ENOMEM;\n    }\n    \n    /* Test set */\n    kv_set(global_table, test_key, test_value);\n    kv_set(global_table, \"project\", \"kernelq\");\n    kv_set(global_table, \"version\", \"1.0\");\n    \n    /* Test get */\n    result = kv_get(global_table, test_key);\n    if (result)\n        printk(KERN_INFO \"Get %s = %s\\n\", test_key, result);\n    else\n        printk(KERN_INFO \"Get %s = (not found)\\n\", test_key);\n    \n    /* Test update */\n    kv_set(global_table, test_key, \"newvalue\");\n    result = kv_get(global_table, test_key);\n    printk(KERN_INFO \"After update: %s = %s\\n\", test_key, result ? result : \"(null)\");\n    \n    /* Test delete */\n    kv_delete(global_table, \"project\");\n    result = kv_get(global_table, \"project\");\n    printk(KERN_INFO \"After delete: project = %s\\n\", result ? result : \"(not found)\");\n    \n    printk(KERN_INFO \"KV Store tests completed\\n\");\n    \n    return 0;\n}\n\nstatic void __exit kv_store_exit(void)\n{\n    printk(KERN_INFO \"KV Store module unloading\\n\");\n    \n    if (global_table)\n        kv_table_destroy(global_table);\n    \n    printk(KERN_INFO \"KV Store module unloaded\\n\");\n}\n\nmodule_init(kv_store_init);\nmodule_exit(kv_store_exit);\n\nMODULE_LICENSE(\"GPL\");\nMODULE_AUTHOR(\"Student\");\nMODULE_DESCRIPTION(\"Simple key-value store using hash table\");\nMODULE_VERSION(\"1.0\");",
+      "readOnly": false,
+      "language": "c"
+    },
+    {
+      "name": "VISUAL_GUIDE.md",
+      "content": "# Hash Table Key-Value Store - Visual Guide\n\n## What is a Hash Table?\n\nA hash table provides O(1) average-case lookup by using a hash function\nto convert keys directly into array indices.\n\n---\n\n## Hash Function\n\nConverts a string key into a number:\n\n```\nkey = \"foo\"\n\nh = 0\nh = 0 * 31 + 'f' = 102\nh = 102 * 31 + 'o' = 3273  \nh = 3273 * 31 + 'o' = 101472\n\nbucket = 101472 % 16 = 0\n```\n\nSame key always gives same bucket (deterministic).\n\n---\n\n## Memory Layout\n\n```\nkv_table:\n+------------------+\n| size: 16         |\n| buckets: --------+---> Array of 16 pointers\n+------------------+\n\nbuckets[0] --> [\"foo\":\"bar\"] --> [\"baz\":\"qux\"] --> NULL\nbuckets[1] --> NULL\nbuckets[2] --> [\"hello\":\"world\"] --> NULL\n...          ...\nbuckets[15] --> NULL\n```\n\nEach bucket is a linked list (chain) for handling collisions.\n\n---\n\n## Collision Handling\n\nWhen two keys hash to the same bucket:\n\n```\nhash(\"foo\") % 16 = 0\nhash(\"baz\") % 16 = 0   <-- collision!\n\nbuckets[0] --> [\"baz\":\"qux\"] --> [\"foo\":\"bar\"] --> NULL\n               (newer)           (older)\n```\n\nWe use \"head insertion\" - new entries go at the front.\n\n---\n\n## Operation: Insert (Head Insertion)\n\n```\nBEFORE inserting \"baz\":\"qux\":\nbuckets[0] --> [\"foo\":\"bar\"] --> NULL\n\nSTEPS:\n1. entry->next = buckets[0]     // Point to old head\n2. buckets[0] = entry           // New entry becomes head\n\nAFTER:\nbuckets[0] --> [\"baz\":\"qux\"] --> [\"foo\":\"bar\"] --> NULL\n               ^new               ^old\n```\n\n---\n\n## Operation: Lookup\n\n```\nLooking for \"foo\":\n\n1. bucket = hash(\"foo\") % 16 = 0\n2. Walk buckets[0]:\n   - [\"baz\":\"qux\"] -- strcmp(\"baz\", \"foo\") != 0, continue\n   - [\"foo\":\"bar\"] -- strcmp(\"foo\", \"foo\") == 0, FOUND!\n3. Return \"bar\"\n```\n\n---\n\n## Operation: Delete\n\nMust handle two cases:\n\n**Case 1: Deleting HEAD**\n```\nBEFORE: buckets[0] --> [DELETE] --> [keep] --> NULL\nAFTER:  buckets[0] --> [keep] --> NULL\n\nCode: buckets[index] = entry->next;\n```\n\n**Case 2: Deleting MIDDLE**\n```\nBEFORE: buckets[0] --> [keep] --> [DELETE] --> [keep2] --> NULL\n                         |            |\n                        prev       current\n\nAFTER:  buckets[0] --> [keep] --> [keep2] --> NULL\n\nCode: prev->next = current->next;\n```\n\n---\n\n## Operation: Update (Key Exists)\n\nWhen setting a key that already exists:\n\n```\nkv_set(ht, \"foo\", \"NEW\");\n\n1. Find existing entry for \"foo\"\n2. kfree(entry->value);          // Free old value\n3. entry->value = kstrdup(\"NEW\"); // Set new value\n\nNO new entry created - just update the value!\n```\n\n---\n\n## Destroy Pattern\n\nCRITICAL: Save next BEFORE freeing current!\n\n```c\nwhile (current != NULL) {\n    next = current->next;   // Save BEFORE free!\n    kfree(current->key);\n    kfree(current->value);\n    kfree(current);\n    current = next;         // Use saved pointer\n}\n```\n\nWrong:\n```c\nwhile (current != NULL) {\n    kfree(current);         // CRASH! Can't access current->next\n    current = current->next; // Use-after-free bug!\n}\n```\n\n---\n\n## Key Functions\n\n| Function | Purpose |\n|----------|--------|\n| `kv_hash(key)` | Convert string to number |\n| `kv_table_create(size)` | Allocate table + buckets |\n| `kv_set(ht, key, value)` | Insert or update |\n| `kv_get(ht, key)` | Lookup, return value or NULL |\n| `kv_delete(ht, key)` | Remove entry |\n| `kv_table_destroy(ht)` | Free everything |\n\n---\n\n## Kernel Functions Used\n\n| Function | Purpose |\n|----------|--------|\n| `kmalloc(size, GFP_KERNEL)` | Allocate memory |\n| `kcalloc(n, size, GFP_KERNEL)` | Allocate zeroed array |\n| `kfree(ptr)` | Free memory |\n| `kstrdup(s, GFP_KERNEL)` | Duplicate string |\n| `strcmp(s1, s2)` | Compare strings (0 = equal) |\n",
+      "readOnly": true,
+      "language": "txt"
+    },
+    {
+      "name": "Makefile",
+      "content": "obj-m += kv_store.o\n\nKDIR := /lib/modules/$(shell uname -r)/build\n\nall:\n\tmake -C $(KDIR) M=$(PWD) modules\n\nclean:\n\tmake -C $(KDIR) M=$(PWD) clean\n\n.PHONY: all clean",
+      "readOnly": true,
+      "language": "makefile"
+    }
+  ],
+  "concepts": [
+    "hash table fundamentals",
+    "hash functions",
+    "collision handling with chaining",
+    "head insertion pattern",
+    "key-value storage",
+    "O(1) lookup operations",
+    "memory management patterns"
+  ],
+  "skills": [
+    "Implementing hash functions",
+    "Managing linked list chains",
+    "Handling hash collisions",
+    "Proper memory allocation and freeing",
+    "String duplication with kstrdup",
+    "Safe deletion patterns"
+  ],
+  "validation": {
+    "exactRequirements": {
+      "functionNames": [
+        "kv_store_init",
+        "kv_store_exit",
+        "kv_hash",
+        "kv_table_create",
+        "kv_set",
+        "kv_get",
+        "kv_delete",
+        "kv_table_destroy"
+      ],
+      "function_declarations": [
+        {
+          "name": "kv_hash",
+          "returnType": "unsigned int",
+          "parameters": ["const char *key"]
+        },
+        {
+          "name": "kv_table_create",
+          "returnType": "struct kv_table*",
+          "parameters": ["int size"]
+        },
+        {
+          "name": "kv_set",
+          "returnType": "int",
+          "parameters": ["struct kv_table *ht", "const char *key", "const char *value"]
+        },
+        {
+          "name": "kv_get",
+          "returnType": "char*",
+          "parameters": ["struct kv_table *ht", "const char *key"]
+        },
+        {
+          "name": "kv_delete",
+          "returnType": "int",
+          "parameters": ["struct kv_table *ht", "const char *key"]
+        },
+        {
+          "name": "kv_table_destroy",
+          "returnType": "void",
+          "parameters": ["struct kv_table *ht"]
+        }
+      ],
+      "variables_declarations": [
+        {
+          "name": "kv_entry",
+          "type": "struct",
+          "value": "{char *key; char *value; struct kv_entry *next;}",
+          "storageClass": "none"
+        },
+        {
+          "name": "kv_table",
+          "type": "struct",
+          "value": "{int size; struct kv_entry **buckets;}",
+          "storageClass": "none"
+        },
+        {
+          "name": "global_table",
+          "type": "struct kv_table*",
+          "storageClass": "extern"
+        }
+      ],
+      "variables": [
+        {
+          "name": "global_table",
+          "type": "struct kv_table*",
+          "storageClass": "none"
+        }
+      ],
+      "outputMessages": [
+        "KV Store module loaded",
+        "KV table created",
+        "Inserted key:",
+        "Updated key:",
+        "Get",
+        "Deleted key:",
+        "KV table destroyed",
+        "KV Store module unloaded"
+      ],
+      "requiredIncludes": [
+        "linux/module.h",
+        "linux/kernel.h",
+        "linux/init.h",
+        "linux/slab.h",
+        "linux/string.h"
+      ],
+      "mustContain": [
+        "h * 31",
+        "% ht->size",
+        "kmalloc(",
+        "kcalloc(",
+        "kfree(",
+        "kstrdup(",
+        "strcmp(",
+        "->next",
+        "module_param("
+      ],
+      "moduleInfo": {
+        "license": "GPL"
+      }
+    },
+    "testCases": [
+      {
+        "id": "function_declarations",
+        "name": "Function Declarations in Header",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "unsigned int kv_hash(const char *key)",
+          "int kv_set(struct kv_table *ht, const char *key, const char *value)",
+          "int kv_delete(struct kv_table *ht, const char *key)",
+          "void kv_table_destroy(struct kv_table *ht)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "function_signatures_source",
+        "name": "Function Signatures in Source File",
+        "type": "code_analysis",
+        "critical": true,
+        "expectedSymbols": [
+          "unsigned int kv_hash(const char *key)",
+          "int kv_set(struct kv_table *ht, const char *key, const char *value)",
+          "int kv_delete(struct kv_table *ht, const char *key)",
+          "void kv_table_destroy(struct kv_table *ht)",
+          "static int __init kv_store_init(void)",
+          "static void __exit kv_store_exit(void)"
+        ],
+        "prohibitedSymbols": []
+      },
+      {
+        "id": "exact_output",
+        "name": "Exact Output Messages",
+        "type": "output_match",
+        "critical": true,
+        "expected": [
+          {
+            "pattern": "KV Store module loaded",
+            "exact": true,
+            "linkedFunction": "static int __init kv_store_init(void)"
+          },
+          {
+            "pattern": "KV table created with .* buckets",
+            "exact": false,
+            "linkedFunction": "struct kv_table *kv_table_create(int size)"
+          },
+          {
+            "pattern": "Inserted key:",
+            "exact": false,
+            "linkedFunction": "int kv_set(struct kv_table *ht, const char *key, const char *value)"
+          },
+          {
+            "pattern": "KV Store tests completed",
+            "exact": true,
+            "linkedFunction": "static int __init kv_store_init(void)"
+          },
+          {
+            "pattern": "KV Store module unloading",
+            "exact": true,
+            "linkedFunction": "static void __exit kv_store_exit(void)"
+          },
+          {
+            "pattern": "KV table destroyed",
+            "exact": true,
+            "linkedFunction": "void kv_table_destroy(struct kv_table *ht)"
+          },
+          {
+            "pattern": "KV Store module unloaded",
+            "exact": true,
+            "linkedFunction": "static void __exit kv_store_exit(void)"
+          }
+        ]
+      },
+      {
+        "id": "kv_store_validation",
+        "name": "KV Store Implementation with Anti-Hardcoding",
+        "type": "kernel_project_test",
+        "critical": true,
+        "testScenario": {
+          "userspaceApps": [
+            {
+              "name": "kv_store_tester",
+              "source": "#include <stdio.h>\\n#include <stdlib.h>\\n#include <time.h>\\n#include <string.h>\\n\\nint main() {\\n    printf(\\\"=== KV Store Anti-Hardcoding Test ===\\\\n\\\");\\n    srand(time(NULL));\\n    int r = rand() % 1000;\\n    char key[32], value[32];\\n    snprintf(key, 32, \\\"testkey%d\\\", r);\\n    snprintf(value, 32, \\\"testval%d\\\", r);\\n    printf(\\\"Test with key=%s value=%s\\\\n\\\", key, value);\\n    system(\\\"rmmod kv_store 2>/dev/null\\\");\\n    char cmd[256];\\n    snprintf(cmd, 256, \\\"insmod /lib/modules/kv_store.ko test_key=%s test_value=%s\\\", key, value);\\n    printf(\\\"Command: %s\\\\n\\\", cmd);\\n    system(cmd);\\n    printf(\\\"SUCCESS: Test completed\\\\n\\\");\\n    return 0;\\n}"
+            }
+          ],
+          "setupCommands": [
+            "echo 'Starting KV Store validation'"
+          ],
+          "testCommands": [
+            "echo 'Phase 1: TCC Header Validation'",
+            "mkdir -p /tmp/linux",
+            "echo '#define KERN_INFO' > /tmp/linux/kernel.h",
+            "echo '#define KERN_ERR' >> /tmp/linux/kernel.h",
+            "echo 'int printk(const char *fmt, ...);' >> /tmp/linux/kernel.h",
+            "echo '#define MODULE_LICENSE(x)' > /tmp/linux/module.h",
+            "echo '#define MODULE_AUTHOR(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_DESCRIPTION(x)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_VERSION(x)' >> /tmp/linux/module.h",
+            "echo '#define module_init(x)' >> /tmp/linux/module.h",
+            "echo '#define module_exit(x)' >> /tmp/linux/module.h",
+            "echo '#define module_param(name, type, perm)' >> /tmp/linux/module.h",
+            "echo '#define MODULE_PARM_DESC(var, desc)' >> /tmp/linux/module.h",
+            "echo '#define __init' > /tmp/linux/init.h",
+            "echo '#define __exit' >> /tmp/linux/init.h",
+            "echo 'typedef unsigned long size_t;' > /tmp/linux/slab.h",
+            "echo 'void* kmalloc(size_t size, int flags);' >> /tmp/linux/slab.h",
+            "echo 'void* kcalloc(size_t n, size_t size, int flags);' >> /tmp/linux/slab.h",
+            "echo 'void kfree(const void *ptr);' >> /tmp/linux/slab.h",
+            "echo 'char* kstrdup(const char *s, int flags);' >> /tmp/linux/slab.h",
+            "echo '#define GFP_KERNEL 0' >> /tmp/linux/slab.h",
+            "echo 'int strcmp(const char *s1, const char *s2);' > /tmp/linux/string.h",
+            "echo '#define ENOSYS 38' > /tmp/linux/errno.h",
+            "echo '#define ENOMEM 12' >> /tmp/linux/errno.h",
+            "echo '#define ENOENT 2' >> /tmp/linux/errno.h",
+            "echo '#define EINVAL 22' >> /tmp/linux/errno.h",
+            "echo '#include \"/lib/modules/kv_store.h\"' > /tmp/test.c",
+            "echo 'int main() { struct kv_table *t; kv_hash(\"x\"); t = kv_table_create(16); kv_set(t, \"k\", \"v\"); kv_get(t, \"k\"); kv_delete(t, \"k\"); kv_table_destroy(t); return 0; }' >> /tmp/test.c",
+            "/usr/bin/tcc -I/tmp -Wimplicit-function-declaration -Werror -c /tmp/test.c -o /tmp/test.o 2>/tmp/tcc_error.log",
+            "TCC_EXIT=$?",
+            "if [ $TCC_EXIT -ne 0 ]; then echo 'FAIL: Function declaration missing in header'; cat /tmp/tcc_error.log; else echo 'PASS: All function declarations found in header'; fi",
+            "echo 'Phase 2: Anti-Hardcoding Test'",
+            "/bin/kv_store_tester > /tmp/test_output.log",
+            "cat /tmp/test_output.log",
+            "sleep 1",
+            "echo 'Phase 3: Validate Operations'",
+            "TEST_KEY=$(grep -o 'key=testkey[0-9]*' /tmp/test_output.log | head -1 | cut -d= -f2)",
+            "echo 'Extracted test key:' $TEST_KEY",
+            "dmesg | grep \"Inserted key: $TEST_KEY\" && echo 'PASS: Insert with random key' || echo 'FAIL: Insert broken'",
+            "dmesg | grep \"Get $TEST_KEY\" && echo 'PASS: Get with random key' || echo 'FAIL: Get broken'",
+            "echo 'Phase 4: Core Function Validation'",
+            "dmesg | grep 'KV Store module loaded' && echo 'PASS: Module init' || echo 'FAIL: Module init'",
+            "dmesg | grep 'KV table created' && echo 'PASS: Table create' || echo 'FAIL: Table create'",
+            "dmesg | grep 'Inserted key:' && echo 'PASS: Insert working' || echo 'FAIL: Insert broken'",
+            "dmesg | grep 'Updated key:' && echo 'PASS: Update working' || echo 'FAIL: Update broken'",
+            "dmesg | grep 'Deleted key:' && echo 'PASS: Delete working' || echo 'FAIL: Delete broken'",
+            "dmesg | grep 'KV table destroyed' && echo 'PASS: Destroy working' || echo 'FAIL: Destroy broken'",
+            "dmesg | grep 'KV Store module unloaded' && echo 'PASS: Module exit' || echo 'FAIL: Module exit'",
+            "echo 'All validations completed'"
+          ],
+          "expected": {
+            "dmesg": [
+              "KV Store module loaded",
+              "KV table created",
+              "Inserted key:",
+              "Updated key:",
+              "Deleted key:",
+              "KV table destroyed",
+              "KV Store module unloaded"
+            ],
+            "stdout": [
+              "PASS: All function declarations found in header",
+              "SUCCESS: Test completed",
+              "PASS: Insert with random key",
+              "PASS: Module init",
+              "PASS: Table create",
+              "PASS: Insert working",
+              "PASS: Update working",
+              "PASS: Delete working",
+              "PASS: Destroy working",
+              "PASS: Module exit"
+            ]
+          },
+          "timeout": 30
+        }
+      }
+    ]
+  }
+}
