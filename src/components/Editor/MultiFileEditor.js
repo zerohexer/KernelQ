@@ -1,8 +1,216 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import FileExplorer from './FileExplorer';
 import CodeMirrorKernelEditor from './CodeMirrorKernelEditor';
 import { Maximize2, Minimize2, FileText, Book, RotateCcw, Play, HelpCircle, X } from 'lucide-react';
+
+// ============ MARKDOWN TABLE PARSER (Option B) ============
+// Parses markdown tables and renders them as React components
+// No external dependencies - pure custom implementation
+
+const parseMarkdownTable = (tableText) => {
+  const lines = tableText.trim().split('\n').filter(line => line.trim());
+  if (lines.length < 2) return null;
+
+  const parseRow = (line) => {
+    return line
+      .split('|')
+      .map(cell => cell.trim())
+      .filter((cell, idx, arr) => idx > 0 && idx < arr.length - 1); // Remove empty first AND last from | borders
+  };
+
+  const headers = parseRow(lines[0]);
+
+  // Parse alignment from separator row (|---|:---:|---:|)
+  const separatorRow = lines[1];
+  const alignments = parseRow(separatorRow).map(cell => {
+    const trimmed = cell.replace(/-/g, '').trim();
+    if (trimmed.startsWith(':') && trimmed.endsWith(':')) return 'center';
+    if (trimmed.endsWith(':')) return 'right';
+    return 'left';
+  });
+
+  const rows = lines.slice(2)
+    .map(parseRow)
+    .filter(row => row.length > 0 && row.some(cell => cell.trim()));
+
+  return { headers, alignments, rows };
+};
+
+// Render inline markdown (bold, italic, code) within table cells
+const renderCellContent = (text) => {
+  if (!text) return text;
+
+  const parts = [];
+  let remaining = text;
+  let key = 0;
+
+  // Process inline code, bold, italic
+  const patterns = [
+    { regex: /`([^`]+)`/g, render: (match) => (
+      <code key={key++} style={{
+        background: 'rgba(255, 255, 255, 0.08)',
+        padding: '2px 5px',
+        borderRadius: '3px',
+        color: 'rgba(245, 245, 247, 0.9)',
+        fontFamily: '"SF Mono", Monaco, monospace',
+        fontSize: '0.9rem'
+      }}>{match}</code>
+    )},
+    { regex: /\*\*([^*]+)\*\*/g, render: (match) => <strong key={key++} style={{ color: '#f5f5f7', fontWeight: 600 }}>{match}</strong> },
+    { regex: /\*([^*]+)\*/g, render: (match) => <em key={key++} style={{ color: '#ffd60a' }}>{match}</em> }
+  ];
+
+  // Simple approach: find and replace patterns
+  let result = text;
+  const elements = [];
+
+  // Handle inline code
+  const codeRegex = /`([^`]+)`/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = codeRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      elements.push(text.slice(lastIndex, match.index));
+    }
+    elements.push(
+      <code key={key++} style={{
+        background: 'rgba(255, 255, 255, 0.08)',
+        padding: '2px 5px',
+        borderRadius: '3px',
+        color: 'rgba(245, 245, 247, 0.9)',
+        fontFamily: '"SF Mono", Monaco, monospace',
+        fontSize: '0.9rem'
+      }}>{match[1]}</code>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (elements.length > 0) {
+    if (lastIndex < text.length) {
+      elements.push(text.slice(lastIndex));
+    }
+    return elements;
+  }
+
+  return text;
+};
+
+const MarkdownTable = ({ tableText }) => {
+  const parsed = parseMarkdownTable(tableText);
+  if (!parsed) return <pre>{tableText}</pre>;
+
+  const { headers, alignments, rows } = parsed;
+
+  const tableStyles = {
+    table: {
+      width: '100%',
+      borderCollapse: 'collapse',
+      margin: '16px 0',
+      fontSize: '1rem',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif'
+    },
+    th: {
+      background: 'rgba(255, 255, 255, 0.06)',
+      color: '#f5f5f7',
+      fontWeight: 600,
+      padding: '10px 12px',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+      fontSize: '1rem'
+    },
+    td: {
+      padding: '10px 12px',
+      border: '1px solid rgba(255, 255, 255, 0.08)',
+      color: 'rgba(245, 245, 247, 0.8)',
+      fontSize: '1rem'
+    },
+    trEven: {
+      background: 'rgba(255, 255, 255, 0.02)'
+    }
+  };
+
+  return (
+    <table style={tableStyles.table}>
+      <thead>
+        <tr>
+          {headers.map((header, i) => (
+            <th key={i} style={{ ...tableStyles.th, textAlign: alignments[i] || 'left' }}>
+              {renderCellContent(header)}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row, rowIdx) => (
+          <tr key={rowIdx} style={rowIdx % 2 === 1 ? tableStyles.trEven : {}}>
+            {row.map((cell, cellIdx) => (
+              <td key={cellIdx} style={{ ...tableStyles.td, textAlign: alignments[cellIdx] || 'left' }}>
+                {renderCellContent(cell)}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+};
+
+// Split content into table and non-table segments
+const splitContentByTables = (content) => {
+  if (!content) return [{ type: 'markdown', content: '' }];
+
+  const segments = [];
+  const lines = content.split('\n');
+  let currentSegment = [];
+  let inTable = false;
+  let tableLines = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const isTableRow = line.trim().startsWith('|') && line.trim().endsWith('|');
+    const isSeparator = /^\|[\s:-]+\|[\s:|-]*$/.test(line.trim());
+
+    if (isTableRow || isSeparator) {
+      if (!inTable) {
+        // Starting a table - save previous markdown
+        if (currentSegment.length > 0) {
+          segments.push({ type: 'markdown', content: currentSegment.join('\n') });
+          currentSegment = [];
+        }
+        inTable = true;
+      }
+      tableLines.push(line);
+    } else {
+      if (inTable) {
+        // Ending a table
+        if (tableLines.length >= 2) {
+          segments.push({ type: 'table', content: tableLines.join('\n') });
+        } else {
+          // Not a valid table, treat as markdown
+          currentSegment.push(...tableLines);
+        }
+        tableLines = [];
+        inTable = false;
+      }
+      currentSegment.push(line);
+    }
+  }
+
+  // Handle remaining content
+  if (inTable && tableLines.length >= 2) {
+    segments.push({ type: 'table', content: tableLines.join('\n') });
+  } else if (inTable) {
+    currentSegment.push(...tableLines);
+  }
+
+  if (currentSegment.length > 0) {
+    segments.push({ type: 'markdown', content: currentSegment.join('\n') });
+  }
+
+  return segments.length > 0 ? segments : [{ type: 'markdown', content: '' }];
+};
+// ============ END MARKDOWN TABLE PARSER ============
 
 const MultiFileEditor = ({
   files,
@@ -659,116 +867,124 @@ const MultiFileEditor = ({
                 lineHeight: 1.6
               }}
             >
-              <ReactMarkdown
-                components={{
-                  h1: ({node, ...props}) => <h1 style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 700,
-                    margin: '0 0 12px 0',
-                    color: '#f5f5f7',
-                    paddingBottom: '8px',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                  }} {...props} />,
-                  h2: ({node, ...props}) => <h2 style={{
-                    fontSize: '1.0625rem',
-                    fontWeight: 600,
-                    margin: '20px 0 10px 0',
-                    color: '#f5f5f7'
-                  }} {...props} />,
-                  h3: ({node, ...props}) => <h3 style={{
-                    fontSize: '0.9375rem',
-                    fontWeight: 600,
-                    margin: '16px 0 8px 0',
-                    color: '#f5f5f7'
-                  }} {...props} />,
-                  h4: ({node, ...props}) => <h4 style={{
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    margin: '12px 0 6px 0',
-                    color: '#f5f5f7'
-                  }} {...props} />,
-                  p: ({node, ...props}) => <p style={{
-                    margin: '0 0 10px 0',
-                    lineHeight: 1.6,
-                    fontSize: '1rem'
-                  }} {...props} />,
-                  code: ({node, inline, ...props}) => inline ? (
-                    <code style={{
-                      background: 'rgba(50, 215, 75, 0.12)',
-                      padding: '2px 5px',
-                      borderRadius: '4px',
-                      color: '#32d74b',
-                      fontFamily: 'SF Mono, Monaco, monospace',
-                      fontSize: '0.93rem'
-                    }} {...props} />
-                  ) : (
-                    <code style={{
-                      display: 'block',
-                      background: 'rgba(255, 255, 255, 0.04)',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      overflowX: 'auto',
-                      color: 'rgba(245, 245, 247, 0.85)',
-                      fontFamily: 'SF Mono, Monaco, monospace',
-                      fontSize: '0.93rem',
-                      lineHeight: 1.5
-                    }} {...props} />
-                  ),
-                  pre: ({node, ...props}) => <pre style={{
-                    margin: '12px 0 16px 0',
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    borderRadius: '8px',
-                    overflow: 'hidden'
-                  }} {...props} />,
-                  ul: ({node, ...props}) => <ul style={{
-                    margin: '8px 0',
-                    paddingLeft: '20px',
-                    lineHeight: 1.6,
-                    listStyleType: 'disc',
-                    listStylePosition: 'outside',
-                    fontSize: '1rem'
-                  }} {...props} />,
-                  ol: ({node, ...props}) => <ol style={{
-                    margin: '8px 0',
-                    paddingLeft: '20px',
-                    lineHeight: 1.6,
-                    listStyleType: 'decimal',
-                    listStylePosition: 'outside',
-                    fontSize: '1rem'
-                  }} {...props} />,
-                  li: ({node, ...props}) => <li style={{
-                    margin: '4px 0',
-                    display: 'list-item'
-                  }} {...props} />,
-                  blockquote: ({node, ...props}) => <blockquote style={{
-                    margin: '10px 0',
-                    padding: '8px 12px',
-                    borderLeft: '3px solid #32d74b',
-                    background: 'rgba(50, 215, 75, 0.06)',
-                    fontStyle: 'italic',
-                    fontSize: '1rem',
-                    borderRadius: '0 6px 6px 0'
-                  }} {...props} />,
-                  a: ({node, ...props}) => <a style={{
-                    color: '#0a84ff',
-                    textDecoration: 'none'
-                  }} {...props} />,
-                  hr: ({node, ...props}) => <hr style={{
-                    margin: '16px 0',
-                    border: 'none',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.08)'
-                  }} {...props} />,
-                  strong: ({node, ...props}) => <strong style={{
-                    color: '#f5f5f7',
-                    fontWeight: 600
-                  }} {...props} />,
-                  em: ({node, ...props}) => <em style={{
-                    color: '#ffd60a'
-                  }} {...props} />
-                }}
-              >
-                {getCurrentFileContent()}
-              </ReactMarkdown>
+{/* Hybrid renderer: tables as React components, rest as ReactMarkdown */}
+              {splitContentByTables(getCurrentFileContent()).map((segment, idx) => (
+                segment.type === 'table' ? (
+                  <MarkdownTable key={idx} tableText={segment.content} />
+                ) : (
+                  <ReactMarkdown
+                    key={idx}
+                    components={{
+                      h1: ({node, ...props}) => <h1 style={{
+                        fontSize: '1.25rem',
+                        fontWeight: 700,
+                        margin: '0 0 12px 0',
+                        color: '#f5f5f7',
+                        paddingBottom: '8px',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                      }} {...props} />,
+                      h2: ({node, ...props}) => <h2 style={{
+                        fontSize: '1.0625rem',
+                        fontWeight: 600,
+                        margin: '20px 0 10px 0',
+                        color: '#f5f5f7'
+                      }} {...props} />,
+                      h3: ({node, ...props}) => <h3 style={{
+                        fontSize: '0.9375rem',
+                        fontWeight: 600,
+                        margin: '16px 0 8px 0',
+                        color: '#f5f5f7'
+                      }} {...props} />,
+                      h4: ({node, ...props}) => <h4 style={{
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        margin: '12px 0 6px 0',
+                        color: '#f5f5f7'
+                      }} {...props} />,
+                      p: ({node, ...props}) => <p style={{
+                        margin: '0 0 10px 0',
+                        lineHeight: 1.6,
+                        fontSize: '1rem'
+                      }} {...props} />,
+                      code: ({node, inline, ...props}) => inline ? (
+                        <code style={{
+                          background: 'rgba(50, 215, 75, 0.12)',
+                          padding: '2px 5px',
+                          borderRadius: '4px',
+                          color: '#32d74b',
+                          fontFamily: 'SF Mono, Monaco, monospace',
+                          fontSize: '0.93rem'
+                        }} {...props} />
+                      ) : (
+                        <code style={{
+                          display: 'block',
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          padding: '12px',
+                          borderRadius: '8px',
+                          overflowX: 'auto',
+                          color: 'rgba(245, 245, 247, 0.85)',
+                          fontFamily: 'SF Mono, Monaco, monospace',
+                          fontSize: '0.93rem',
+                          lineHeight: 1.5
+                        }} {...props} />
+                      ),
+                      pre: ({node, ...props}) => <pre style={{
+                        margin: '12px 0 16px 0',
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        borderRadius: '8px',
+                        overflow: 'hidden'
+                      }} {...props} />,
+                      ul: ({node, ...props}) => <ul style={{
+                        margin: '8px 0',
+                        paddingLeft: '20px',
+                        lineHeight: 1.6,
+                        listStyleType: 'disc',
+                        listStylePosition: 'outside',
+                        fontSize: '1rem'
+                      }} {...props} />,
+                      ol: ({node, ...props}) => <ol style={{
+                        margin: '8px 0',
+                        paddingLeft: '20px',
+                        lineHeight: 1.6,
+                        listStyleType: 'decimal',
+                        listStylePosition: 'outside',
+                        fontSize: '1rem'
+                      }} {...props} />,
+                      li: ({node, ...props}) => <li style={{
+                        margin: '4px 0',
+                        display: 'list-item'
+                      }} {...props} />,
+                      blockquote: ({node, ...props}) => <blockquote style={{
+                        margin: '10px 0',
+                        padding: '8px 12px',
+                        borderLeft: '3px solid #32d74b',
+                        background: 'rgba(50, 215, 75, 0.06)',
+                        fontStyle: 'italic',
+                        fontSize: '1rem',
+                        borderRadius: '0 6px 6px 0'
+                      }} {...props} />,
+                      a: ({node, ...props}) => <a style={{
+                        color: '#0a84ff',
+                        textDecoration: 'none'
+                      }} {...props} />,
+                      hr: ({node, ...props}) => <hr style={{
+                        margin: '16px 0',
+                        border: 'none',
+                        borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+                      }} {...props} />,
+                      strong: ({node, ...props}) => <strong style={{
+                        color: '#f5f5f7',
+                        fontWeight: 600
+                      }} {...props} />,
+                      em: ({node, ...props}) => <em style={{
+                        color: '#ffd60a'
+                      }} {...props} />
+                    }}
+                  >
+                    {segment.content}
+                  </ReactMarkdown>
+                )
+              ))}
             </div>
           ) : (
             // Render code files with CodeMirror
