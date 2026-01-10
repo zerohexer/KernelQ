@@ -189,8 +189,8 @@ const ConceptCodeRunner = ({
             {/* Output Section */}
             {(output || errorMessage || status) && (
                 <div style={{
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.06)'
+                    background: '#252529',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.08)'
                 }}>
                     {/* Output Header */}
                     <div style={{
@@ -198,21 +198,22 @@ const ConceptCodeRunner = ({
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-                        background: 'rgba(255, 255, 255, 0.02)'
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
                     }}>
                         {status === 'success' && (
-                            <CheckCircle size={14} color="#32d74b" />
+                            <CheckCircle size={14} color="#60a5fa" />
                         )}
                         {status === 'error' && (
                             <XCircle size={14} color="#ff453a" />
                         )}
                         <span style={{
-                            fontSize: '0.875rem',
-                            fontWeight: 600,
-                            color: status === 'success' ? '#32d74b' :
+                            fontSize: '0.8rem',
+                            fontWeight: 500,
+                            color: status === 'success' ? '#60a5fa' :
                                    status === 'error' ? '#ff453a' :
-                                   '#f5f5f7'
+                                   '#a1a1aa',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em'
                         }}>
                             {status === 'success' ? 'Output' :
                              status === 'error' ? 'Error' : 'Output'}
@@ -221,7 +222,7 @@ const ConceptCodeRunner = ({
 
                     {/* Output Content */}
                     <div style={{
-                        padding: '12px 16px',
+                        padding: '14px 16px',
                         maxHeight: '250px',
                         overflow: 'auto'
                     }}>
@@ -230,7 +231,7 @@ const ConceptCodeRunner = ({
                                 margin: 0,
                                 padding: 0,
                                 fontFamily: 'SF Mono, Monaco, monospace',
-                                fontSize: '0.93rem',
+                                fontSize: '0.875rem',
                                 lineHeight: 1.5,
                                 color: '#ff453a',
                                 whiteSpace: 'pre-wrap',
@@ -240,18 +241,18 @@ const ConceptCodeRunner = ({
                             </pre>
                         )}
                         {output && (
-                            <pre style={{
+                            <div style={{
                                 margin: errorMessage ? '8px 0 0 0' : 0,
                                 padding: 0,
-                                fontFamily: 'SF Mono, Monaco, monospace',
-                                fontSize: '0.93rem',
-                                lineHeight: 1.5,
-                                color: 'rgba(245, 245, 247, 0.85)',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif',
+                                fontSize: '0.9rem',
+                                lineHeight: 1.7,
+                                color: '#d4d4d8',
                                 whiteSpace: 'pre-wrap',
                                 wordBreak: 'break-word'
                             }}>
                                 {output}
-                            </pre>
+                            </div>
                         )}
                     </div>
                 </div>
