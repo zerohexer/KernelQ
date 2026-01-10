@@ -6,76 +6,167 @@ id: function
 relatedConcepts: ["module_init", "static", "printk", "__init", "__exit"]
 ---
 
-# Description
+# What are Kernel Functions?
 
-Reusable blocks of code in kernel modules with special attributes
+Kernel functions work like regular C functions but with special attributes for the kernel environment.
 
-# Explanation
+## Function Parts
 
-Kernel functions work like userspace functions but with special considerations for the kernel environment.
+| Part | Description | Example |
+|------|-------------|---------|
+| Return type | What the function gives back | `int`, `void` |
+| Name | What you call it | `add_numbers` |
+| Parameters | What you give it | `(int a, int b)` |
+| Body | What it does | `{ return a + b; }` |
+| Attributes | Special kernel markers | `static`, `__init` |
 
-**Kernel function parts:**
-- Return type - what the function gives back
-- Name - what you call it
-- Parameters - what you give it
-- Body - what it does
-- Attributes - special kernel markers (`__init`, `static`, etc.)
+## Special Kernel Attributes
 
-**Special kernel function attributes:**
-- `static` - function only visible in this file (common in kernel)
-- `__init` - function only used during module loading (freed after)
-- `__exit` - function only used during module unloading
-- `inline` - hint to compiler to inline function for performance
+- `static` - Function only visible in this file (very common in kernel)
+- `__init` - Function only used during module loading (memory freed after)
+- `__exit` - Function only used during module unloading
+- `inline` - Hint to compiler to inline for performance
+
+---
+
+# Basic Function Example
 
 **No main() function!** Kernel modules use `module_init()` and `module_exit()` instead.
 
-# Code
+<code_editor title="Basic Kernel Functions" module="func_basic">
+#include <linux/module.h>
+#include <linux/kernel.h>
 
-```c
+/* Helper function - static keeps it private to this module */
+static int add_numbers(int a, int b)
+{
+    int result = a + b;
+    pr_info("[OUT] Adding %d + %d = %d\n", a, b, result);
+    return result;
+}
+
+/* Function with no return value */
+static void greet_kernel(const char *name)
+{
+    pr_info("[OUT] Hello from kernel, %s!\n", name);
+}
+
+static int __init func_demo_init(void)
+{
+    int sum;
+
+    pr_info("[OUT] === Function Demo ===\n");
+
+    sum = add_numbers(5, 3);
+    greet_kernel("Linux Learner");
+
+    pr_info("[OUT] Final sum = %d\n", sum);
+    return 0;
+}
+
+static void __exit func_demo_exit(void) { }
+
+module_init(func_demo_init);
+module_exit(func_demo_exit);
+MODULE_LICENSE("GPL");
+</code_editor>
+
+Try changing the numbers in `add_numbers(5, 3)` and run again!
+
+---
+
+# Functions with Different Return Types
+
+Functions can return different types or nothing at all (`void`):
+
+<code_editor title="Return Types" module="func_returns">
+#include <linux/module.h>
+#include <linux/kernel.h>
+
+/* Returns an integer */
+static int multiply(int a, int b)
+{
+    return a * b;
+}
+
+/* Returns a boolean (true/false) */
+static bool is_positive(int num)
+{
+    return num > 0;
+}
+
+/* Returns nothing (void) - just does something */
+static void print_status(const char *status)
+{
+    pr_info("[OUT] Status: %s\n", status);
+}
+
+static int __init return_demo_init(void)
+{
+    int product;
+    bool positive;
+
+    product = multiply(4, 7);
+    pr_info("[OUT] 4 x 7 = %d\n", product);
+
+    positive = is_positive(product);
+    pr_info("[OUT] Is positive? %s\n", positive ? "yes" : "no");
+
+    print_status("All checks passed");
+
+    return 0;
+}
+
+static void __exit return_demo_exit(void) { }
+
+module_init(return_demo_init);
+module_exit(return_demo_exit);
+MODULE_LICENSE("GPL");
+</code_editor>
+
+---
+
+# The __init and __exit Attributes
+
+These special attributes help the kernel manage memory efficiently:
+
+```
+__init  →  "Free this function's memory after module loads"
+__exit  →  "Only include this if module can be unloaded"
+```
+
+<code_editor title="Init and Exit Functions" module="func_init_exit">
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
 
-// Helper function - static keeps it private to this module
-static int add_numbers(int a, int b) {
-    int result = a + b;
-    printk(KERN_INFO "Adding %d + %d = %d\n", a, b, result);
-    return result;  // Return the sum
+/* __init: This function runs ONCE at load time, then memory is freed */
+static int __init my_module_init(void)
+{
+    pr_info("[OUT] Module initializing...\n");
+    pr_info("[OUT] This __init function will be freed from memory!\n");
+    pr_info("[OUT] Initialization complete.\n");
+    return 0;  /* 0 = success, negative = error */
 }
 
-// Function with no return value
-static void greet_kernel(const char *name) {
-    printk(KERN_INFO "Hello from kernel, %s!\n", name);
-    // No return statement needed for void
+/* __exit: Only used when unloading - not included in built-in modules */
+static void __exit my_module_exit(void)
+{
+    pr_info("[OUT] Module cleanup running...\n");
 }
 
-// Module initialization function - __init means "free this after loading"
-static int __init math_module_init(void) {
-    int sum = add_numbers(5, 3);        // Call our function
-    greet_kernel("Linux Kernel");       // Call void function
-
-    printk(KERN_INFO "Math module loaded, sum = %d\n", sum);
-    return 0;  // 0 = success, negative = error
-}
-
-// Module cleanup function - __exit means "only for unloading"
-static void __exit math_module_exit(void) {
-    printk(KERN_INFO "Math module unloaded\n");
-}
-
-module_init(math_module_init);    // Register init function
-module_exit(math_module_exit);    // Register exit function
+module_init(my_module_init);  /* Register init function */
+module_exit(my_module_exit);  /* Register exit function */
 MODULE_LICENSE("GPL");
+</code_editor>
 
-// Key differences from userspace:
-// ❌ main()     → ✅ module_init()/module_exit()
-// ❌ printf()   → ✅ printk()
-// ✅ static functions are very common in kernel
-// ✅ __init and __exit attributes save memory
-```
+---
 
-# Exercises
+# Quick Reference
 
-1. Write a kernel function that calculates rectangle area
-2. Create a function that prints device info using printk
-3. Make a static helper function for string operations
+| Userspace | Kernel |
+|-----------|--------|
+| `main()` | `module_init()` / `module_exit()` |
+| `printf()` | `printk()` / `pr_info()` |
+| Global functions | `static` functions (file-private) |
+| Regular functions | `__init` / `__exit` attributes |

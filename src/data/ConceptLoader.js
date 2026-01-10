@@ -1,42 +1,40 @@
 /**
- * Concept Loader - Loads and parses markdown concept files
+ * Concept Loader - Simplified loader for interactive concepts
  *
  * Concepts are stored in src/components/ConceptLearner/Concepts/*.md
+ * with YAML frontmatter for metadata and <code_editor> tags for runnable examples.
  */
 
 // Import markdown files as URLs (CRA handles this)
 import includeUrl from '../components/ConceptLearner/Concepts/include.md';
 import functionUrl from '../components/ConceptLearner/Concepts/function.md';
-import atomicOperationsUrl from '../components/ConceptLearner/Concepts/atomic_operations.md';
 import pointersUrl from '../components/ConceptLearner/Concepts/pointers.md';
 
 // Define the order of concepts (first = first displayed)
 const CONCEPT_ORDER = [
     'include',
     'function',
-    'pointers',
-    'atomic_operations'
+    'pointers'
 ];
 
 // Map of concept IDs to their URLs
 const CONCEPT_URLS = {
     'include': includeUrl,
     'function': functionUrl,
-    'atomic_operations': atomicOperationsUrl,
     'pointers': pointersUrl
 };
 
-// Cache for loaded concepts
+// Cache for loaded concept metadata
 const conceptCache = {};
 
 /**
- * Parse YAML-like frontmatter from markdown
+ * Parse YAML frontmatter from markdown to extract metadata only
  */
-function parseFrontmatter(content) {
+function parseFrontmatterMetadata(content) {
     const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
     const match = content.match(frontmatterRegex);
 
-    if (!match) return { metadata: {}, content };
+    if (!match) return {};
 
     const frontmatter = match[1];
     const metadata = {};
@@ -47,12 +45,17 @@ function parseFrontmatter(content) {
             const key = line.substring(0, colonIndex).trim();
             let value = line.substring(colonIndex + 1).trim();
 
+            // Handle arrays
             if (value.startsWith('[') && value.endsWith(']')) {
                 try {
                     value = JSON.parse(value.replace(/'/g, '"'));
-                } catch (e) {}
-            } else if ((value.startsWith('"') && value.endsWith('"')) ||
-                     (value.startsWith("'") && value.endsWith("'"))) {
+                } catch (e) {
+                    // Keep as string if parsing fails
+                }
+            }
+            // Handle quoted strings
+            else if ((value.startsWith('"') && value.endsWith('"')) ||
+                    (value.startsWith("'") && value.endsWith("'"))) {
                 value = value.slice(1, -1);
             }
 
@@ -60,73 +63,12 @@ function parseFrontmatter(content) {
         }
     });
 
-    const remainingContent = content.substring(match[0].length).trim();
-    return { metadata, content: remainingContent };
+    return metadata;
 }
 
 /**
- * Extract sections from markdown content
- */
-function extractSections(content) {
-    const sections = {
-        description: '',
-        explanation: '',
-        codeExample: '',
-        exercises: []
-    };
-
-    const sectionRegex = /^# (.+)$/gm;
-    const parts = content.split(sectionRegex);
-
-    let currentSection = null;
-
-    for (let i = 0; i < parts.length; i++) {
-        const part = parts[i].trim();
-        if (!part) continue;
-
-        const lowerPart = part.toLowerCase();
-
-        if (lowerPart === 'description') {
-            currentSection = 'description';
-        } else if (lowerPart === 'explanation') {
-            currentSection = 'explanation';
-        } else if (lowerPart === 'code' || lowerPart === 'code example') {
-            currentSection = 'code';
-        } else if (lowerPart === 'exercises' || lowerPart === 'practice') {
-            currentSection = 'exercises';
-        } else if (currentSection) {
-            if (currentSection === 'description') {
-                sections.description = part.trim();
-            } else if (currentSection === 'explanation') {
-                sections.explanation = part.trim();
-            } else if (currentSection === 'code') {
-                const codeBlockRegex = /```[\w]*\n([\s\S]*?)```/;
-                const codeMatch = part.match(codeBlockRegex);
-                if (codeMatch) {
-                    sections.codeExample = codeMatch[1].trim();
-                } else {
-                    sections.codeExample = part.trim();
-                }
-            } else if (currentSection === 'exercises') {
-                const lines = part.split('\n');
-                lines.forEach(line => {
-                    const listMatch = line.match(/^[\d]+\.\s*(.+)$|^[-*]\s*(.+)$/);
-                    if (listMatch) {
-                        const exercise = (listMatch[1] || listMatch[2]).trim();
-                        if (exercise) {
-                            sections.exercises.push(exercise);
-                        }
-                    }
-                });
-            }
-        }
-    }
-
-    return sections;
-}
-
-/**
- * Load a single concept from markdown file
+ * Load concept metadata (without full content parsing)
+ * The ConceptLearner component will fetch and parse the full content
  */
 async function loadConcept(conceptId) {
     if (conceptCache[conceptId]) {
@@ -146,8 +88,7 @@ async function loadConcept(conceptId) {
         }
 
         const markdown = await response.text();
-        const { metadata, content } = parseFrontmatter(markdown);
-        const sections = extractSections(content);
+        const metadata = parseFrontmatterMetadata(markdown);
 
         const concept = {
             id: metadata.id || conceptId,
@@ -155,10 +96,8 @@ async function loadConcept(conceptId) {
             category: metadata.category || 'General',
             difficulty: metadata.difficulty || 'Beginner',
             relatedConcepts: metadata.relatedConcepts || [],
-            description: sections.description,
-            explanation: sections.explanation,
-            codeExample: sections.codeExample,
-            exercises: sections.exercises
+            // Store the URL so ConceptLearner can fetch the full content
+            url: url
         };
 
         conceptCache[conceptId] = concept;
@@ -170,7 +109,7 @@ async function loadConcept(conceptId) {
 }
 
 /**
- * Load all concepts
+ * Load all concepts (metadata only)
  */
 async function loadAllConcepts() {
     const concepts = {};

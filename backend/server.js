@@ -266,6 +266,90 @@ app.post('/api/playground-compile', async (req, res) => {
     }
 });
 
+// Concept example compilation endpoint (clean output for learning)
+app.post('/api/concept-run', async (req, res) => {
+    const { code, moduleName } = req.body;
+
+    if (!code || !moduleName) {
+        return res.status(400).json({
+            success: false,
+            error: 'Code and module name are required'
+        });
+    }
+
+    try {
+        console.log(`📚 Concept example compilation for module: ${moduleName}`);
+        console.log(`📝 Code length: ${code.length} characters`);
+
+        // Use direct compiler for compilation + QEMU testing
+        const result = await compiler.compileKernelModule(code, moduleName);
+
+        console.log(`📊 Compilation result: ${result.success ? 'SUCCESS' : 'FAILED'}`);
+
+        // Extract and clean output - filter for [OUT] prefix
+        const rawOutput = result.testing?.output || result.testing?.dmesg || '';
+
+        // Clean output: extract only lines with [OUT] prefix and strip the prefix
+        const cleanOutput = rawOutput
+            .split('\n')
+            .filter(line => line.includes('[OUT]'))
+            .map(line => {
+                // Extract text after [OUT] prefix, stripping kernel timestamp too
+                // Input: "[    1.234567] module: [OUT] Hello World"
+                // Output: "Hello World"
+                const match = line.match(/\[OUT\]\s*(.+)/);
+                return match ? match[1].trim() : '';
+            })
+            .filter(Boolean)
+            .join('\n');
+
+        // If no [OUT] lines found, check for any printk output as fallback
+        let displayOutput = cleanOutput;
+        if (!displayOutput && result.success) {
+            // Look for any kernel module output (lines containing the module name)
+            const moduleOutput = rawOutput
+                .split('\n')
+                .filter(line =>
+                    line.includes(moduleName) ||
+                    line.includes('printk') ||
+                    (line.includes(']:') && !line.includes('insmod') && !line.includes('rmmod'))
+                )
+                .map(line => {
+                    // Try to extract just the message part
+                    const colonMatch = line.match(/\]:\s*(.+)/);
+                    return colonMatch ? colonMatch[1].trim() : line.trim();
+                })
+                .filter(Boolean)
+                .join('\n');
+
+            displayOutput = moduleOutput || 'Module loaded successfully (no printk output)';
+        }
+
+        if (result.success) {
+            res.json({
+                success: true,
+                output: displayOutput,
+                rawOutput: rawOutput // Include raw for debugging if needed
+            });
+        } else {
+            res.json({
+                success: false,
+                error: result.output || result.error || 'Compilation failed',
+                output: displayOutput || '',
+                rawOutput: rawOutput
+            });
+        }
+
+    } catch (error) {
+        console.error('Concept compilation error:', error);
+        res.json({
+            success: false,
+            error: `Compilation failed: ${error.message}`,
+            output: ''
+        });
+    }
+});
+
 // Authentication Endpoints
 app.post('/api/auth/register', authLimiter, async (req, res) => {
     const { username, email, password, memberStatus = 'Standard Free User' } = req.body;
