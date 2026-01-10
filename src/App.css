@@ -8,6 +8,18 @@
     flex-direction: column;
 }
 
+/* Mobile - use fill-available for iOS Safari */
+@media (max-width: 768px) {
+    .App {
+        zoom: 0.70;
+        height: 100%;
+        min-height: 100%;
+        height: -webkit-fill-available;
+        min-height: -webkit-fill-available;
+        width: 100%;
+    }
+}
+
 /* Custom scrollbar for better UX */
 ::-webkit-scrollbar {
     width: 8px;
