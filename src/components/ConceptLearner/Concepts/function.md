@@ -22,16 +22,16 @@ Kernel functions work like regular C functions but with special attributes for t
 
 ## Special Kernel Attributes
 
-- `static` - Function only visible in this file (very common in kernel)
-- `__init` - Function only used during module loading (memory freed after)
-- `__exit` - Function only used during module unloading
-- `inline` - Hint to compiler to inline for performance
+- ``static`` - Function only visible in this file (very common in kernel)
+- ``__init`` - Function only used during module loading (memory freed after)
+- ``__exit`` - Function only used during module unloading
+- ``inline`` - Hint to compiler to inline for performance
 
 ---
 
 # Basic Function Example
 
-**No main() function!** Kernel modules use `module_init()` and `module_exit()` instead.
+**No main() function!** Kernel modules use ``module_init()`` and ``module_exit()`` instead.
 
 <code_editor title="Basic Kernel Functions" module="func_basic">
 #include <linux/module.h>
@@ -71,13 +71,13 @@ module_exit(func_demo_exit);
 MODULE_LICENSE("GPL");
 </code_editor>
 
-Try changing the numbers in `add_numbers(5, 3)` and run again!
+Try changing the numbers in ``add_numbers(5, 3)`` and run again!
 
 ---
 
 # Functions with Different Return Types
 
-Functions can return different types or nothing at all (`void`):
+Functions can return different types or nothing at all (``void``):
 
 <code_editor title="Return Types" module="func_returns">
 #include <linux/module.h>

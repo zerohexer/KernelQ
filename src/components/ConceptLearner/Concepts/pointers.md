@@ -63,7 +63,7 @@ module_exit(example_exit);
 MODULE_LICENSE("GPL");
 </code_editor>
 
-Try changing `value` to different numbers and run again to see the output change!
+Try changing ``value`` to different numbers and run again to see the output change!
 
 ---
 
@@ -125,7 +125,7 @@ module_exit(example_exit);
 MODULE_LICENSE("GPL");
 </code_editor>
 
-Notice how `bad_double` doesn't change the original, but `good_double` does!
+Notice how ``bad_double`` doesn't change the original, but ``good_double`` does!
 
 ---
 
@@ -135,7 +135,7 @@ When working with structures, pointers become even more important:
 
 1. **Efficiency**: Passing a pointer (8 bytes) is faster than copying a large struct
 2. **Modification**: Functions can modify the original struct
-3. **Arrow operator**: Use `->` instead of `.` with pointers
+3. **Arrow operator**: Use ``->`` instead of ``.`` with pointers
 
 <code_editor title="Structure Pointers" module="ptr_struct">
 #include <linux/module.h>
@@ -190,7 +190,7 @@ MODULE_LICENSE("GPL");
 
 # Pointer Arithmetic
 
-When you add 1 to a pointer, it moves by `sizeof(type)` bytes - not just 1 byte!
+When you add 1 to a pointer, it moves by ``sizeof(type)`` bytes - not just 1 byte!
 
 ```
 int arr[5] = {10, 20, 30, 40, 50};

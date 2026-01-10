@@ -8,9 +8,9 @@ relatedConcepts: ["kernel_modules", "printk", "module_init", "kmalloc"]
 
 # What is #include?
 
-The `#include` directive brings in header files that contain function declarations, macros, and type definitions.
+The ``#include`` directive brings in header files that contain function declarations, macros, and type definitions.
 
-**Important:** Kernel code cannot use userspace headers like `stdio.h` or `stdlib.h`!
+**Important:** Kernel code cannot use userspace headers like ``stdio.h`` or ``stdlib.h``!
 
 ## Kernel vs Userspace Headers
 
@@ -110,7 +110,7 @@ MODULE_LICENSE("GPL");
 
 # Using linux/slab.h for Memory
 
-The kernel uses `kmalloc`/`kfree` instead of `malloc`/`free`:
+The kernel uses ``kmalloc``/``kfree`` instead of ``malloc``/``free``:
 
 <code_editor title="Kernel Memory Allocation" module="include_slab">
 #include <linux/module.h>
