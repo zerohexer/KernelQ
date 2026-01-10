@@ -236,11 +236,18 @@ const splitContentByTables = (content) => {
   let currentSegment = [];
   let inTable = false;
   let tableLines = [];
+  let inCodeBlock = false;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const isTableRow = line.trim().startsWith('|') && line.trim().endsWith('|');
-    const isSeparator = /^\|[\s:-]+\|[\s:|-]*$/.test(line.trim());
+
+    // Track fenced code blocks - don't detect tables inside them
+    if (line.trim().startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+    }
+
+    const isTableRow = !inCodeBlock && line.trim().startsWith('|') && line.trim().endsWith('|');
+    const isSeparator = !inCodeBlock && /^\|[\s:-]+\|[\s:|-]*$/.test(line.trim());
 
     if (isTableRow || isSeparator) {
       if (!inTable) {
