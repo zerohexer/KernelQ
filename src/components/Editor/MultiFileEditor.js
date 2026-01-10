@@ -4,6 +4,95 @@ import FileExplorer from './FileExplorer';
 import CodeMirrorKernelEditor from './CodeMirrorKernelEditor';
 import { Maximize2, Minimize2, FileText, Book, RotateCcw, Play, HelpCircle, X } from 'lucide-react';
 
+// ============ INLINE CODE PREPROCESSOR ============
+// Converts double backticks ``text`` to markers for truly inline rendering
+// Single backticks remain as block-style code
+
+const INLINE_CODE_MARKER = '{{ICODE:';
+const INLINE_CODE_END = '}}';
+
+// Pre-process content to convert ``text`` to markers
+// IMPORTANT: Skip content inside fenced code blocks (```)
+const preprocessDoubleBackticks = (content) => {
+  if (!content) return content;
+
+  // Split by fenced code blocks to avoid processing them
+  const parts = content.split(/(```[\s\S]*?```)/g);
+
+  return parts.map((part, i) => {
+    // Odd indices are fenced code blocks - don't process
+    if (i % 2 === 1) return part;
+    // Even indices are regular content - convert ``text`` to markers
+    return part.replace(/``([^`]+)``/g, `${INLINE_CODE_MARKER}$1${INLINE_CODE_END}`);
+  }).join('');
+};
+
+// Inline code style (truly inline, no newlines)
+const trueInlineCodeStyle = {
+  background: 'rgba(255, 255, 255, 0.08)',
+  padding: '2px 6px',
+  borderRadius: '4px',
+  color: 'rgba(245, 245, 247, 0.9)',
+  fontFamily: '"SF Mono", Monaco, monospace',
+  fontSize: '0.9rem',
+  whiteSpace: 'nowrap'
+};
+
+// Render text with inline code markers
+const renderWithInlineCode = (children) => {
+  // Handle string children
+  if (typeof children === 'string') {
+    if (!children.includes(INLINE_CODE_MARKER)) return children;
+
+    const regex = /\{\{ICODE:(.+?)\}\}/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+    let key = 0;
+
+    while ((match = regex.exec(children)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(children.slice(lastIndex, match.index));
+      }
+      parts.push(
+        <code key={`ic-${key++}`} style={trueInlineCodeStyle}>{match[1]}</code>
+      );
+      lastIndex = regex.lastIndex;
+    }
+
+    if (parts.length > 0) {
+      if (lastIndex < children.length) {
+        parts.push(children.slice(lastIndex));
+      }
+      return parts;
+    }
+    return children;
+  }
+
+  // Handle array of children - wrap in fragment to preserve structure
+  if (Array.isArray(children)) {
+    let hasMarkers = false;
+    const processed = children.map((child, i) => {
+      if (typeof child === 'string') {
+        const result = renderWithInlineCode(child);
+        if (Array.isArray(result)) {
+          hasMarkers = true;
+          return <React.Fragment key={`frag-${i}`}>{result}</React.Fragment>;
+        }
+        return result;
+      }
+      // Return React elements as-is (they already have their own keys from ReactMarkdown)
+      return child;
+    });
+    // If we processed markers, wrap result; otherwise return as-is
+    return hasMarkers ? processed : children;
+  }
+
+  return children;
+};
+
+// ============ END INLINE CODE PREPROCESSOR ============
+
 // ============ MARKDOWN TABLE PARSER (Option B) ============
 // Parses markdown tables and renders them as React components
 // No external dependencies - pure custom implementation
@@ -41,39 +130,21 @@ const parseMarkdownTable = (tableText) => {
 const renderCellContent = (text) => {
   if (!text) return text;
 
-  const parts = [];
-  let remaining = text;
+  const elements = [];
   let key = 0;
 
-  // Process inline code, bold, italic
-  const patterns = [
-    { regex: /`([^`]+)`/g, render: (match) => (
-      <code key={key++} style={{
-        background: 'rgba(255, 255, 255, 0.08)',
-        padding: '2px 5px',
-        borderRadius: '3px',
-        color: 'rgba(245, 245, 247, 0.9)',
-        fontFamily: '"SF Mono", Monaco, monospace',
-        fontSize: '0.9rem'
-      }}>{match}</code>
-    )},
-    { regex: /\*\*([^*]+)\*\*/g, render: (match) => <strong key={key++} style={{ color: '#f5f5f7', fontWeight: 600 }}>{match}</strong> },
-    { regex: /\*([^*]+)\*/g, render: (match) => <em key={key++} style={{ color: '#ffd60a' }}>{match}</em> }
-  ];
-
-  // Simple approach: find and replace patterns
-  let result = text;
-  const elements = [];
-
-  // Handle inline code
-  const codeRegex = /`([^`]+)`/g;
+  // Handle both regular backticks and inline code markers
+  // Pattern: match `code` (single backtick) or {{ICODE:code}} (inline marker)
+  const combinedRegex = /`([^`]+)`|\{\{ICODE:(.+?)\}\}/g;
   let lastIndex = 0;
   let match;
 
-  while ((match = codeRegex.exec(text)) !== null) {
+  while ((match = combinedRegex.exec(text)) !== null) {
     if (match.index > lastIndex) {
       elements.push(text.slice(lastIndex, match.index));
     }
+    // match[1] is from single backticks, match[2] is from inline markers
+    const codeContent = match[1] || match[2];
     elements.push(
       <code key={key++} style={{
         background: 'rgba(255, 255, 255, 0.08)',
@@ -82,7 +153,7 @@ const renderCellContent = (text) => {
         color: 'rgba(245, 245, 247, 0.9)',
         fontFamily: '"SF Mono", Monaco, monospace',
         fontSize: '0.9rem'
-      }}>{match[1]}</code>
+      }}>{codeContent}</code>
     );
     lastIndex = match.index + match[0].length;
   }
@@ -868,44 +939,44 @@ const MultiFileEditor = ({
               }}
             >
 {/* Hybrid renderer: tables as React components, rest as ReactMarkdown */}
-              {splitContentByTables(getCurrentFileContent()).map((segment, idx) => (
+              {splitContentByTables(preprocessDoubleBackticks(getCurrentFileContent())).map((segment, idx) => (
                 segment.type === 'table' ? (
                   <MarkdownTable key={idx} tableText={segment.content} />
                 ) : (
                   <ReactMarkdown
                     key={idx}
                     components={{
-                      h1: ({node, ...props}) => <h1 style={{
+                      h1: ({node, children, ...props}) => <h1 style={{
                         fontSize: '1.25rem',
                         fontWeight: 700,
                         margin: '0 0 12px 0',
                         color: '#f5f5f7',
                         paddingBottom: '8px',
                         borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-                      }} {...props} />,
-                      h2: ({node, ...props}) => <h2 style={{
+                      }} {...props}>{renderWithInlineCode(children)}</h1>,
+                      h2: ({node, children, ...props}) => <h2 style={{
                         fontSize: '1.0625rem',
                         fontWeight: 600,
                         margin: '20px 0 10px 0',
                         color: '#f5f5f7'
-                      }} {...props} />,
-                      h3: ({node, ...props}) => <h3 style={{
+                      }} {...props}>{renderWithInlineCode(children)}</h2>,
+                      h3: ({node, children, ...props}) => <h3 style={{
                         fontSize: '0.9375rem',
                         fontWeight: 600,
                         margin: '16px 0 8px 0',
                         color: '#f5f5f7'
-                      }} {...props} />,
-                      h4: ({node, ...props}) => <h4 style={{
+                      }} {...props}>{renderWithInlineCode(children)}</h3>,
+                      h4: ({node, children, ...props}) => <h4 style={{
                         fontSize: '0.875rem',
                         fontWeight: 600,
                         margin: '12px 0 6px 0',
                         color: '#f5f5f7'
-                      }} {...props} />,
-                      p: ({node, ...props}) => <p style={{
+                      }} {...props}>{renderWithInlineCode(children)}</h4>,
+                      p: ({node, children, ...props}) => <p style={{
                         margin: '0 0 10px 0',
                         lineHeight: 1.6,
                         fontSize: '1rem'
-                      }} {...props} />,
+                      }} {...props}>{renderWithInlineCode(children)}</p>,
                       code: ({node, inline, ...props}) => inline ? (
                         <code style={{
                           background: 'rgba(50, 215, 75, 0.12)',
@@ -950,11 +1021,11 @@ const MultiFileEditor = ({
                         listStylePosition: 'outside',
                         fontSize: '1rem'
                       }} {...props} />,
-                      li: ({node, ...props}) => <li style={{
+                      li: ({node, children, ...props}) => <li style={{
                         margin: '4px 0',
                         display: 'list-item'
-                      }} {...props} />,
-                      blockquote: ({node, ...props}) => <blockquote style={{
+                      }} {...props}>{renderWithInlineCode(children)}</li>,
+                      blockquote: ({node, children, ...props}) => <blockquote style={{
                         margin: '10px 0',
                         padding: '8px 12px',
                         borderLeft: '3px solid #32d74b',
@@ -962,7 +1033,7 @@ const MultiFileEditor = ({
                         fontStyle: 'italic',
                         fontSize: '1rem',
                         borderRadius: '0 6px 6px 0'
-                      }} {...props} />,
+                      }} {...props}>{renderWithInlineCode(children)}</blockquote>,
                       a: ({node, ...props}) => <a style={{
                         color: '#0a84ff',
                         textDecoration: 'none'
@@ -972,13 +1043,13 @@ const MultiFileEditor = ({
                         border: 'none',
                         borderTop: '1px solid rgba(255, 255, 255, 0.08)'
                       }} {...props} />,
-                      strong: ({node, ...props}) => <strong style={{
+                      strong: ({node, children, ...props}) => <strong style={{
                         color: '#f5f5f7',
                         fontWeight: 600
-                      }} {...props} />,
-                      em: ({node, ...props}) => <em style={{
+                      }} {...props}>{renderWithInlineCode(children)}</strong>,
+                      em: ({node, children, ...props}) => <em style={{
                         color: '#ffd60a'
-                      }} {...props} />
+                      }} {...props}>{renderWithInlineCode(children)}</em>
                     }}
                   >
                     {segment.content}
