@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Trash2, StopCircle, Bot, User, AlertCircle, Lightbulb, Code, HelpCircle, RefreshCw } from 'lucide-react';
-import { PremiumStyles, premiumStyles } from '../../styles/PremiumStyles';
+import { Send, Trash2, StopCircle, Bot, User, AlertCircle, Lightbulb, Code, RefreshCw, Pencil, Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PremiumStyles } from '../../styles/PremiumStyles';
 import useIsMobile from '../../hooks/useIsMobile';
 
 /**
@@ -14,8 +14,10 @@ import useIsMobile from '../../hooks/useIsMobile';
  */
 const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
     const [inputMessage, setInputMessage] = useState('');
+    const [editText, setEditText] = useState('');
     const chatContainerRef = useRef(null);
     const inputRef = useRef(null);
+    const editInputRef = useRef(null);
     const isMobile = useIsMobile();
 
     // Use aiTutor state from parent component (persists across tab switches)
@@ -24,21 +26,85 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
         isLoading,
         error,
         streamingMessage,
+        editingMessageId,
         sendMessage,
         clearHistory,
         cancelStream,
         retryLastMessage,
+        editMessage,
+        startEditingMessage,
+        cancelEditing,
+        switchMessageVersion,
         requestErrorHelp,
         askAboutFunction,
         hasHistory
     } = aiTutor;
 
-    // Auto-scroll to bottom when new messages arrive
+    // Focus edit input when editing starts and scroll it into view
     useEffect(() => {
+        if (editingMessageId && editInputRef.current) {
+            // Use requestAnimationFrame to ensure DOM has updated
+            requestAnimationFrame(() => {
+                if (editInputRef.current) {
+                    // Scroll the edit textarea into view smoothly
+                    editInputRef.current.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+
+                    // Focus after a small delay to let scroll complete
+                    setTimeout(() => {
+                        if (editInputRef.current) {
+                            editInputRef.current.focus({ preventScroll: true });
+                            // Set cursor to end
+                            const length = editInputRef.current.value.length;
+                            editInputRef.current.setSelectionRange(length, length);
+                        }
+                    }, 100);
+                }
+            });
+        }
+    }, [editingMessageId]);
+
+    // Handle starting edit mode
+    const handleStartEdit = (msg) => {
+        setEditText(msg.content);
+        startEditingMessage(msg.id);
+    };
+
+    // Handle submitting edit
+    const handleSubmitEdit = () => {
+        if (editText.trim() && editingMessageId) {
+            editMessage(editingMessageId, editText.trim());
+            setEditText('');
+        }
+    };
+
+    // Handle canceling edit
+    const handleCancelEdit = () => {
+        cancelEditing();
+        setEditText('');
+    };
+
+    // Handle edit keydown
+    const handleEditKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmitEdit();
+        } else if (e.key === 'Escape') {
+            handleCancelEdit();
+        }
+    };
+
+    // Auto-scroll to bottom when new messages arrive (but not while editing)
+    useEffect(() => {
+        // Don't auto-scroll if user is editing a message - they need to see the edit
+        if (editingMessageId) return;
+
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
-    }, [chatHistory, streamingMessage]);
+    }, [chatHistory, streamingMessage, editingMessageId]);
 
     // Focus input on mount (desktop only - avoid triggering keyboard on mobile)
     useEffect(() => {
@@ -636,10 +702,12 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                     const hasAiResponse = idx < chatHistory.length - 1 &&
                         chatHistory[idx + 1]?.role === 'assistant';
                     const showRetry = isLastUserMessage && hasAiResponse && !isLoading && !streamingMessage;
+                    const isEditing = editingMessageId === msg.id;
+                    const hasMultipleVersions = msg.versionCount > 1;
 
                     return (
                         <div
-                            key={idx}
+                            key={msg.id || idx}
                             style={{
                                 display: 'flex',
                                 gap: isMobile ? '8px' : '12px',
@@ -666,61 +734,222 @@ const AiTutorPanel = ({ challenge, codeEditor, aiTutor, onSwitchToCode }) => {
                                 }
                             </div>
 
-                            {/* Message bubble and retry button container */}
+                            {/* Message bubble and action buttons container */}
                             <div style={{
                                 maxWidth: isMobile ? '85%' : '80%',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start'
                             }}>
-                                <div style={{
-                                    background: msg.role === 'user'
-                                        ? 'rgba(10, 132, 255, 0.15)'
-                                        : PremiumStyles.colors.surface,
-                                    borderRadius: msg.role === 'user'
-                                        ? isMobile ? '14px 14px 4px 14px' : '16px 16px 4px 16px'
-                                        : isMobile ? '14px 14px 14px 4px' : '16px 16px 16px 4px',
-                                    padding: isMobile ? '10px 12px' : '12px 16px',
-                                    border: msg.role === 'user'
-                                        ? '1px solid rgba(10, 132, 255, 0.2)'
-                                        : `1px solid ${PremiumStyles.colors.border}`
-                                }}>
+                                {/* Branch navigation (if multiple versions exist) */}
+                                {/* Disabled while AI is streaming to prevent response going to wrong branch */}
+                                {hasMultipleVersions && msg.role === 'user' && (
                                     <div style={{
-                                        fontSize: isMobile ? '0.85rem' : '0.93rem',
-                                        lineHeight: 1.6,
-                                        color: 'rgba(245, 245, 247, 0.75)'
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        marginBottom: '4px',
+                                        fontSize: PremiumStyles.typography.sizes.xs,
+                                        color: PremiumStyles.colors.textTertiary,
+                                        opacity: (isLoading || streamingMessage) ? 0.4 : 1
                                     }}>
-                                        {renderMessage(msg.content)}
+                                        <button
+                                            onClick={() => switchMessageVersion(msg.id, msg.activeVersion - 1)}
+                                            disabled={msg.activeVersion === 0 || isLoading || !!streamingMessage}
+                                            title={(isLoading || streamingMessage) ? 'Cannot switch while AI is responding' : ''}
+                                            style={{
+                                                background: 'transparent',
+                                                border: 'none',
+                                                padding: '2px',
+                                                cursor: (msg.activeVersion === 0 || isLoading || streamingMessage) ? 'not-allowed' : 'pointer',
+                                                opacity: (msg.activeVersion === 0 || isLoading || streamingMessage) ? 0.3 : 0.7,
+                                                display: 'flex',
+                                                alignItems: 'center'
+                                            }}
+                                        >
+                                            <ChevronLeft size={14} color="rgba(245, 245, 247, 0.7)" />
+                                        </button>
+                                        <span style={{ minWidth: '40px', textAlign: 'center' }}>
+                                            {msg.activeVersion + 1} / {msg.versionCount}
+                                        </span>
+                                        <button
+                                            onClick={() => switchMessageVersion(msg.id, msg.activeVersion + 1)}
+                                            disabled={msg.activeVersion === msg.versionCount - 1 || isLoading || !!streamingMessage}
+                                            title={(isLoading || streamingMessage) ? 'Cannot switch while AI is responding' : ''}
+                                            style={{
+                                                background: 'transparent',
+                                                border: 'none',
+                                                padding: '2px',
+                                                cursor: (msg.activeVersion === msg.versionCount - 1 || isLoading || streamingMessage) ? 'not-allowed' : 'pointer',
+                                                opacity: (msg.activeVersion === msg.versionCount - 1 || isLoading || streamingMessage) ? 0.3 : 0.7,
+                                                display: 'flex',
+                                                alignItems: 'center'
+                                            }}
+                                        >
+                                            <ChevronRight size={14} color="rgba(245, 245, 247, 0.7)" />
+                                        </button>
                                     </div>
-                                </div>
+                                )}
 
-                                {/* Retry button below user message */}
-                                {showRetry && (
-                                    <button
-                                        onClick={retryLastMessage}
-                                        style={{
-                                            background: 'transparent',
-                                            border: 'none',
-                                            padding: '4px 8px',
-                                            marginTop: '4px',
+                                {/* Message bubble or edit input */}
+                                {isEditing ? (
+                                    <div style={{
+                                        background: 'rgba(10, 132, 255, 0.15)',
+                                        borderRadius: isMobile ? '14px' : '16px',
+                                        padding: isMobile ? '10px 12px' : '12px 16px',
+                                        border: '1px solid rgba(10, 132, 255, 0.4)',
+                                        width: '100%'
+                                    }}>
+                                        <textarea
+                                            ref={editInputRef}
+                                            value={editText}
+                                            onChange={(e) => setEditText(e.target.value)}
+                                            onKeyDown={handleEditKeyDown}
+                                            style={{
+                                                width: '100%',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                outline: 'none',
+                                                resize: 'none',
+                                                fontSize: isMobile ? '0.85rem' : '0.93rem',
+                                                lineHeight: 1.6,
+                                                color: 'rgba(245, 245, 247, 0.85)',
+                                                fontFamily: PremiumStyles.typography.fontFamily,
+                                                minHeight: '60px'
+                                            }}
+                                            rows={3}
+                                        />
+                                        <div style={{
                                             display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '4px',
-                                            cursor: 'pointer',
-                                            color: PremiumStyles.colors.textTertiary,
-                                            fontSize: PremiumStyles.typography.sizes.xs,
-                                            transition: 'all 0.2s ease'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.color = PremiumStyles.colors.textSecondary;
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.color = PremiumStyles.colors.textTertiary;
-                                        }}
-                                    >
-                                        <RefreshCw size={12} />
-                                        Retry
-                                    </button>
+                                            justifyContent: 'flex-end',
+                                            gap: '8px',
+                                            marginTop: '8px'
+                                        }}>
+                                            <button
+                                                onClick={handleCancelEdit}
+                                                style={{
+                                                    background: 'rgba(255, 255, 255, 0.1)',
+                                                    border: 'none',
+                                                    borderRadius: PremiumStyles.radius.sm,
+                                                    padding: '6px 12px',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    color: 'rgba(245, 245, 247, 0.7)',
+                                                    fontSize: PremiumStyles.typography.sizes.xs
+                                                }}
+                                            >
+                                                <X size={12} />
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleSubmitEdit}
+                                                disabled={!editText.trim()}
+                                                style={{
+                                                    background: editText.trim() ? 'rgba(10, 132, 255, 0.5)' : 'rgba(255, 255, 255, 0.1)',
+                                                    border: 'none',
+                                                    borderRadius: PremiumStyles.radius.sm,
+                                                    padding: '6px 12px',
+                                                    cursor: editText.trim() ? 'pointer' : 'not-allowed',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    color: 'rgba(245, 245, 247, 0.9)',
+                                                    fontSize: PremiumStyles.typography.sizes.xs
+                                                }}
+                                            >
+                                                <Check size={12} />
+                                                Save & Send
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div style={{
+                                        background: msg.role === 'user'
+                                            ? 'rgba(10, 132, 255, 0.15)'
+                                            : PremiumStyles.colors.surface,
+                                        borderRadius: msg.role === 'user'
+                                            ? isMobile ? '14px 14px 4px 14px' : '16px 16px 4px 16px'
+                                            : isMobile ? '14px 14px 14px 4px' : '16px 16px 16px 4px',
+                                        padding: isMobile ? '10px 12px' : '12px 16px',
+                                        border: msg.role === 'user'
+                                            ? '1px solid rgba(10, 132, 255, 0.2)'
+                                            : `1px solid ${PremiumStyles.colors.border}`
+                                    }}>
+                                        <div style={{
+                                            fontSize: isMobile ? '0.85rem' : '0.93rem',
+                                            lineHeight: 1.6,
+                                            color: 'rgba(245, 245, 247, 0.75)'
+                                        }}>
+                                            {renderMessage(msg.content)}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Action buttons below message */}
+                                {!isEditing && (
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: '8px',
+                                        marginTop: '4px'
+                                    }}>
+                                        {/* Edit button for user messages */}
+                                        {msg.role === 'user' && !isLoading && !streamingMessage && (
+                                            <button
+                                                onClick={() => handleStartEdit(msg)}
+                                                style={{
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    padding: '4px 8px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    cursor: 'pointer',
+                                                    color: PremiumStyles.colors.textTertiary,
+                                                    fontSize: PremiumStyles.typography.sizes.xs,
+                                                    transition: 'all 0.2s ease'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.color = PremiumStyles.colors.textSecondary;
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.color = PremiumStyles.colors.textTertiary;
+                                                }}
+                                            >
+                                                <Pencil size={12} />
+                                                Edit
+                                            </button>
+                                        )}
+
+                                        {/* Retry button for last user message */}
+                                        {showRetry && (
+                                            <button
+                                                onClick={retryLastMessage}
+                                                style={{
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    padding: '4px 8px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    cursor: 'pointer',
+                                                    color: PremiumStyles.colors.textTertiary,
+                                                    fontSize: PremiumStyles.typography.sizes.xs,
+                                                    transition: 'all 0.2s ease'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.color = PremiumStyles.colors.textSecondary;
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.color = PremiumStyles.colors.textTertiary;
+                                                }}
+                                            >
+                                                <RefreshCw size={12} />
+                                                Retry
+                                            </button>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>
