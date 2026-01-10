@@ -318,7 +318,7 @@ if /sbin/insmod /lib/modules/${mod}.ko 2>&1; then
     echo "✅ Module ${mod} loaded successfully"
 else
     echo "❌ Failed to load ${mod}.ko"
-    /bin/dmesg | tail -10 2>/dev/null
+    /bin/dmesg 2>/dev/null
     echo "❌ QEMU_TEST_COMPLETE: LOAD_FAILED"
     poweroff -f
     exit 1
@@ -326,8 +326,6 @@ fi
 `;
         }
 
-        script += `/bin/dmesg | tail -15 2>/dev/null || echo "dmesg not available"
-`;
 
         // **GENERIC PART 3: Run any test commands defined in the problem**
         if (testScenario?.testCommands?.length) {
@@ -368,7 +366,10 @@ echo "=== Unloading Modules ==="
 `;
         }
 
-        script += `/bin/dmesg | tail -20 2>/dev/null || echo "dmesg not available after unload"
+        script += `
+echo ""
+echo "=== Module Output ==="
+/bin/dmesg 2>/dev/null
 echo "✅ QEMU_TEST_COMPLETE: SUCCESS"
 
 echo ""

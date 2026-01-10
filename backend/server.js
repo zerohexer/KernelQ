@@ -289,18 +289,20 @@ app.post('/api/concept-run', async (req, res) => {
         // Extract and clean output - filter for [OUT] prefix
         const rawOutput = result.testing?.output || result.testing?.dmesg || '';
 
-        // Clean output: extract only lines with [OUT] prefix and strip the prefix
+        // Clean output: extract only lines with [OUT] prefix, dedupe, and strip prefix
+        const seen = new Set();
         const cleanOutput = rawOutput
             .split('\n')
             .filter(line => line.includes('[OUT]'))
             .map(line => {
-                // Extract text after [OUT] prefix, stripping kernel timestamp too
-                // Input: "[    1.234567] module: [OUT] Hello World"
-                // Output: "Hello World"
                 const match = line.match(/\[OUT\]\s*(.+)/);
                 return match ? match[1].trim() : '';
             })
-            .filter(Boolean)
+            .filter(line => {
+                if (!line || seen.has(line)) return false;
+                seen.add(line);
+                return true;
+            })
             .join('\n');
 
         // If no [OUT] lines found, check for any printk output as fallback

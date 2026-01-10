@@ -189,16 +189,17 @@ const ConceptCodeRunner = ({
             {/* Output Section */}
             {(output || errorMessage || status) && (
                 <div style={{
-                    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-                    background: 'rgba(0, 0, 0, 0.3)'
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.06)'
                 }}>
                     {/* Output Header */}
                     <div style={{
-                        padding: '8px 16px',
+                        padding: '10px 16px',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.04)'
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                        background: 'rgba(255, 255, 255, 0.02)'
                     }}>
                         {status === 'success' && (
                             <CheckCircle size={14} color="#32d74b" />
@@ -207,13 +208,11 @@ const ConceptCodeRunner = ({
                             <XCircle size={14} color="#ff453a" />
                         )}
                         <span style={{
-                            fontSize: '0.7rem',
+                            fontSize: '0.875rem',
                             fontWeight: 600,
                             color: status === 'success' ? '#32d74b' :
                                    status === 'error' ? '#ff453a' :
-                                   PremiumStyles.colors.textSecondary,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em'
+                                   '#f5f5f7'
                         }}>
                             {status === 'success' ? 'Output' :
                              status === 'error' ? 'Error' : 'Output'}
@@ -223,16 +222,16 @@ const ConceptCodeRunner = ({
                     {/* Output Content */}
                     <div style={{
                         padding: '12px 16px',
-                        maxHeight: '200px',
+                        maxHeight: '250px',
                         overflow: 'auto'
                     }}>
                         {errorMessage && (
                             <pre style={{
                                 margin: 0,
                                 padding: 0,
-                                fontFamily: PremiumStyles.typography.fontFamilyMono,
-                                fontSize: '0.8rem',
-                                lineHeight: 1.6,
+                                fontFamily: 'SF Mono, Monaco, monospace',
+                                fontSize: '0.93rem',
+                                lineHeight: 1.5,
                                 color: '#ff453a',
                                 whiteSpace: 'pre-wrap',
                                 wordBreak: 'break-word'
@@ -244,10 +243,10 @@ const ConceptCodeRunner = ({
                             <pre style={{
                                 margin: errorMessage ? '8px 0 0 0' : 0,
                                 padding: 0,
-                                fontFamily: PremiumStyles.typography.fontFamilyMono,
-                                fontSize: '0.8rem',
-                                lineHeight: 1.6,
-                                color: status === 'success' ? '#32d74b' : '#a1a1aa',
+                                fontFamily: 'SF Mono, Monaco, monospace',
+                                fontSize: '0.93rem',
+                                lineHeight: 1.5,
+                                color: 'rgba(245, 245, 247, 0.85)',
                                 whiteSpace: 'pre-wrap',
                                 wordBreak: 'break-word'
                             }}>

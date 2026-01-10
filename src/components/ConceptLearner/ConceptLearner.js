@@ -21,7 +21,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { X, BookOpen, ChevronRight } from 'lucide-react';
+import { X, BookOpen } from 'lucide-react';
 import PremiumStyles from '../../styles/PremiumStyles';
 import ConceptCodeRunner from './ConceptCodeRunner';
 
@@ -481,73 +481,39 @@ const ConceptLearner = ({ concept, setSelectedConcept }) => {
             }}>
                 {/* Header */}
                 <div style={{
-                    padding: '20px 24px',
+                    padding: '16px 24px',
                     borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
                     display: 'flex',
-                    alignItems: 'flex-start',
+                    alignItems: 'center',
                     justifyContent: 'space-between',
-                    gap: '20px',
+                    gap: '16px',
                     background: 'rgba(255, 255, 255, 0.02)'
                 }}>
-                    <div style={{ flex: 1 }}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        flex: 1
+                    }}>
                         <div style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            background: 'rgba(255, 255, 255, 0.06)',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '12px',
-                            marginBottom: '10px'
+                            justifyContent: 'center',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            flexShrink: 0
                         }}>
-                            <div style={{
-                                width: '36px',
-                                height: '36px',
-                                borderRadius: '10px',
-                                background: 'linear-gradient(135deg, rgba(191, 90, 242, 0.2) 0%, rgba(191, 90, 242, 0.1) 100%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                border: '1px solid rgba(191, 90, 242, 0.3)'
-                            }}>
-                                <BookOpen size={18} color={PremiumStyles.colors.accentPurple} />
-                            </div>
-                            {concept.category && (
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px'
-                                }}>
-                                    <span style={{
-                                        fontSize: '0.6875rem',
-                                        fontWeight: 600,
-                                        color: PremiumStyles.colors.accentPurple,
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.1em',
-                                        background: 'rgba(191, 90, 242, 0.1)',
-                                        padding: '4px 10px',
-                                        borderRadius: '6px'
-                                    }}>
-                                        {concept.category}
-                                    </span>
-                                    {concept.difficulty && (
-                                        <>
-                                            <ChevronRight size={12} color="rgba(255,255,255,0.3)" />
-                                            <span style={{
-                                                fontSize: '0.6875rem',
-                                                fontWeight: 500,
-                                                color: PremiumStyles.colors.textTertiary
-                                            }}>
-                                                {concept.difficulty}
-                                            </span>
-                                        </>
-                                    )}
-                                </div>
-                            )}
+                            <BookOpen size={16} color="rgba(255, 255, 255, 0.7)" />
                         </div>
                         <h2 style={{
-                            fontSize: '1.5rem',
-                            fontWeight: 700,
+                            fontSize: '1.25rem',
+                            fontWeight: 600,
                             color: PremiumStyles.colors.text,
                             margin: 0,
-                            letterSpacing: '-0.02em',
-                            lineHeight: 1.3
+                            letterSpacing: '-0.01em'
                         }}>
                             {concept.title}
                         </h2>
