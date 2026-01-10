@@ -9,7 +9,8 @@ const {
     generateAccessToken,
     generateRefreshToken,
     protectUserEndpoints,
-    authLimiter
+    authLimiter,
+    authenticateJWT
 } = require('./middleware/jwt-auth');
 
 // Google OAuth integration
@@ -582,7 +583,7 @@ app.get('/api/user/:userId/stats', async (req, res) => {
 });
 
 // Database Management Endpoints
-app.post('/api/admin/database/backup', async (req, res) => {
+app.post('/api/admin/database/backup', authenticateJWT, async (req, res) => {
     try {
         const db = getDatabase();
         const backupPath = await db.backup();
