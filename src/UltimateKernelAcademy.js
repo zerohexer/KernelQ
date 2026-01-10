@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Code, Book, Target, Lightbulb } from 'lucide-react';
+import { Code, Book, Target, BookOpen } from 'lucide-react';
 import generatedProblems from './data/generated-problems.js';
 
 // Extracted Components
@@ -1006,7 +1006,7 @@ const UnlimitedKernelAcademy = () => {
                             { id: 'learning', label: 'Current Challenge', icon: Target },
                             { id: 'problemBank', label: 'Problem Bank', icon: Book },
                             { id: 'playground', label: 'Code Playground', icon: Code },
-                            { id: 'concepts', label: 'Concepts', icon: Lightbulb }
+                            { id: 'concepts', label: 'Concepts', icon: BookOpen }
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -1160,8 +1160,8 @@ const UnlimitedKernelAcademy = () => {
                                             onMouseEnter={(e) => {
                                                 e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
                                                 e.currentTarget.style.transform = 'translateY(-4px) scale(1.01)';
-                                                e.currentTarget.style.borderColor = 'rgba(191, 90, 242, 0.3)';
-                                                e.currentTarget.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(191, 90, 242, 0.1)';
+                                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                                                e.currentTarget.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.4)';
                                             }}
                                             onMouseLeave={(e) => {
                                                 e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
@@ -1170,27 +1170,17 @@ const UnlimitedKernelAcademy = () => {
                                                 e.currentTarget.style.boxShadow = 'none';
                                             }}
                                         >
-                                            {/* Top accent line */}
-                                            <div style={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                right: 0,
-                                                height: '3px',
-                                                background: 'linear-gradient(135deg, #bf5af2 0%, #0a84ff 100%)',
-                                                opacity: 0.7
-                                            }} />
                                             <div style={{
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: '10px',
                                                 marginBottom: '12px'
                                             }}>
-                                                <Lightbulb size={16} color={PremiumStyles.colors.accentPurple} />
+                                                <BookOpen size={16} color="rgba(255, 255, 255, 0.6)" />
                                                 <span style={{
                                                     fontSize: '0.6875rem',
                                                     fontWeight: 600,
-                                                    color: PremiumStyles.colors.accentPurple,
+                                                    color: 'rgba(255, 255, 255, 0.5)',
                                                     textTransform: 'uppercase',
                                                     letterSpacing: '0.08em'
                                                 }}>
