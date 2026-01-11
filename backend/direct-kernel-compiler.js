@@ -17,6 +17,46 @@ class DirectKernelCompiler {
         this.modulesDir = path.join(this.workDir, 'modules');
     }
 
+    // Security: Validate filename to prevent path traversal attacks
+    // Only allows alphanumeric, dots, underscores, hyphens
+    sanitizeFileName(filename) {
+        if (!filename || typeof filename !== 'string') {
+            throw new Error('Invalid filename: must be a non-empty string');
+        }
+
+        // Only allow safe characters: letters, numbers, dots, underscores, hyphens
+        const sanitized = filename.replace(/[^a-zA-Z0-9._-]/g, '');
+
+        // Prevent empty result after sanitization
+        if (!sanitized || sanitized.length === 0) {
+            throw new Error(`Invalid filename after sanitization: "${filename}"`);
+        }
+
+        // Prevent hidden files and path components
+        if (sanitized.startsWith('.') && sanitized !== '.c' && sanitized !== '.h') {
+            throw new Error(`Invalid filename: cannot start with dot: "${filename}"`);
+        }
+
+        // Prevent common dangerous patterns
+        if (sanitized.includes('..')) {
+            throw new Error(`Invalid filename: contains path traversal: "${filename}"`);
+        }
+
+        return sanitized;
+    }
+
+    // Security: Validate that resolved path stays within allowed directory
+    validatePathWithinDirectory(filePath, allowedDir) {
+        const resolvedPath = path.resolve(filePath);
+        const resolvedAllowedDir = path.resolve(allowedDir);
+
+        if (!resolvedPath.startsWith(resolvedAllowedDir + path.sep) && resolvedPath !== resolvedAllowedDir) {
+            throw new Error(`Path traversal attempt detected: ${filePath} escapes ${allowedDir}`);
+        }
+
+        return resolvedPath;
+    }
+
     async ensureDirectories() {
         await fs.mkdir(this.workDir, { recursive: true });
         await fs.mkdir(this.modulesDir, { recursive: true });
@@ -228,24 +268,47 @@ help:
             console.log('📦 Compiling userspace test applications...');
             for (const app of testScenario.userspaceApps) {
                 try {
+                    // Security: Sanitize app name to prevent command injection
+                    const safeAppName = this.sanitizeFileName(app.name);
+
                     // Write source code to temporary file (convert escaped newlines)
-                    const appSrcPath = path.join(sessionDir, `${app.name}.c`);
+                    const appSrcPath = path.join(sessionDir, `${safeAppName}.c`);
+                    this.validatePathWithinDirectory(appSrcPath, sessionDir);
+
                     const sourceCode = app.source.replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\"/g, '"');
                     await fs.writeFile(appSrcPath, sourceCode);
-                    
-                    // Compile with provided flags (default to basic compilation)
-                    const compileFlags = app.compileFlags || [];
-                    const compileCmd = [
-                        'gcc',
-                        ...compileFlags,
-                        '-o', path.join(initramfsDir, 'bin', app.name),
-                        appSrcPath
-                    ];
-                    
-                    console.log(`🔨 Compiling ${app.name}...`);
-                    await execAsync(compileCmd.join(' '));
-                    await fs.chmod(path.join(initramfsDir, 'bin', app.name), 0o755);
-                    console.log(`✅ Compiled ${app.name} successfully`);
+
+                    // Security: Whitelist allowed compiler flags to prevent injection
+                    const allowedFlags = ['-Wall', '-Wextra', '-O0', '-O1', '-O2', '-O3', '-g', '-static', '-pthread', '-lm', '-lpthread'];
+                    const compileFlags = (app.compileFlags || []).filter(flag => {
+                        // Only allow whitelisted flags or -I/-L with safe paths
+                        if (allowedFlags.includes(flag)) return true;
+                        if (flag.match(/^-[IL][a-zA-Z0-9_/.-]+$/)) return true;
+                        console.warn(`⚠️ Rejected unsafe compiler flag: ${flag}`);
+                        return false;
+                    });
+
+                    const outputPath = path.join(initramfsDir, 'bin', safeAppName);
+                    this.validatePathWithinDirectory(outputPath, initramfsDir);
+
+                    // Security: Use spawn with array args instead of shell string
+                    // This prevents command injection via app.name or flags
+                    const gccArgs = [...compileFlags, '-o', outputPath, appSrcPath];
+
+                    console.log(`🔨 Compiling ${safeAppName}...`);
+                    await new Promise((resolve, reject) => {
+                        const proc = spawn('gcc', gccArgs, { stdio: ['pipe', 'pipe', 'pipe'] });
+                        let stderr = '';
+                        proc.stderr.on('data', (data) => { stderr += data.toString(); });
+                        proc.on('close', (code) => {
+                            if (code === 0) resolve();
+                            else reject(new Error(`GCC exited with code ${code}: ${stderr}`));
+                        });
+                        proc.on('error', reject);
+                    });
+
+                    await fs.chmod(outputPath, 0o755);
+                    console.log(`✅ Compiled ${safeAppName} successfully`);
                 } catch (error) {
                     console.error(`❌ Failed to compile ${app.name}:`, error.message);
                     throw new Error(`Userspace app compilation failed: ${app.name}`);
@@ -793,7 +856,11 @@ poweroff -f
             // Handle both legacy single-file and new multi-file formats
             if (typeof codeOrFiles === 'string') {
                 // Legacy single-file format
-                const sourceFile = path.join(sessionDir, `${moduleName}.c`);
+                // Security: Sanitize module name to prevent path traversal
+                const safeModuleName = this.sanitizeFileName(moduleName);
+                const sourceFile = path.join(sessionDir, `${safeModuleName}.c`);
+                this.validatePathWithinDirectory(sourceFile, sessionDir);
+
                 await fs.writeFile(sourceFile, codeOrFiles);
                 sourceFiles = [sourceFile];
                 
@@ -826,16 +893,31 @@ poweroff -f
                 }
                 
                 for (const file of codeOrFiles) {
-                    const filePath = path.join(sessionDir, file.name);
-                    await fs.writeFile(filePath, file.content);
-                    
-                    // Set appropriate permissions
+                    // Security: Sanitize filename to prevent path traversal attacks
+                    // Allow Makefile, .c, .h, .md, .txt files with safe names
+                    let safeFileName;
                     if (file.name === 'Makefile') {
+                        safeFileName = 'Makefile';
+                    } else {
+                        // Extract basename and sanitize (removes any path components)
+                        const baseName = path.basename(file.name);
+                        safeFileName = this.sanitizeFileName(baseName);
+                    }
+
+                    const filePath = path.join(sessionDir, safeFileName);
+
+                    // Security: Verify resolved path stays within session directory
+                    this.validatePathWithinDirectory(filePath, sessionDir);
+
+                    await fs.writeFile(filePath, file.content);
+
+                    // Set appropriate permissions
+                    if (safeFileName === 'Makefile') {
                         await fs.chmod(filePath, 0o644);
                     }
-                    
+
                     // Collect C source files for compilation
-                    if (file.name.endsWith('.c')) {
+                    if (safeFileName.endsWith('.c')) {
                         sourceFiles.push(filePath);
                     }
                 }

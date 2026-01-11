@@ -1,15 +1,21 @@
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
+const crypto = require('crypto');
 
 // JWT Configuration - loaded from environment variables
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-jwt-secret-do-not-use-in-production';
+// If JWT_SECRET is not set, generate a random one (tokens won't survive restarts!)
+let JWT_SECRET;
+if (process.env.JWT_SECRET) {
+    JWT_SECRET = process.env.JWT_SECRET;
+} else {
+    JWT_SECRET = crypto.randomBytes(64).toString('hex');
+    console.warn('⚠️  WARNING: JWT_SECRET not set in environment!');
+    console.warn('⚠️  Generated random secret - all tokens will be INVALIDATED on server restart!');
+    console.warn('⚠️  Set JWT_SECRET in .env for persistent sessions.');
+}
+
 const JWT_EXPIRES_IN = '1h';                    // Access token expires in 1 hour
 const REFRESH_TOKEN_EXPIRES_IN = '7d';          // Refresh token expires in 7 days
-
-// Validation - warn if using default secret
-if (JWT_SECRET === 'dev-only-jwt-secret-do-not-use-in-production') {
-    console.warn('⚠️  WARNING: Using default JWT secret - please set JWT_SECRET environment variable in production!');
-}
 
 // Rate limiting for auth endpoints - 5 attempts per 15 minutes
 const authLimiter = rateLimit({
