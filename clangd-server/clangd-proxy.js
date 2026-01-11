@@ -179,7 +179,7 @@ class ClangdProxy {
                 } catch (cleanupError) {
                     console.warn('Cleanup error for session', ws.sessionId + ':', cleanupError.message);
                 }
-            }, 300000); // 5 minute delay for potential reconnections
+            }, 30000); // 5 minute delay for potential reconnections
         });
 
         ws.on('error', (error) => {
