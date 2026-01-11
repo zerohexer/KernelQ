@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { Play, RotateCcw, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Play, RotateCcw, Loader2, Terminal, XCircle } from 'lucide-react';
 import CodeMirrorKernelEditor from '../Editor/CodeMirrorKernelEditor';
 import PremiumStyles from '../../styles/PremiumStyles';
 
@@ -186,43 +186,40 @@ const ConceptCodeRunner = ({
                 />
             </div>
 
-            {/* Output Section */}
+            {/* Output Section - Terminal Style */}
             {(output || errorMessage || status) && (
                 <div style={{
-                    background: '#252529',
+                    background: '#0d0d0d',
                     borderTop: '1px solid rgba(255, 255, 255, 0.08)'
                 }}>
-                    {/* Output Header */}
+                    {/* Terminal Header */}
                     <div style={{
-                        padding: '10px 16px',
+                        padding: '8px 16px',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
+                        background: '#1a1a1a',
                         borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
                     }}>
-                        {status === 'success' && (
-                            <CheckCircle size={14} color="#60a5fa" />
-                        )}
-                        {status === 'error' && (
+                        {status === 'error' ? (
                             <XCircle size={14} color="#ff453a" />
+                        ) : (
+                            <Terminal size={14} color="#ffffff" />
                         )}
                         <span style={{
-                            fontSize: '0.8rem',
-                            fontWeight: 500,
-                            color: status === 'success' ? '#60a5fa' :
-                                   status === 'error' ? '#ff453a' :
-                                   '#a1a1aa',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            color: status === 'error' ? '#ff453a' : '#ffffff',
                             textTransform: 'uppercase',
-                            letterSpacing: '0.05em'
+                            letterSpacing: '0.08em'
                         }}>
-                            {status === 'success' ? 'Output' :
-                             status === 'error' ? 'Error' : 'Output'}
+                            {status === 'error' ? 'Error' : 'Output'}
                         </span>
                     </div>
 
-                    {/* Output Content */}
+                    {/* Terminal Content */}
                     <div style={{
-                        padding: '14px 16px',
+                        padding: '12px 16px',
                         maxHeight: '250px',
                         overflow: 'auto'
                     }}>
@@ -230,9 +227,9 @@ const ConceptCodeRunner = ({
                             <pre style={{
                                 margin: 0,
                                 padding: 0,
-                                fontFamily: 'SF Mono, Monaco, monospace',
-                                fontSize: '0.875rem',
-                                lineHeight: 1.5,
+                                fontFamily: 'Fira Code, Monaco, Menlo, "Ubuntu Mono", Consolas, monospace',
+                                fontSize: '0.85rem',
+                                lineHeight: 1.6,
                                 color: '#ff453a',
                                 whiteSpace: 'pre-wrap',
                                 wordBreak: 'break-word'
@@ -241,18 +238,18 @@ const ConceptCodeRunner = ({
                             </pre>
                         )}
                         {output && (
-                            <div style={{
+                            <pre style={{
                                 margin: errorMessage ? '8px 0 0 0' : 0,
                                 padding: 0,
-                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif',
-                                fontSize: '0.9rem',
-                                lineHeight: 1.7,
-                                color: '#d4d4d8',
+                                fontFamily: 'Fira Code, Monaco, Menlo, "Ubuntu Mono", Consolas, monospace',
+                                fontSize: '0.85rem',
+                                lineHeight: 1.6,
+                                color: '#ffffff',
                                 whiteSpace: 'pre-wrap',
                                 wordBreak: 'break-word'
                             }}>
                                 {output}
-                            </div>
+                            </pre>
                         )}
                     </div>
                 </div>
