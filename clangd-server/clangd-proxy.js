@@ -17,21 +17,51 @@ class ClangdProxy {
     constructor() {
         this.server = http.createServer();
         this.wss = new WebSocket.Server({ server: this.server });
+        this.activeSessions = new Map(); // Track active connections per session
+        this.cleanupTimers = new Map(); // Track pending cleanup timers
         this.setupWebSocketServer();
+    }
+
+    // Helper function to ensure workspace directory exists
+    ensureWorkspaceExists(workingDir) {
+        if (!fs.existsSync(workingDir)) {
+            console.log('📁 Recreating deleted workspace:', workingDir);
+            fs.mkdirSync(workingDir, { recursive: true });
+
+            // Copy template files
+            const templateDir = path.join(__dirname, 'workspace');
+            if (fs.existsSync(templateDir)) {
+                try {
+                    const templateFiles = fs.readdirSync(templateDir);
+                    templateFiles.forEach(file => {
+                        const srcFile = path.join(templateDir, file);
+                        const destFile = path.join(workingDir, file);
+                        if (fs.existsSync(srcFile) && fs.statSync(srcFile).isFile()) {
+                            fs.copyFileSync(srcFile, destFile);
+                            console.log('📋 Restored template file:', file);
+                        }
+                    });
+                } catch (err) {
+                    console.warn('⚠️ Failed to restore template files:', err.message);
+                }
+            }
+            return true; // Workspace was recreated
+        }
+        return false; // Workspace already exists
     }
 
     setupWebSocketServer() {
         this.wss.on('connection', (ws, req) => {
             console.log('🔗 New WebSocket connection from:', req.connection.remoteAddress);
-            
+
             // Extract query parameters
             const url = new URL(req.url, `http://${req.headers.host}`);
             const stack = url.searchParams.get('stack') || 'clangd11';
             const sessionId = url.searchParams.get('session') || 'default';
-            
+
             console.log('📦 Requested stack:', stack);
             console.log('🎯 Session ID:', sessionId);
-            
+
             this.handleClangdConnection(ws, stack, sessionId);
         });
 
@@ -42,7 +72,21 @@ class ClangdProxy {
 
     handleClangdConnection(ws, stack, sessionId) {
         console.log('🚀 Starting clangd process for session:', sessionId);
-        
+
+        // Cancel any pending cleanup for this session
+        if (this.cleanupTimers.has(sessionId)) {
+            console.log('🔄 Cancelling pending cleanup for session:', sessionId);
+            clearTimeout(this.cleanupTimers.get(sessionId));
+            this.cleanupTimers.delete(sessionId);
+        }
+
+        // Track this connection
+        if (!this.activeSessions.has(sessionId)) {
+            this.activeSessions.set(sessionId, new Set());
+        }
+        this.activeSessions.get(sessionId).add(ws);
+        console.log(`📊 Active connections for session ${sessionId}: ${this.activeSessions.get(sessionId).size}`);
+
         // Create session-specific working directory
         const workingDir = path.join(__dirname, `workspace-${sessionId}`);
         const templateDir = path.join(__dirname, 'workspace');
@@ -168,24 +212,48 @@ class ClangdProxy {
             clearInterval(pingInterval); // Stop ping
             clangd.kill('SIGTERM');
 
-            // Clean up session workspace after delay (in case of reconnection)
-            setTimeout(() => {
-                try {
-                    if (fs.existsSync(ws.workingDir)) {
-                        console.log('Cleaning up session workspace:', ws.sessionId);
-                        fs.rmSync(ws.workingDir, { recursive: true, force: true });
-                        console.log('Session workspace cleaned up:', ws.sessionId);
-                    }
-                } catch (cleanupError) {
-                    console.warn('Cleanup error for session', ws.sessionId + ':', cleanupError.message);
+            // Remove this connection from tracking
+            if (this.activeSessions.has(ws.sessionId)) {
+                this.activeSessions.get(ws.sessionId).delete(ws);
+                const remainingConnections = this.activeSessions.get(ws.sessionId).size;
+                console.log(`📊 Remaining connections for session ${ws.sessionId}: ${remainingConnections}`);
+
+                // Only schedule cleanup if no more connections for this session
+                if (remainingConnections === 0) {
+                    this.activeSessions.delete(ws.sessionId);
+                    console.log(`⏳ Scheduling workspace cleanup for session ${ws.sessionId} in 30s...`);
+
+                    // Clean up session workspace after delay (in case of reconnection)
+                    const cleanupTimer = setTimeout(() => {
+                        // Double-check no new connections have been made
+                        if (!this.activeSessions.has(ws.sessionId) || this.activeSessions.get(ws.sessionId).size === 0) {
+                            try {
+                                if (fs.existsSync(ws.workingDir)) {
+                                    console.log('🧹 Cleaning up session workspace:', ws.sessionId);
+                                    fs.rmSync(ws.workingDir, { recursive: true, force: true });
+                                    console.log('✅ Session workspace cleaned up:', ws.sessionId);
+                                }
+                            } catch (cleanupError) {
+                                console.warn('⚠️ Cleanup error for session', ws.sessionId + ':', cleanupError.message);
+                            }
+                        } else {
+                            console.log(`🔄 Skipping cleanup for session ${ws.sessionId} - new connections exist`);
+                        }
+                        this.cleanupTimers.delete(ws.sessionId);
+                    }, 30000); // 30 second delay for potential reconnections
+
+                    this.cleanupTimers.set(ws.sessionId, cleanupTimer);
+                } else {
+                    console.log(`📊 Not scheduling cleanup - other connections still active for session ${ws.sessionId}`);
                 }
-            }, 30000); // 5 minute delay for potential reconnections
+            }
         });
 
         ws.on('error', (error) => {
             console.error('❌ WebSocket error for session:', ws.sessionId, error);
             clearInterval(pingInterval); // Stop ping
             clangd.kill('SIGTERM');
+            // Note: 'close' event will be fired after 'error', so cleanup is handled there
         });
     }
 
@@ -331,8 +399,12 @@ class ClangdProxy {
                     const doc = message.params.textDocument;
                     const uri = doc.uri;
                     const fileName = uri.split('/').pop();
+
+                    // Ensure workspace exists (may have been cleaned up)
+                    this.ensureWorkspaceExists(ws.workingDir);
+
                     const filePath = path.join(ws.workingDir, fileName);
-                    
+
                     // Write file content to workspace so clangd can access it
                     try {
                         fs.writeFileSync(filePath, doc.text);
@@ -341,14 +413,18 @@ class ClangdProxy {
                         console.warn('⚠️ Failed to write file to workspace:', fileName, writeError);
                     }
                 }
-                
-                // Handle textDocument/didChange to update files in workspace  
+
+                // Handle textDocument/didChange to update files in workspace
                 if (message.method === 'textDocument/didChange' && message.params && message.params.textDocument) {
                     const doc = message.params.textDocument;
                     const uri = doc.uri;
                     const fileName = uri.split('/').pop();
+
+                    // Ensure workspace exists (may have been cleaned up)
+                    this.ensureWorkspaceExists(ws.workingDir);
+
                     const filePath = path.join(ws.workingDir, fileName);
-                    
+
                     // Update file content in workspace
                     if (message.params.contentChanges && message.params.contentChanges.length > 0) {
                         const change = message.params.contentChanges[0];
