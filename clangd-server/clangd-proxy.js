@@ -152,11 +152,22 @@ class ClangdProxy {
         // Set up communication channels
         this.setupClangdCommunication(ws, clangd);
 
+        // ═══════════════════════════════════════════════════════════
+        // PING/PONG KEEPALIVE - Keeps connection alive while tab open
+        // ═══════════════════════════════════════════════════════════
+        const pingInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.ping();
+                console.log('💓 Ping sent to session:', ws.sessionId);
+            }
+        }, 10000); // Every 10 seconds
+
         // Handle client disconnect
         ws.on('close', () => {
             console.log('🔌 Client disconnected, terminating clangd for session:', ws.sessionId);
+            clearInterval(pingInterval); // Stop ping
             clangd.kill('SIGTERM');
-            
+
             // Clean up session workspace after delay (in case of reconnection)
             setTimeout(() => {
                 try {
@@ -168,11 +179,12 @@ class ClangdProxy {
                 } catch (cleanupError) {
                     console.warn('Cleanup error for session', ws.sessionId + ':', cleanupError.message);
                 }
-            }, 300000); // 30 second delay for potential reconnections
+            }, 300000); // 5 minute delay for potential reconnections
         });
 
         ws.on('error', (error) => {
             console.error('❌ WebSocket error for session:', ws.sessionId, error);
+            clearInterval(pingInterval); // Stop ping
             clangd.kill('SIGTERM');
         });
     }
