@@ -1,0 +1,72 @@
+diff --git a/node_modules/codemirror-languageserver/dist/index.js b/node_modules/codemirror-languageserver/dist/index.js
+index a851def..e8df25f 100644
+--- a/node_modules/codemirror-languageserver/dist/index.js
++++ b/node_modules/codemirror-languageserver/dist/index.js
+@@ -1,4 +1,4 @@
+-import { insertCompletionText, autocompletion as autocompletion$1 } from '@codemirror/autocomplete';
++import { insertCompletionText, autocompletion as autocompletion$1, snippet } from '@codemirror/autocomplete';
+ import { setDiagnostics } from '@codemirror/lint';
+ import { Facet } from '@codemirror/state';
+ import { ViewPlugin, hoverTooltip as hoverTooltip$1, EditorView, keymap } from '@codemirror/view';
+@@ -82,7 +82,7 @@ class LanguageServerClient {
+                     completion: {
+                         dynamicRegistration: true,
+                         completionItem: {
+-                            snippetSupport: false,
++                            snippetSupport: true,
+                             commitCharactersSupport: true,
+                             documentationFormat: ['markdown', 'plaintext'],
+                             deprecatedSupport: false,
+@@ -335,16 +335,50 @@ class LanguageServerPlugin {
+             }
+         }
+         const options = items.map((item) => {
+-            const { detail, label, kind, textEdit, documentation, additionalTextEdits, } = item;
++            const { detail, label, kind, textEdit, documentation, additionalTextEdits, insertText, insertTextFormat } = item;
++            const isSnippet = insertTextFormat === 2;
+             const completion = {
+                 label,
+                 detail,
+                 apply(view, completion, from, to) {
++                    // Handle snippet completions (insertTextFormat === 2)
++                    if (isSnippet) {
++                        const snippetText = (isLSPTextEdit(textEdit) ? textEdit.newText : insertText) || label;
++                        // Apply additional text edits first (like adding includes)
++                        if (additionalTextEdits) {
++                            additionalTextEdits
++                                .sort(({ range: { end: a } }, { range: { end: b } }) => {
++                                if (posToOffset(view.state.doc, a) <
++                                    posToOffset(view.state.doc, b)) {
++                                    return 1;
++                                }
++                                else if (posToOffset(view.state.doc, a) >
++                                    posToOffset(view.state.doc, b)) {
++                                    return -1;
++                                }
++                                return 0;
++                            })
++                                .forEach((textEdit) => {
++                                view.dispatch(view.state.update({
++                                    changes: {
++                                        from: posToOffset(view.state.doc, textEdit.range.start),
++                                        to: posToOffset(view.state.doc, textEdit.range.end),
++                                        insert: textEdit.newText,
++                                    },
++                                }));
++                            });
++                        }
++                        // Use CodeMirror's snippet function
++                        const snippetFn = snippet(snippetText);
++                        snippetFn(view, completion, from, to);
++                        return;
++                    }
++                    // Handle regular (non-snippet) completions
+                     if (isLSPTextEdit(textEdit)) {
+                         view.dispatch(insertCompletionText(view.state, textEdit.newText, posToOffset(view.state.doc, textEdit.range.start), posToOffset(view.state.doc, textEdit.range.end)));
+                     }
+                     else {
+-                        view.dispatch(insertCompletionText(view.state, label, from, to));
++                        view.dispatch(insertCompletionText(view.state, insertText || label, from, to));
+                     }
+                     if (!additionalTextEdits) {
+                         return;
