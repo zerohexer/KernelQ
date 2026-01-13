@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
+const { ipKeyGenerator } = require('express-rate-limit');
 const crypto = require('crypto');
 
 // JWT Configuration - loaded from environment variables
@@ -28,13 +29,13 @@ const authLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     // Handle proxy environments (Cloudflare, tunnels)
-    keyGenerator: (req) => {
-        // Use CF-Connecting-IP for Cloudflare, fallback to x-forwarded-for, then remote IP
-        return req.headers['cf-connecting-ip'] || 
-               req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
-               req.connection.remoteAddress || 
-               req.socket.remoteAddress || 
-               req.ip;
+    // Use ipKeyGenerator wrapper for proper IPv6 handling
+    keyGenerator: (req, res) => {
+        // Use CF-Connecting-IP for Cloudflare, fallback to x-forwarded-for, then default IP
+        const ip = req.headers['cf-connecting-ip'] ||
+                   req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                   ipKeyGenerator(req, res);
+        return ip;
     }
 });
 
