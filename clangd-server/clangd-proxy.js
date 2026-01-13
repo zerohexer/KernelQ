@@ -198,8 +198,24 @@ class ClangdProxy {
 
         // ═══════════════════════════════════════════════════════════
         // PING/PONG KEEPALIVE - Keeps connection alive while tab open
+        // Detects dead connections when client goes offline
         // ═══════════════════════════════════════════════════════════
+        let isAlive = true;
+
+        ws.on('pong', () => {
+            isAlive = true;
+            console.log('💚 Pong received from session:', ws.sessionId);
+        });
+
         const pingInterval = setInterval(() => {
+            if (isAlive === false) {
+                console.log('💀 No pong response - terminating dead connection for session:', ws.sessionId);
+                clearInterval(pingInterval);
+                ws.terminate(); // Force close dead connection
+                return;
+            }
+
+            isAlive = false; // Reset - will be set true when pong received
             if (ws.readyState === WebSocket.OPEN) {
                 ws.ping();
                 console.log('💓 Ping sent to session:', ws.sessionId);

@@ -3,7 +3,7 @@
  * Replaces SemanticCodeEditor with proper language server integration
  */
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import useIsMobile from '../../hooks/useIsMobile';
 import {
     EditorView,
@@ -74,9 +74,20 @@ const CodeMirrorKernelEditor = ({
     const editorRef = useRef(null);
     const lspClientRef = useRef(null);
     const syncedFilesRef = useRef(new Set());
+    const lspDisconnectedRef = useRef(false);
+    const reconnectTimeoutRef = useRef(null);
     const [status, setStatus] = useState('initializing');
     const [error, setError] = useState(null);
+    const [lspKey, setLspKey] = useState(0); // Key to force editor reinitialization
     const isMobile = useIsMobile();
+
+    // Store latest props in refs for reconnection
+    const latestPropsRef = useRef({ lspServerUri, allFiles, fileContents, sessionId });
+
+    // Update refs when props change
+    useEffect(() => {
+        latestPropsRef.current = { lspServerUri, allFiles, fileContents, sessionId };
+    }, [lspServerUri, allFiles, fileContents, sessionId]);
 
     // Theme compartment for dynamic theme switching
     const themeCompartment = new Compartment();
@@ -157,6 +168,18 @@ const CodeMirrorKernelEditor = ({
         
         console.log('✅ All files synced with clangd');
     };
+
+    // Reinitialize editor when LSP connection is lost
+    const reinitializeEditor = useCallback(() => {
+        if (!lspDisconnectedRef.current) return;
+
+        console.log('🔄 Reinitializing editor due to LSP disconnection...');
+        lspDisconnectedRef.current = false;
+        syncedFilesRef.current.clear(); // Reset synced files
+
+        // Increment key to force useEffect to re-run and reinitialize everything
+        setLspKey(prev => prev + 1);
+    }, []);
 
     // Create kernel-specific autocompletion source
     const createKernelCompletions = () => {
@@ -391,6 +414,7 @@ const CodeMirrorKernelEditor = ({
                             syncWs.onclose = () => {
                                 console.log('🔌 File sync WebSocket closed');
                                 lspClientRef.current = null;
+                                lspDisconnectedRef.current = true;
                             };
                         }, 1500); // Wait for main LSP to initialize
                         
@@ -488,6 +512,16 @@ const CodeMirrorKernelEditor = ({
                     EditorView.updateListener.of((update) => {
                         if (update.docChanged && onChange && !readOnly) {
                             onChange(update.state.doc.toString());
+
+                            // Auto-reinitialize editor if LSP disconnected (debounced)
+                            if (lspDisconnectedRef.current && enableLSP) {
+                                if (reconnectTimeoutRef.current) {
+                                    clearTimeout(reconnectTimeoutRef.current);
+                                }
+                                reconnectTimeoutRef.current = setTimeout(() => {
+                                    reinitializeEditor();
+                                }, 500); // Debounce 500ms
+                            }
                         }
                     }),
                     EditorView.theme({
@@ -680,6 +714,10 @@ const CodeMirrorKernelEditor = ({
 
         return () => {
             mounted = false;
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+                reconnectTimeoutRef.current = null;
+            }
             if (editorRef.current) {
                 editorRef.current.destroy();
                 editorRef.current = null;
@@ -691,8 +729,9 @@ const CodeMirrorKernelEditor = ({
         };
     // Note: isMobile is intentionally NOT in deps - we don't want to reinitialize
     // the editor when keyboard appears/disappears on mobile
+    // lspKey is included to allow forced reinitialization on LSP disconnection
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [enableLSP, lspServerUri, documentUri]);
+    }, [enableLSP, lspServerUri, documentUri, lspKey, reinitializeEditor]);
 
     // Sync files with LSP when allFiles or fileContents change
     useEffect(() => {
