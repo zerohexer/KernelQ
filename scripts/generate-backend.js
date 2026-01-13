@@ -57,6 +57,18 @@ class BackendGenerator {
             description: problem.description
         };
 
+        // 🔒 SECURITY: Include Makefile from problem definition
+        // Backend uses this instead of user-provided Makefile to prevent RCE
+        // The Makefile controls which .c files compile, so extra malicious .c files are ignored
+        if (problem.files) {
+            const makefileEntry = problem.files.find(f =>
+                f.name === 'Makefile' || f.name.toLowerCase() === 'makefile'
+            );
+            if (makefileEntry) {
+                testDef.makefile = makefileEntry.content;
+            }
+        }
+
         // Add exact requirements
         if (exactRequirements) {
             testDef.exactRequirements = {};

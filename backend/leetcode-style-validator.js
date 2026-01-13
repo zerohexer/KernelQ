@@ -97,7 +97,15 @@ class LeetCodeStyleValidator {
 
             // Step 3: Compilation (with testScenario support for kernel_project_test)
             const kernelProjectTest = testDef.testCases?.find(tc => tc.type === 'kernel_project_test');
-            const testScenario = kernelProjectTest?.testScenario || null;
+            let testScenario = kernelProjectTest?.testScenario || null;
+
+            // 🔒 SECURITY: Pass Makefile from test definition to compiler
+            // This ensures compilation uses server-controlled Makefile, not user-provided one
+            if (testDef.makefile) {
+                testScenario = testScenario || {};
+                testScenario.makefile = testDef.makefile;
+            }
+
             const compilation = await this.compileModule(codeOrFiles, moduleName, sessionId, testScenario);
             results.compilationResult = compilation;
             
@@ -746,7 +754,7 @@ class LeetCodeStyleValidator {
 
     checkSecurity(code) {
         const issues = [];
-        
+
         // Forbidden patterns in kernel code
         const forbidden = [
             { pattern: /\bprintf\s*\(/, message: 'Use printk() instead of printf() in kernel code' },
@@ -754,7 +762,12 @@ class LeetCodeStyleValidator {
             { pattern: /\bfree\s*\(/, message: 'Use kfree() instead of free() in kernel code' },
             { pattern: /#include\s*<stdio\.h>/, message: 'Remove stdio.h - not available in kernel space' },
             { pattern: /system\s*\(/, message: 'system() calls are forbidden in kernel code' },
-            { pattern: /exec\w*\s*\(/, message: 'exec() calls are forbidden in kernel code' }
+            { pattern: /exec\w*\s*\(/, message: 'exec() calls are forbidden in kernel code' },
+            // 🔒 SECURITY: Block absolute path includes to prevent info disclosure via GCC errors
+            // e.g., #include "/etc/passwd" could leak file contents in error messages
+            { pattern: /#include\s*["<]\//, message: 'Absolute path includes are forbidden - use relative paths only' },
+            // 🔒 SECURITY: Block path traversal in includes
+            { pattern: /#include\s*["<]\.\./, message: 'Path traversal in includes is forbidden' }
         ];
 
         for (const check of forbidden) {

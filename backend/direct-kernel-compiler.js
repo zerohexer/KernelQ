@@ -870,39 +870,20 @@ poweroff -f
             } else if (Array.isArray(codeOrFiles)) {
                 // New multi-file format
                 console.log(`📁 Multi-file compilation for ${moduleName} (${codeOrFiles.length} files)`);
-                
-                // Extract ALL module names from Makefile
-                let actualModuleName = moduleName;
-                const makefileContent = codeOrFiles.find(f => f.name === 'Makefile')?.content;
-                if (makefileContent) {
-                    // Match ALL obj-m entries (handles multiple modules like "obj-m += kernel_vector.o sensor_vector.o")
-                    const objMMatches = makefileContent.matchAll(/obj-m\s*\+=\s*([\w\s]+\.o)/g);
-                    const allModules = [];
 
-                    for (const match of objMMatches) {
-                        // Split by whitespace and extract module names
-                        const modules = match[1].split(/\s+/).filter(m => m.endsWith('.o')).map(m => m.replace('.o', ''));
-                        allModules.push(...modules);
-                    }
-
-                    if (allModules.length > 0) {
-                        actualModuleName = allModules[allModules.length - 1]; // Use last module as primary
-                        console.log(`📁 Multi-file: Found ${allModules.length} module(s) in Makefile: ${allModules.join(', ')}`);
-                        console.log(`📁 Multi-file: Using '${actualModuleName}' as primary module name`);
-                    }
-                }
-                
                 for (const file of codeOrFiles) {
-                    // Security: Sanitize filename to prevent path traversal attacks
-                    // Allow Makefile, .c, .h, .md, .txt files with safe names
-                    let safeFileName;
-                    if (file.name === 'Makefile') {
-                        safeFileName = 'Makefile';
-                    } else {
-                        // Extract basename and sanitize (removes any path components)
-                        const baseName = path.basename(file.name);
-                        safeFileName = this.sanitizeFileName(baseName);
+                    // 🔒 SECURITY: Always skip user-provided Makefiles - generate server-side instead
+                    // This prevents RCE via malicious Makefile content (e.g., shell commands in targets)
+                    // User Makefiles are defined in problem JSONs with readOnly:true for display only
+                    if (file.name.toLowerCase() === 'makefile' || file.name.endsWith('.mk')) {
+                        console.log(`🔒 Security: Ignoring user-provided ${file.name} - will generate safe Makefile server-side`);
+                        continue;
                     }
+
+                    // Security: Sanitize filename to prevent path traversal attacks
+                    // Allow .c, .h, .md, .txt files with safe names
+                    const baseName = path.basename(file.name);
+                    const safeFileName = this.sanitizeFileName(baseName);
 
                     const filePath = path.join(sessionDir, safeFileName);
 
@@ -911,20 +892,21 @@ poweroff -f
 
                     await fs.writeFile(filePath, file.content);
 
-                    // Set appropriate permissions
-                    if (safeFileName === 'Makefile') {
-                        await fs.chmod(filePath, 0o644);
-                    }
-
                     // Collect C source files for compilation
                     if (safeFileName.endsWith('.c')) {
                         sourceFiles.push(filePath);
                     }
                 }
-                
-                // Update moduleName for the rest of the compilation process
-                moduleName = actualModuleName;
-                
+
+                // 🔒 SECURITY: Write Makefile from test definition (not user input)
+                // This uses the Makefile defined in the problem JSON via generated-test-definitions.js
+                // The Makefile controls which .c files compile, so extra malicious .c files are ignored
+                if (testScenario?.makefile) {
+                    const makefilePath = path.join(sessionDir, 'Makefile');
+                    await fs.writeFile(makefilePath, testScenario.makefile);
+                    console.log(`🔒 Security: Using Makefile from test definition`);
+                }
+
                 // Run style check on all C files
                 const styleResults = [];
                 for (const sourceFile of sourceFiles) {
